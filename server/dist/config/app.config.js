@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.DATABASE_URL = exports.CREDENTIAL_ENCRYPTION_KEY = exports.TOKEN_EXPIRE_AT = exports.TOKEN_SECRET_KEY = exports.SALT_ROUNDS = exports.BASE_API_PATH = exports.CLIENT_URL = exports.IS_PRODUCTION_ENV = exports.PORT = void 0;
+exports.PORT = Number(process.env.PORT);
+exports.IS_PRODUCTION_ENV = process.env.ENV_NAME === "PRODUCTION";
+exports.CLIENT_URL = process.env.CLIENT_URL;
+exports.BASE_API_PATH = process.env.BASE_API_PATH;
+exports.SALT_ROUNDS = Number(process.env.SALT_ROUNDS);
+exports.TOKEN_SECRET_KEY = process.env.TOKEN_SECRET_KEY || "";
+exports.TOKEN_EXPIRE_AT = process.env.TOKEN_EXPIRE_AT;
+exports.CREDENTIAL_ENCRYPTION_KEY = process.env.CREDENTIAL_ENCRYPTION_KEY;
+exports.DATABASE_URL = process.env.DATABASE_URL;
