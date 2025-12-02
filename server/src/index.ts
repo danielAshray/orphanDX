@@ -8,6 +8,7 @@ import {
   globalErrorHandler,
   notFoundHandler,
 } from "./middleware/error.middleware";
+import path from "path";
 
 const main = async () => {
   try {
@@ -20,6 +21,12 @@ const main = async () => {
 
     app.use("/api", mainRoute);
 
+    const frontendPath = path.join(__dirname, "../../ui/dist");
+    app.use(express.static(frontendPath));
+
+    app.get(/^\/(?!api).*/, (_req, res) => {
+      res.sendFile(path.join(frontendPath, "index.html"));
+    });
     app.use(notFoundHandler);
     app.use(globalErrorHandler);
 
