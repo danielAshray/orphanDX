@@ -55,6 +55,9 @@ jobs:
           else
              echo '${{ secrets.QA_BE_ENV }}' >> .env
           fi
+      - name: Generate Prisma client
+        working-directory: server
+        run: npx prisma generate
       # ✅ Build backend
       - name: Build backend
         working-directory: server
