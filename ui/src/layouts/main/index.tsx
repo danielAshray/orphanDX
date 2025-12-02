@@ -1,5 +1,4 @@
 import { Button } from "@/components/button";
-import { ToastProvider } from "@/components/toaster";
 import { Building2, LogOut, Stethoscope } from "lucide-react";
 import { useState } from "react";
 import { Outlet } from "react-router-dom";
@@ -64,7 +63,7 @@ const Main = () => {
           </div>
         </div>
       </header>
-      
+
       <main className="container mx-auto p-4">
         <Outlet />
       </main>

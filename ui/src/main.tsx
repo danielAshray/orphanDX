@@ -4,14 +4,13 @@ import "@/styles/global/index.css";
 import App from "@/app";
 import { QueryClientProvider } from "@tanstack/react-query";
 import queryClient from "./config/query.config";
-import { ToastProvider } from "./components/toaster";
+import { ToastContainer } from "react-toastify";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <ToastProvider>
-        <App />
-      </ToastProvider>
+      <App />
+      <ToastContainer />
     </QueryClientProvider>
   </StrictMode>
 );

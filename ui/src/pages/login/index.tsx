@@ -1,29 +1,26 @@
+import { useLoginUser } from "@/api";
 import { ImageWithFallback, Input } from "@/components";
 import { Button } from "@/components/button";
 import { Card } from "@/components/card";
-import { useToast } from "@/components/toaster";
 import {
   Activity,
   CheckCircle,
   Database,
   Eye,
   EyeOff,
+  Loader,
   Shield,
   TrendingUp,
   Zap,
 } from "lucide-react";
 import { useState } from "react";
 
-interface LoginPageProps {
-  onLogin: () => void;
-}
-
-const Login = ({ onLogin }: LoginPageProps) => {
-  const { addToast } = useToast();
-
+const Login = () => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
+
+  const { mutate, isPending } = useLoginUser();
 
   const handleTogglePassword = () => {
     setShowPassword((prev) => !prev);
@@ -31,8 +28,7 @@ const Login = ({ onLogin }: LoginPageProps) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    addToast("Token expired", "error");
-    onLogin();
+    mutate({ email, password });
   };
 
   return (
@@ -209,8 +205,13 @@ const Login = ({ onLogin }: LoginPageProps) => {
                   </div>
                 </div>
 
-                <Button type="submit" variant="outline" className="w-full cursor-pointer">
-                  Sign In
+                <Button
+                  type="submit"
+                  variant="outline"
+                  disabled={isPending}
+                  className="w-full cursor-pointer"
+                >
+                  Sign In {isPending && <Loader className=" animate-spin" />}
                 </Button>
               </form>
 
