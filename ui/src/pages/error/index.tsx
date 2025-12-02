@@ -1,7 +1,7 @@
 import React from "react";
 
 const Error: React.FC = () => {
-  return <div>error</div>;
+  return <div>Not Found</div>;
 };
 
 export default Error;

@@ -1,6 +1,6 @@
 import axios from "axios";
 import { config } from "./env";
-import { getAuthUser, removeAuthUser } from "@/lib/storage/authStorage";
+import { localStorageUtil } from "@/lib/storage/localStorage";
 
 const api = axios.create({
   baseURL: config.BASE_URL,
@@ -9,11 +9,9 @@ const api = axios.create({
 
 api.interceptors.request.use(
   async (config) => {
-    const auth = getAuthUser();
-
-    if (auth?.maskedAccessToken) {
-      config.headers.Authorization = `Bearer ${auth.maskedAccessToken}`;
-    }
+    const token = localStorageUtil.get("token");
+    console.log(token);
+    config.headers.Authorization = `Bearer ${token}`;
 
     return config;
   },
@@ -25,12 +23,15 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (
+      error.response?.status === 401 &&
+      error.response?.code === "LOGOUT" &&
+      !originalRequest._retry
+    ) {
       originalRequest._retry = true;
 
       setTimeout(() => {
-        removeAuthUser();
-        window.location.href = "/login";
+        localStorageUtil.remove("token");
       }, 1000);
 
       return Promise.reject(error);

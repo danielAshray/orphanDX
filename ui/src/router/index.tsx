@@ -1,22 +1,12 @@
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-import { Error, Home, Lab, Login, Provider } from "@/pages";
-import { Main } from "@/layouts";
+import { Login } from "@/pages";
+import { localStorageUtil } from "@/lib/storage/localStorage";
+import Screening from "./Screening";
 
 const Router = () => {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/" element={<Main />}>
-          <Route index element={<Navigate to="/" replace />} />
-          <Route path="/home" element={<Home />} />
-          <Route path="/lab" element={<Lab />} />
-          <Route path="/provider" element={<Provider />} />
-          <Route path="*" element={<Error />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
-  );
+  const token = localStorageUtil.get("token");
+
+  if (!token) return <Login />;
+  return <Screening />;
 };
 
 export default Router;

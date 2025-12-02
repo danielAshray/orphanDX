@@ -2,6 +2,7 @@ export const localStorageUtil = {
   set: (key: string, value: any) => {
     try {
       localStorage.setItem(key, JSON.stringify(value));
+      window.location.reload();
     } catch (error) {
       console.error("LocalStorage set error:", error);
     }
@@ -20,6 +21,7 @@ export const localStorageUtil = {
   remove: (key: string) => {
     try {
       localStorage.removeItem(key);
+      window.location.reload();
     } catch (error) {
       console.error("LocalStorage remove error:", error);
     }

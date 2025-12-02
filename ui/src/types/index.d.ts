@@ -113,15 +113,11 @@ export interface EventLog {
   metadata: Record<string, any>;
 }
 
+export type UserRole = "ADMIN" | "PROVIDER" | "LAB";
 export interface AuthUserProps {
   id: number;
   name: string;
   email: string;
-  role: {
-    id: number;
-    name: string; // "ADMIN" | "PROVIDER" | "LAB" etc.
-  };
-  status: string; // "ACTIVE" | "INACTIVE"
-  refreshToken: string;
-  maskedAccessToken: string;
+  role: UserRole;
+  status: string;
 }

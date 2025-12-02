@@ -1,8 +1,7 @@
 import { UserRole } from "@prisma/client";
 import { Request, Response, NextFunction, RequestHandler } from "express";
 import jwt from "jsonwebtoken";
-
-const JWT_SECRET = process.env.JWT_SECRET || "devnaruto078";
+import { TOKEN_SECRET_KEY } from "../config/app.config";
 
 interface JwtPayload {
   id: number;
@@ -27,20 +26,22 @@ export const authenticate = (
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ message: "Unauthorized: No token provided" });
+    return res
+      .status(401)
+      .json({ message: "Unauthorized: No token provided", code: "LOGOUT" });
   }
 
   const token = authHeader.split(" ")[1];
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
+    const decoded = jwt.verify(token, TOKEN_SECRET_KEY) as JwtPayload;
     req.id = decoded.id;
     req.role = decoded.role;
     next();
   } catch (error) {
     return res
       .status(401)
-      .json({ message: "Unauthorized: Invalid token", tokenStatus: false });
+      .json({ message: "Unauthorized: Invalid token", code: "LOGOUT" });
   }
 };
 

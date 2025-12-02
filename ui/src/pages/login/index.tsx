@@ -2,6 +2,7 @@ import { useLoginUser } from "@/api";
 import { ImageWithFallback, Input } from "@/components";
 import { Button } from "@/components/button";
 import { Card } from "@/components/card";
+import { localStorageUtil } from "@/lib/storage/localStorage";
 import {
   Activity,
   CheckCircle,
@@ -28,7 +29,14 @@ const Login = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    mutate({ email, password });
+    mutate(
+      { email, password },
+      {
+        onSuccess: (res) => {
+          localStorageUtil.set("token", res.token);
+        },
+      }
+    );
   };
 
   return (

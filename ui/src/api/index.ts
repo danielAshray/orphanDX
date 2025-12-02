@@ -1,14 +1,17 @@
 import Notification from "@/components/toaster";
-import { config } from "@/config/env";
+import api from "@/config/axios.config";
 import { getErrorMessage } from "@/utils";
 import { useMutation } from "@tanstack/react-query";
-import axios from "axios";
 
 type LoginDataType = { email: string; password: string };
 const loginApi = async (props: LoginDataType) => {
-  const response = await axios
-    .post(`${config.BASE_URL}/user/login`, props)
-    .then((res) => res.data);
+  const response = await api.post(`/user/login`, props).then((res) => res.data);
+
+  return response;
+};
+
+export const getProfileApi = async () => {
+  const response = await api.get(`user/profile`).then((res) => res.data);
 
   return response;
 };

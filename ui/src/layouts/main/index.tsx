@@ -1,19 +1,12 @@
 import { Button } from "@/components/button";
-import { Building2, LogOut, Stethoscope } from "lucide-react";
-import { useState } from "react";
+import { localStorageUtil } from "@/lib/storage/localStorage";
+import type { AuthUserProps } from "@/types";
+import { LogOut } from "lucide-react";
 import { Outlet } from "react-router-dom";
 
-const Main = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [viewMode, setViewMode] = useState<"provider" | "lab">("provider");
-
-  if (!isLoggedIn) {
-    // return <LoginPage onLogin={() => setIsLoggedIn(true)} />;
-  }
-
+const Main = ({ user }: { user: AuthUserProps }) => {
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-[1600px] mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
@@ -30,30 +23,11 @@ const Main = () => {
             </div>
 
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
-                <Button
-                  variant={viewMode === "provider" ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setViewMode("provider")}
-                  className="gap-2"
-                >
-                  <Stethoscope className="w-4 h-4" />
-                  Provider View
-                </Button>
-                <Button
-                  variant={viewMode === "lab" ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setViewMode("lab")}
-                  className="gap-2"
-                >
-                  <Building2 className="w-4 h-4" />
-                  Lab View
-                </Button>
-              </div>
+              <p>{user.role}</p>
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setIsLoggedIn(false)}
+                onClick={() => localStorageUtil.remove("token")}
                 className="gap-2"
               >
                 <LogOut className="w-4 h-4" />
