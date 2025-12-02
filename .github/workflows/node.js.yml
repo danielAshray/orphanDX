@@ -1,0 +1,73 @@
+#ORPHAN DEPLOYMENT SCRIPT
+
+name: ORPHAN_RUNNER
+
+on:
+  push:
+    branches:
+      - 'PROD_ORPHAN'
+
+jobs:
+  build:
+    runs-on: ${{ github.ref == 'refs/heads/PROD_ORPHAN' && 'evv-self-orphan' }}
+    strategy:
+      matrix:
+        node-version: [23.x]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: |
+            server/package-lock.json
+            ui/package-lock.json
+      # ✅ Install backend dependencies
+      - name: Install backend dependencies
+        working-directory: server
+        run: npm ci
+
+      # ✅ Install frontend dependencies
+      - name: Install frontend dependencies
+        working-directory: ui
+        run: npm ci
+
+      # ✅ Create .env inside the UI folder (Different for QA/Prod)
+      - name: Setup UI environment file
+        working-directory: ui
+        run: |
+          touch .env
+          if [[ "${{ github.ref }}" == "refs/heads/PROD_ORPHAN" ]]; then
+           echo '${{ secrets.FE_ENV }}' >> .env
+          else
+            echo '${{ secrets.QA_FE_ENV }}' >> .env
+          fi
+      # ✅ Create .env inside the server folder (Different for QA/Prod)
+      - name: Setup Server environment file
+        working-directory: server
+        run: |
+          touch .env
+          if [[ "${{ github.ref }}" == "refs/heads/PROD_ORPHAN" ]]; then
+             echo '${{ secrets.BE_ENV }}' >> .env
+          else
+             echo '${{ secrets.QA_BE_ENV }}' >> .env
+          fi
+      # ✅ Build backend
+      - name: Build backend
+        working-directory: server
+        run: npm run build
+
+      # ✅ Start the Node.js server with PM2
+      - name: Start Node.js server with PM2
+        working-directory: server
+        run: |
+          pm2 delete BE_ORPHAN || true
+          pm2 start dist/index.js --name BE_ORPHAN
+          pm2 save
+      # ✅ Build frontend (React)
+      - name: Build frontend
+        working-directory: ui
+        run: npm run build
