@@ -1,35 +1,30 @@
-import { configDotenv } from "dotenv";
-configDotenv();
+import "dotenv/config";
+import express from "express";
+import cors from "cors";
+import helmet from "helmet";
+import { CLIENT_URL, PORT } from "./config/app.config";
+import mainRoute from "./routes";
 
-import { AppConfig } from "./config/app.config";
-import app from "./app";
-import { logger } from "./utils/logger";
-import PrismaService from "./db/prismaService";
+const main = async () => {
+  try {
+    const app = express();
+    app.use(cors({ origin: CLIENT_URL }));
+    app.use(helmet());
+    app.use(express.json({ limit: "50mb" }));
+    app.use(express.urlencoded({ extended: true }));
+    app.use(express.text({ type: "text/xml" }));
 
-class Server {
-  private port: number;
+    app.use("/api", mainRoute);
+    app.listen(PORT, () => {
+      console.info(`Server running on port ${PORT}`);
+    });
 
-  constructor(port: number) {
-    this.port = port;
+    process.on("SIGINT", async () => {
+      process.exit(0);
+    });
+  } catch (error: any) {
+    console.error(`Server failed to start: ${error}`);
+    process.exit(1);
   }
-
-  public async start(): Promise<void> {
-    try {
-      await PrismaService.connect();
-
-      app.listen(this.port, () => {
-        logger.info(`Server running on port ${this.port}`);
-      });
-
-      process.on("SIGINT", async () => {
-        await PrismaService.disconnect();
-        process.exit(0);
-      });
-    } catch (error: any) {
-      logger.error(`Server failed to start: ${error}`);
-      process.exit(1);
-    }
-  }
-}
-
-new Server(AppConfig.PORT).start();
+};
+main();

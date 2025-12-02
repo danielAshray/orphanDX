@@ -1,21 +1,11 @@
 import bcrypt from "bcryptjs";
-import { AppConfig } from "../config/app.config";
-import { logger } from "./logger";
-import { ApiError } from "./apiError";
+import { SALT_ROUNDS } from "../config/app.config";
 
-class BcryptService {
-  static hashPassword = (password: string) => {
-    if (!AppConfig.SALT_ROUNDS) {
-      const message = "SALT_ROUNDS is not defined";
-      logger.error(message);
-      throw ApiError.internal(message);
-    }
-    return bcrypt.hashSync(password, AppConfig.SALT_ROUNDS);
-  };
+const getHashPassword = (password: string): string => {
+  return bcrypt.hashSync(password, SALT_ROUNDS);
+};
+const compareHashPassword = (password: string, hash: string): boolean => {
+  return bcrypt.compareSync(password, hash);
+};
 
-  static comparePassword = (password: string, hash: string) => {
-    return bcrypt.compareSync(password, hash);
-  };
-}
-
-export default BcryptService;
+export { getHashPassword, compareHashPassword };

@@ -1,23 +1,14 @@
 import { Request, Response, NextFunction } from "express";
-import { ApiError } from "../utils/apiError";
-import ResponseHandler from "../utils/responseHandler";
-import PrismaService from "../db/prismaService";
+import { prisma } from "../prisma";
 
-class EventController {
-  async getEvents(_req: Request, res: Response, next: NextFunction) {
-    try {
-      const events = await PrismaService.client.event.findMany({});
+const getEvents = async (_req: Request, res: Response, next: NextFunction) => {
+  try {
+    const events = await prisma.event.findMany({});
 
-      ResponseHandler.send(res, {
-        success: true,
-        code: 200,
-        message: "Events fetched successfully",
-        data: events,
-      });
-    } catch (error: any) {
-      next(ApiError.internal(undefined, error.message));
-    }
+    return res.status(200).json(events);
+  } catch (error) {
+    next(error);
   }
-}
+};
 
-export default EventController;
+export { getEvents };
