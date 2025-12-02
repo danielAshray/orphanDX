@@ -6,7 +6,6 @@ datasource db {
   provider = "postgresql"
 }
 
-// ------------------------- Enums -------------------------
 enum UserRole {
   ADMIN
   PROVIDER
@@ -51,56 +50,16 @@ enum Status {
   ARCHIVED
 }
 
-// ------------------------- RBAC -------------------------
-model Role {
-  id          Int      @id @default(autoincrement())
-  name        UserRole @unique
-  description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  users           User[]
-  rolePermissions RolePermission[]
-}
-
-model Permission {
-  id          Int      @id @default(autoincrement())
-  action      String
-  resource    String
-  description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  rolePermissions RolePermission[]
-
-  @@unique([action, resource], name: "action_resource")
-}
-
-model RolePermission {
-  id           Int      @id @default(autoincrement())
-  roleId       Int
-  permissionId Int
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  role       Role       @relation(fields: [roleId], references: [id])
-  permission Permission @relation(fields: [permissionId], references: [id])
-
-  @@unique([roleId, permissionId], name: "roleId_permissionId")
-}
-
-// ------------------------- User & Auth -------------------------
 model User {
   id        Int      @id @default(autoincrement())
   name      String
   email     String   @unique
   password  String
-  roleId    Int
+  role UserRole
   status    Status   @default(ACTIVE)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  role  Role   @relation(fields: [roleId], references: [id])
   auths Auth[]
 
   provider Provider?

@@ -17,7 +17,7 @@ const getProfile = async (
         id: true,
         name: true,
         email: true,
-        role: { select: { id: true, name: true } },
+        role: true,
         status: true,
       },
     });
@@ -47,7 +47,7 @@ const loginUser = async (req: Request, res: Response, next: NextFunction) => {
         name: true,
         email: true,
         password: true,
-        role: { select: { id: true, name: true } },
+        role: true,
         status: true,
       },
     });
@@ -92,25 +92,15 @@ const registerUser = async (
       return next({ code: 400, message: "User already exists" });
     }
 
-    const roleExists = await prisma.role.findUnique({
-      where: { name: role },
-    });
-
-    if (!roleExists) {
-      return next({ code: 400, message: "Role not found" });
-    }
-
     const hashPassword = getHashPassword(password);
 
-    const userPayload = {
-      name,
-      email,
-      password: hashPassword,
-      roleId: roleExists.id,
-    };
-
     const newUser = await prisma.user.create({
-      data: userPayload,
+      data: {
+        name,
+        email,
+        password: hashPassword,
+        role,
+      },
     });
 
     return res.status(200).json(newUser);

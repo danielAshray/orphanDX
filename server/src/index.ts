@@ -4,6 +4,10 @@ import cors from "cors";
 import helmet from "helmet";
 import { CLIENT_URL, PORT } from "./config/app.config";
 import mainRoute from "./routes";
+import {
+  globalErrorHandler,
+  notFoundHandler,
+} from "./middleware/error.middleware";
 
 const main = async () => {
   try {
@@ -15,6 +19,10 @@ const main = async () => {
     app.use(express.text({ type: "text/xml" }));
 
     app.use("/api", mainRoute);
+
+    app.use(notFoundHandler);
+    app.use(globalErrorHandler);
+
     app.listen(PORT, () => {
       console.info(`Server running on port ${PORT}`);
     });
