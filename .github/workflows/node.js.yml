@@ -9,7 +9,7 @@ on:
 
 jobs:
   build:
-    runs-on: ${{ github.ref == 'refs/heads/PROD_ORPHAN' && 'evv-self-orphan' }}
+    runs-on: ${{ github.ref == 'refs/heads/PROD_ORPHAN' && 'self-hosted-orphan' }}
     strategy:
       matrix:
         node-version: [23.x]
