@@ -1,0 +1,30 @@
+[
+    {
+        "id": 1,
+        "name": "Pawan Shahi",
+        "email": "pawan@example.com",
+        "role": "admin",
+        "createdAt": "2025-01-15T10:00:00Z"
+    },
+    {
+        "id": 2,
+        "name": "Sita Sharma",
+        "email": "sita@example.com",
+        "role": "user",
+        "createdAt": "2025-02-20T14:30:00Z"
+    },
+    {
+        "id": 3,
+        "name": "Ram Thapa",
+        "email": "ram@example.com",
+        "role": "user",
+        "createdAt": "2025-03-10T09:45:00Z"
+    },
+    {
+        "id": 4,
+        "name": "Anita KC",
+        "email": "anita@example.com",
+        "role": "admin",
+        "createdAt": "2025-05-01T12:00:00Z"
+    }
+]

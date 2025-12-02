@@ -1,0 +1,390 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ------------------------- Enums -------------------------
+enum UserRole {
+  ADMIN
+  PROVIDER
+  LAB
+}
+
+enum PatientRecommendationStatus {
+  PENDING
+  ACCEPTED
+  DISMISSED
+}
+
+enum OrderStatus {
+  COLLECTED
+  IN_PROGRESS
+  SMS_SENT
+  SCHEDULED
+  COMPLETED
+}
+
+enum TestFrequency {
+  QUARTERLY
+  SEMI_ANNUAL
+  ANNUAL
+}
+
+enum TestPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum Status {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+// ------------------------- RBAC -------------------------
+model Role {
+  id          Int      @id @default(autoincrement())
+  name        UserRole @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users           User[]
+  rolePermissions RolePermission[]
+}
+
+model Permission {
+  id          Int      @id @default(autoincrement())
+  action      String
+  resource    String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  rolePermissions RolePermission[]
+
+  @@unique([action, resource], name: "action_resource")
+}
+
+model RolePermission {
+  id           Int      @id @default(autoincrement())
+  roleId       Int
+  permissionId Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  role       Role       @relation(fields: [roleId], references: [id])
+  permission Permission @relation(fields: [permissionId], references: [id])
+
+  @@unique([roleId, permissionId], name: "roleId_permissionId")
+}
+
+// ------------------------- User & Auth -------------------------
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  roleId    Int
+  status    Status   @default(ACTIVE)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  role  Role   @relation(fields: [roleId], references: [id])
+  auths Auth[]
+
+  provider Provider?
+  labUser  LabUser?
+}
+
+model Auth {
+  id                Int       @id @default(autoincrement())
+  userId            Int
+  accessToken       String
+  refreshToken      String    @unique
+  maskedAccessToken String    @unique
+  accessExpiresAt   DateTime
+  refreshExpiresAt  DateTime
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+}
+
+// ------------------------- Practice -------------------------
+model Practice {
+  id        Int      @id @default(autoincrement())
+  name      String
+  ehrVendor String
+  ehrOrgId  String
+  status    Status   @default(ACTIVE)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  providers Provider[]
+  patients  Patient[]
+}
+
+// ------------------------- Provider -------------------------
+model Provider {
+  id         Int      @id @default(autoincrement())
+  userId     Int      @unique
+  practiceId Int
+  npiNumber  String
+  status     Status   @default(ACTIVE)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user                   User                    @relation(fields: [userId], references: [id])
+  practice               Practice                @relation(fields: [practiceId], references: [id])
+  patientRecommendations PatientRecommendation[]
+  orders                 Order[]
+
+  @@index([practiceId])
+}
+
+// ------------------------- Patient -------------------------
+model Patient {
+  id             Int       @id @default(autoincrement())
+  name           String
+  practiceId     Int
+  ehrPatientId   String
+  dob            DateTime
+  gender         Gender
+  lastVisit      DateTime?
+  phone          String
+  email          String
+  isDeidentified Boolean   @default(false)
+  status         Status    @default(ACTIVE)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  practice        Practice                @relation(fields: [practiceId], references: [id])
+  orders          Order[]
+  insurancePlans  PatientInsurancePlan[]
+  diagnoses       PatientDiagnosis[]
+  recommendations PatientRecommendation[]
+
+  @@index([practiceId])
+  @@index([ehrPatientId])
+}
+
+// ------------------------- Insurance -------------------------
+model InsuranceProvider {
+  id        Int      @id @default(autoincrement())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  plans InsurancePlan[]
+}
+
+model InsurancePlan {
+  id         Int      @id @default(autoincrement())
+  providerId Int
+  name       String
+  code       String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now())
+
+  provider      InsuranceProvider      @relation(fields: [providerId], references: [id])
+  patientPlans  PatientInsurancePlan[]
+  testCoverages TestCoverage[]
+
+  @@index([providerId])
+}
+
+model PatientInsurancePlan {
+  id              Int       @id @default(autoincrement())
+  patientId       Int
+  insurancePlanId Int
+  startDate       DateTime  @default(now())
+  endDate         DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  patient       Patient       @relation(fields: [patientId], references: [id])
+  insurancePlan InsurancePlan @relation(fields: [insurancePlanId], references: [id])
+
+  @@unique([patientId, insurancePlanId], name: "patient_insurance_unique")
+  @@index([patientId])
+  @@index([insurancePlanId])
+}
+
+// ------------------------- Diagnosis -------------------------
+model Diagnosis {
+  id        Int      @id @default(autoincrement())
+  name      String
+  icd10     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  patientDiagnoses PatientDiagnosis[]
+
+  @@index([icd10])
+}
+
+model PatientDiagnosis {
+  id          Int      @id @default(autoincrement())
+  patientId   Int
+  diagnosisId Int
+  onsetDate   DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  patient   Patient   @relation(fields: [patientId], references: [id])
+  diagnosis Diagnosis @relation(fields: [diagnosisId], references: [id])
+
+  @@index([patientId])
+  @@index([diagnosisId])
+}
+
+// ------------------------- Lab & Test -------------------------
+model LabUser {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @unique
+  labId     Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+  lab  Lab  @relation(fields: [labId], references: [id])
+
+  @@index([labId])
+}
+
+model Lab {
+  id        Int      @id @default(autoincrement())
+  name      String
+  logoUrl   String
+  status    Status   @default(ACTIVE)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  tests    Test[]
+  orders   Order[]
+  labUsers LabUser[]
+}
+
+model Test {
+  id          Int      @id @default(autoincrement())
+  labId       Int
+  name        String
+  description String
+  cptCode     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now())
+
+  lab              Lab                     @relation(fields: [labId], references: [id])
+  eligibilityRules TestEligibilityRule[]
+  recommendations  PatientRecommendation[]
+  orders           Order[]
+  testCoverages    TestCoverage[]
+
+  @@index([labId])
+}
+
+// ------------------------- Test Eligibility -------------------------
+model TestEligibilityRule {
+  id        Int      @id @default(autoincrement())
+  testId    Int
+  payer     String
+  rule      Json
+  language  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  test Test @relation(fields: [testId], references: [id])
+
+  @@index([testId])
+}
+
+// ------------------------- Recommendations -------------------------
+model PatientRecommendation {
+  id         Int                         @id @default(autoincrement())
+  patientId  Int
+  testId     Int
+  providerId Int
+  status     PatientRecommendationStatus @default(PENDING)
+  reason     Json?
+  priority   TestPriority                @default(LOW)
+  resolvedAt DateTime?
+  createdAt  DateTime                    @default(now())
+  updatedAt  DateTime                    @updatedAt
+
+  patient  Patient  @relation(fields: [patientId], references: [id])
+  test     Test     @relation(fields: [testId], references: [id])
+  provider Provider @relation(fields: [providerId], references: [id])
+
+  @@index([patientId])
+  @@index([providerId])
+  @@index([testId])
+}
+
+// ------------------------- Orders -------------------------
+model Order {
+  id                Int         @id @default(autoincrement())
+  patientId         Int
+  testId            Int
+  providerId        Int
+  labId             Int?
+  requisitionPdfUrl String
+  smsSent           Boolean     @default(false)
+  status            OrderStatus @default(IN_PROGRESS)
+  scheduledDate     DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  patient  Patient  @relation(fields: [patientId], references: [id])
+  test     Test     @relation(fields: [testId], references: [id])
+  provider Provider @relation(fields: [providerId], references: [id])
+  lab      Lab?     @relation(fields: [labId], references: [id])
+
+  @@index([patientId])
+  @@index([providerId])
+  @@index([labId])
+  @@index([status])
+}
+
+// ------------------------- Events -------------------------
+model Event {
+  id        Int      @id @default(autoincrement())
+  eventType String
+  entityId  Int
+  metadata  Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  @@index([eventType])
+}
+
+// ------------------------- Test Coverage -------------------------
+model TestCoverage {
+  id          Int           @id @default(autoincrement())
+  testId      Int
+  insuranceId Int
+  frequency   TestFrequency
+  notes       String
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @default(now())
+
+  test      Test          @relation(fields: [testId], references: [id])
+  insurance InsurancePlan @relation(fields: [insuranceId], references: [id])
+
+  @@index([testId])
+  @@index([insuranceId])
+}
