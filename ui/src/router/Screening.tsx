@@ -1,7 +1,9 @@
 import { getProfileApi } from "@/api";
+import PdfPage from "@/elements/pdfs/PdfViewer";
 import { Main } from "@/layouts";
 import { Lab, Provider } from "@/pages";
 import type { AuthUserProps, UserRole } from "@/types";
+import { PDFViewer } from "@react-pdf/renderer";
 import { useQuery } from "@tanstack/react-query";
 import { Loader } from "lucide-react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
@@ -35,6 +37,7 @@ const Screening = () => {
         <Route path="/" element={<Main user={userData} />}>
           <Route index element={renderComponent[userData.role]} />
           <Route path="*" element={<>not found</>} />
+          <Route path="/pdf" element={<PdfPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
