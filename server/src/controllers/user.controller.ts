@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { prisma } from "../prisma";
 import { compareHashPassword, getHashPassword } from "../utils/bcryptService";
 import jwt from "jsonwebtoken";
-import { TOKEN_SECRET_KEY } from "../config/app.config";
+import { PF_JWT_SECRET, TOKEN_SECRET_KEY } from "../config/app.config";
 import { AuthenticatedRequest } from "../middleware/auth.middleware";
 import crypto from "crypto";
 
@@ -150,7 +150,7 @@ const practiceFusionLogin = async (
 
     const token = jwt.sign(
       { id: userExists.id, role: userExists.role, email: userExists.email },
-      TOKEN_SECRET_KEY,
+      PF_JWT_SECRET,
       { expiresIn: "10m" }
     );
 
@@ -191,17 +191,12 @@ const practiceFusionCallback = async (
 
     const decoded = jwt.verify(
       token as string,
-      TOKEN_SECRET_KEY
+      PF_JWT_SECRET
     ) as PfTokenPayload;
 
     const user = await prisma.user.findUnique({ where: { id: decoded.id } });
     if (!user) {
       const msg = "User not found";
-      if (req.headers.accept?.includes("text/html")) {
-        return res.redirect(
-          `https://app.orphandx.com/error?message=${encodeURIComponent(msg)}`
-        );
-      }
       return res.status(404).json({
         success: false,
         message: msg,
