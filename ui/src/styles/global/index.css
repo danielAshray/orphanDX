@@ -43,6 +43,14 @@
   --sidebar-ring: oklch(0.708 0 0);
 }
 
+@theme {
+  --color-offWhite-1: #f4f3f3;
+  --color-custom-gray-1: #dfdfdf;
+  --color-custom-green-1: #bfd8d5;
+  --color-custom-blue-1: #b1bed5;
+  --color-strong-blue: #13294d;
+}
+
 .dark {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);

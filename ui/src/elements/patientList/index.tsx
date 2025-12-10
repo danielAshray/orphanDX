@@ -76,7 +76,7 @@ const PatientList = ({
   );
 
   return (
-    <Card className="flex flex-col">
+    <Card className="flex flex-col pb-4">
       <div className="p-4 border-b border-gray-200">
         <h2 className="text-gray-900 mb-3">Patient List</h2>
         <div className="relative">
@@ -85,7 +85,7 @@ const PatientList = ({
             placeholder="Search by name or MRN..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
+            className="pl-10 "
           />
         </div>
       </div>
@@ -217,7 +217,7 @@ function PatientCard({ patient, isSelected, onClick }: PatientCardProps) {
       onClick={onClick}
       className={`w-full text-left p-3 rounded-lg border transition-colors ${
         isSelected
-          ? "border-blue-500 bg-blue-50"
+          ? "border-custom-green-1 bg-offWhite-1"
           : "border-gray-200 bg-white hover:bg-gray-50"
       } ${patient.isCandidate ? "border-l-4 border-l-orange-500" : ""}`}
     >

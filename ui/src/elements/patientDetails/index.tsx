@@ -92,7 +92,7 @@ const PatientDetails = ({ patient }: PatientDetailsProps) => {
 
   return (
     <>
-      <Card className="flex flex-col">
+      <Card className="flex flex-col pb-4">
         <div className="p-4 border-b border-gray-200">
           <div className="flex items-start justify-between">
             <div>
@@ -100,7 +100,7 @@ const PatientDetails = ({ patient }: PatientDetailsProps) => {
               <p className="text-sm text-gray-500">MRN: {patient.mrn}</p>
             </div>
             {patient.isCandidate && (
-              <Badge className="bg-orange-100 text-orange-700 border-orange-200">
+              <Badge className="bg-custom-green-1 text-gray-500 ">
                 Test Candidate
               </Badge>
             )}
@@ -317,7 +317,7 @@ const PatientDetails = ({ patient }: PatientDetailsProps) => {
                     {patient.recommendedTests.map((test) => (
                       <div
                         key={test.id}
-                        className="p-4 bg-orange-50 border border-orange-200 rounded-lg"
+                        className="p-4 bg-custom-green-1 border border-orange-200 rounded-lg"
                       >
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex-1">

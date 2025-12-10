@@ -60,7 +60,7 @@ const Provider = () => {
     <div className="max-w-[1600px] mx-auto px-6 py-6">
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <Card className="p-4">
+        <Card className="p-4 bg-linear-to-br from-gray-green-1 to-offwhite-1">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Total Patients</p>
@@ -73,7 +73,7 @@ const Provider = () => {
         </Card>
 
         <Card
-          className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+          className="p-4 cursor-pointer hover:bg-gray-50 transition-colors bg-linear-to-br from-gray-green-1 to-offwhite-1"
           onClick={() => setPatientFilter("candidates")}
         >
           <div className="flex items-center justify-between">
@@ -88,7 +88,7 @@ const Provider = () => {
         </Card>
 
         <Card
-          className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+          className="p-4 cursor-pointer hover:bg-gray-50 transition-colors bg-linear-to-br from-gray-green-1 to-offwhite-1"
           onClick={() => setPatientFilter("scheduled")}
         >
           <div className="flex items-center justify-between">
@@ -103,7 +103,7 @@ const Provider = () => {
         </Card>
 
         <Card
-          className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+          className="p-4 cursor-pointer hover:bg-gray-50 transition-colors bg-linear-to-br from-gray-green-1 to-offwhite-1"
           onClick={() => setPatientFilter("completed")}
         >
           <div className="flex items-center justify-between">
@@ -180,7 +180,7 @@ const Provider = () => {
               {selectedPatient ? (
                 <PatientDetails patient={selectedPatient} />
               ) : (
-                <Card className="p-8 text-center">
+                <Card className="p-8 text-center bg-linear-30 bg-white">
                   <div className="flex flex-col items-center gap-3 text-gray-500">
                     <Users className="w-12 h-12" />
                     <p>Select a patient to view details</p>
