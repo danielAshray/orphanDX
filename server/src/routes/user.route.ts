@@ -1,5 +1,8 @@
 import { Router } from "express";
-import { validateReqBody } from "../middleware/requestValidator.middleware";
+import {
+  validateQuery,
+  validateReqBody,
+} from "../middleware/requestValidator.middleware";
 import {
   userLoginBodySchema,
   userRegisterBodySchema,
@@ -7,9 +10,13 @@ import {
 import {
   getProfile,
   loginUser,
+  practiceFusionCallback,
+  practiceFusionLogin,
   registerUser,
 } from "../controllers/user.controller";
 import { authenticate, authRoute } from "../middleware/auth.middleware";
+import { pfCallbackQuery } from "../validators/querySchema";
+import { loginLimiter } from "../middleware/limit.middleware";
 
 const userRoute = Router();
 
@@ -21,4 +28,15 @@ userRoute.post(
   registerUser
 );
 
+userRoute.post(
+  "/auth",
+  loginLimiter,
+  validateReqBody(userLoginBodySchema),
+  practiceFusionLogin
+);
+userRoute.get(
+  "/auth/callback",
+  validateQuery(pfCallbackQuery),
+  practiceFusionCallback
+);
 export default userRoute;

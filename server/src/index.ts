@@ -9,10 +9,13 @@ import {
   notFoundHandler,
 } from "./middleware/error.middleware";
 import path from "path";
+import { globalLimiter } from "./middleware/limit.middleware";
 
 const main = async () => {
   try {
     const app = express();
+    app.set("trust proxy", 1);
+    app.use(globalLimiter);
     app.use(cors({ origin: CLIENT_URL }));
     app.use(helmet());
     app.use(express.json({ limit: "50mb" }));
