@@ -48,7 +48,7 @@ const recommendTestBodySchema = Joi.object({
 const userLoginBodySchema = Joi.object({
   email: Joi.string().email().required(),
   password: Joi.string().min(8).required(),
-});
+}).required();
 
 const userRrefreshTokenBodySchema = Joi.object({
   refreshToken: Joi.string().required(),

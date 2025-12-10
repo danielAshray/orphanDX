@@ -8,4 +8,9 @@ const querySchema = Joi.object({
   timeZone: Joi.string().required(),
 });
 
-export default querySchema;
+const pfCallbackQuery = Joi.object({
+  token: Joi.string().required(),
+  practiceId: Joi.string().required(),
+});
+
+export { querySchema, pfCallbackQuery };

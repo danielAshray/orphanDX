@@ -4,6 +4,7 @@ import { compareHashPassword, getHashPassword } from "../utils/bcryptService";
 import jwt from "jsonwebtoken";
 import { TOKEN_SECRET_KEY } from "../config/app.config";
 import { AuthenticatedRequest } from "../middleware/auth.middleware";
+import crypto from "crypto";
 
 const getProfile = async (
   req: AuthenticatedRequest,
@@ -109,4 +110,146 @@ const registerUser = async (
   }
 };
 
-export { getProfile, registerUser, loginUser };
+const practiceFusionLogin = async (
+  req: Request,
+  res: Response,
+  _next: NextFunction
+) => {
+  try {
+    const { email, password } = req.body;
+
+    const userExists = await prisma.user.findUnique({
+      where: { email },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        password: true,
+        role: true,
+        status: true,
+      },
+    });
+
+    if (!userExists) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+        user: null,
+      });
+    }
+
+    const matchPassword = compareHashPassword(password, userExists.password);
+
+    if (!matchPassword) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid credentials",
+        user: null,
+      });
+    }
+
+    const token = jwt.sign(
+      { id: userExists.id, role: userExists.role, email: userExists.email },
+      TOKEN_SECRET_KEY,
+      { expiresIn: "10m" }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Login successful",
+      user: {
+        id: userExists.id,
+        email: userExists.email,
+        name: userExists.name,
+        role: userExists.role,
+      },
+      token,
+    });
+  } catch (error: any) {
+    const message = error.message || "Internal server error";
+    return res.status(500).json({
+      success: false,
+      message,
+      user: null,
+    });
+  }
+};
+
+interface PfTokenPayload {
+  id: number;
+  role: string;
+  email: string;
+}
+
+const practiceFusionCallback = async (
+  req: Request,
+  res: Response,
+  _next: NextFunction
+) => {
+  try {
+    const { practiceId, token } = req.query;
+
+    const decoded = jwt.verify(
+      token as string,
+      TOKEN_SECRET_KEY
+    ) as PfTokenPayload;
+
+    const user = await prisma.user.findUnique({ where: { id: decoded.id } });
+    if (!user) {
+      const msg = "User not found";
+      if (req.headers.accept?.includes("text/html")) {
+        return res.redirect(
+          `https://app.orphandx.com/error?message=${encodeURIComponent(msg)}`
+        );
+      }
+      return res.status(404).json({
+        success: false,
+        message: msg,
+        practiceId: practiceId as string,
+      });
+    }
+
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(token as string)
+      .digest("hex");
+    await prisma.practiceConnection.upsert({
+      where: { practiceId: practiceId as string },
+      update: {
+        userId: decoded.id,
+        token: hashedToken,
+        updatedAt: new Date(),
+      },
+      create: {
+        practiceId: practiceId as string,
+        userId: decoded.id,
+        token: hashedToken,
+      },
+    });
+
+    if (req.headers.accept?.includes("text/html")) {
+      return res.redirect("https://app.orphandx.com");
+    } else {
+      return res.json({
+        success: true,
+        message: "Practice Fusion connected",
+        practiceId,
+      });
+    }
+  } catch (error: any) {
+    const message = error.message || "Internal server error";
+    return res.status(500).json({
+      success: false,
+      message,
+      practiceId: req.query.practiceId || null,
+    });
+  }
+};
+
+export {
+  getProfile,
+  registerUser,
+  loginUser,
+  practiceFusionLogin,
+  practiceFusionCallback,
+};

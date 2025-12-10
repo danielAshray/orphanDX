@@ -24,3 +24,13 @@ export const validateReqBody = (schema: Schema) => {
     next();
   };
 };
+
+export const validateQuery = (schema: Schema) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const { error } = schema.validate(req.query, { allowUnknown: false });
+    if (error) {
+      return res.status(400).json({ error: error.details[0].message });
+    }
+    next();
+  };
+};
