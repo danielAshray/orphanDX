@@ -7,3 +7,4 @@ export const TOKEN_SECRET_KEY = process.env.TOKEN_SECRET_KEY || "";
 export const TOKEN_EXPIRE_AT = process.env.TOKEN_EXPIRE_AT;
 export const CREDENTIAL_ENCRYPTION_KEY = process.env.CREDENTIAL_ENCRYPTION_KEY;
 export const DATABASE_URL = process.env.DATABASE_URL;
+export const PF_JWT_SECRET = process.env.PF_JWT_SECRET || "";
