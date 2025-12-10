@@ -113,7 +113,7 @@ const registerUser = async (
 const practiceFusionLogin = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction
 ) => {
   try {
     const { email, password } = req.body;
@@ -131,13 +131,21 @@ const practiceFusionLogin = async (
     });
 
     if (!userExists) {
-      return next({ code: 400, message: "User not found" });
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+        user: null,
+      });
     }
 
     const matchPassword = compareHashPassword(password, userExists.password);
 
     if (!matchPassword) {
-      return next({ code: 400, message: "Invalid credentials" });
+      return res.status(401).json({
+        success: false,
+        message: "Invalid credentials",
+        user: null,
+      });
     }
 
     const token = jwt.sign(
@@ -147,6 +155,7 @@ const practiceFusionLogin = async (
     );
 
     return res.status(200).json({
+      success: true,
       message: "Login successful",
       user: {
         id: userExists.id,
@@ -156,8 +165,13 @@ const practiceFusionLogin = async (
       },
       token,
     });
-  } catch (error) {
-    next(error);
+  } catch (error: any) {
+    const message = error.message || "Internal server error";
+    return res.status(500).json({
+      success: false,
+      message,
+      user: null,
+    });
   }
 };
 
@@ -170,7 +184,7 @@ interface PfTokenPayload {
 const practiceFusionCallback = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction
 ) => {
   try {
     const { practiceId, token } = req.query;
@@ -181,7 +195,19 @@ const practiceFusionCallback = async (
     ) as PfTokenPayload;
 
     const user = await prisma.user.findUnique({ where: { id: decoded.id } });
-    if (!user) return res.status(400).json({ message: "User not found" });
+    if (!user) {
+      const msg = "User not found";
+      if (req.headers.accept?.includes("text/html")) {
+        return res.redirect(
+          `https://app.orphandx.com/error?message=${encodeURIComponent(msg)}`
+        );
+      }
+      return res.status(404).json({
+        success: false,
+        message: msg,
+        practiceId: practiceId as string,
+      });
+    }
 
     const hashedToken = crypto
       .createHash("sha256")
@@ -204,10 +230,19 @@ const practiceFusionCallback = async (
     if (req.headers.accept?.includes("text/html")) {
       return res.redirect("https://app.orphandx.com");
     } else {
-      return res.json({ message: "Practice Fusion connected", practiceId });
+      return res.json({
+        success: true,
+        message: "Practice Fusion connected",
+        practiceId,
+      });
     }
-  } catch (error) {
-    next(error);
+  } catch (error: any) {
+    const message = error.message || "Internal server error";
+    return res.status(500).json({
+      success: false,
+      message,
+      practiceId: req.query.practiceId || null,
+    });
   }
 };
 
