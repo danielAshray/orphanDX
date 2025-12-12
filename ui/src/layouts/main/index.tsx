@@ -3,6 +3,7 @@ import { localStorageUtil } from "@/lib/storage/localStorage";
 import type { AuthUserProps } from "@/types";
 import { LogOut } from "lucide-react";
 import { Outlet } from "react-router-dom";
+import orphanLogo from "../../assets/logo/orphan_logo.png";
 
 const Main = ({ user }: { user: AuthUserProps }) => {
   return (
@@ -11,11 +12,18 @@ const Main = ({ user }: { user: AuthUserProps }) => {
         <div className="max-w-[1600px] mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
+              {/* <div className="w-15 h-10 flex items-center">
+                <img src={orphanLogo} alt="" />
+              </div> */}
+              {/*               
               <div className="w-10 h-10 bg-linear-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <span className="text-white">O</span>
-              </div>
+               
+                
+              </div> */}
               <div>
-                <h1 className="text-gray-900">OrphanDX</h1>
+                <div className="w-15 h-10 flex items-center">
+                  <img src={orphanLogo} alt="" />
+                </div>
                 <p className="text-xs text-gray-500">
                   Specialty Test Intelligence Platform
                 </p>
