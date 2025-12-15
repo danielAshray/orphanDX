@@ -78,6 +78,16 @@ const updateFacilitySchema = Joi.object({
   status: Joi.boolean().optional().allow(null),
 }).required();
 
+const createLabSchema = Joi.object({
+  name: Joi.string().min(2),
+  email: Joi.string().email(),
+}).required();
+
+const updateLabSchema = Joi.object({
+  name: Joi.string().min(2),
+  email: Joi.string().email(),
+}).required();
+
 export {
   userLoginBodySchema,
   userRegisterBodySchema,
@@ -87,5 +97,7 @@ export {
   createPatientBodySchema,
   createPatientRecommendationBodySchema,
   createFacilityScehma,
-  updateFacilitySchema
+  updateFacilitySchema,
+  createLabSchema,
+  updateLabSchema
 };

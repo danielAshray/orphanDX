@@ -6,6 +6,7 @@ import {
   fetchFacility,
   listAllFacilities,
   editFacility,
+  listAllProviders,
 } from "../controllers/facility.controller";
 import { authenticate } from "../middleware/auth.middleware";
 import {
@@ -29,5 +30,7 @@ facilityRoute.put(
 );
 facilityRoute.get("/:id", authenticate, fetchFacility);
 facilityRoute.delete("/:id", authenticate, deleteFacility);
+
+facilityRoute.get("/providers", authenticate, listAllProviders);
 
 export default facilityRoute;

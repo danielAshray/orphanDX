@@ -1,6 +1,6 @@
 import { NextFunction, Response, Request } from "express";
 import { prisma } from "../prisma";
-
+import { UserRole } from "@prisma/client";
 export const createFacility = async (
   req: Request,
   res: Response,
@@ -105,6 +105,23 @@ export const fetchFacility = async (
       message: "Facility successfully updated",
       data: facility,
     });
+  } catch (exception) {
+    next(exception);
+  }
+};
+
+export const listAllProviders = async (
+  _req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const providers = await prisma.user.findMany({
+      where: { role: UserRole.PROVIDER },
+    });
+    res
+      .status(200)
+      .json({ message: "Providers successfully fetched", data: providers });
   } catch (exception) {
     next(exception);
   }
