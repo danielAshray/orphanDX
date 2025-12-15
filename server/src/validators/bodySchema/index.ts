@@ -26,7 +26,7 @@ const createOrderBodySchema = Joi.object({
 const createPatientRecommendationBodySchema = Joi.object({
   patientId: Joi.number().integer().required(),
   testId: Joi.number().integer().required(),
-  providerId: Joi.number().integer().required(),
+  facilityId: Joi.number().integer().required(),
   status: Joi.string()
     .regex(/^(PENDING|ACCEPTED|REJECTED)$/)
     .optional()
@@ -99,5 +99,5 @@ export {
   createFacilityScehma,
   updateFacilitySchema,
   createLabSchema,
-  updateLabSchema
+  updateLabSchema,
 };
