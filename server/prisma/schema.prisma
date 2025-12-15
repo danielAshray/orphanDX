@@ -10,6 +10,7 @@ enum UserRole {
   ADMIN
   PROVIDER
   LAB
+  FACILITY
 }
 
 enum PatientRecommendationStatus {
@@ -55,70 +56,56 @@ model User {
   name      String
   email     String   @unique
   password  String
-  role UserRole
+  role      UserRole
   status    Status   @default(ACTIVE)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   auths Auth[]
 
-  provider Provider?
-  labUser  LabUser?
+  facility   Facility @relation(fields: [facilityId], references: [id])
+  facilityId Int
+  lab        Lab?     @relation(fields: [labId], references: [id])
+  labId      Int
 }
 
 model Auth {
-  id                Int       @id @default(autoincrement())
+  id                Int      @id @default(autoincrement())
   userId            Int
   accessToken       String
-  refreshToken      String    @unique
-  maskedAccessToken String    @unique
+  refreshToken      String   @unique
+  maskedAccessToken String   @unique
   accessExpiresAt   DateTime
   refreshExpiresAt  DateTime
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id])
 
   @@index([userId])
 }
 
-// ------------------------- Practice -------------------------
-model Practice {
-  id        Int      @id @default(autoincrement())
-  name      String
-  ehrVendor String
-  ehrOrgId  String
-  status    Status   @default(ACTIVE)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+// ------------------------- Facility -------------------------
+model Facility {
+  id             Int      @id @default(autoincrement())
+  name           String
+  email          String   @unique
+  businessEntity String
+  status         Status   @default(ACTIVE)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  providers Provider[]
-  patients  Patient[]
-}
-
-// ------------------------- Provider -------------------------
-model Provider {
-  id         Int      @id @default(autoincrement())
-  userId     Int      @unique
-  practiceId Int
-  npiNumber  String
-  status     Status   @default(ACTIVE)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  user                   User                    @relation(fields: [userId], references: [id])
-  practice               Practice                @relation(fields: [practiceId], references: [id])
+  patients               Patient[]
+  labOrders              LabOrder[]
+  users                  User[]
   patientRecommendations PatientRecommendation[]
-  orders                 Order[]
-
-  @@index([practiceId])
 }
 
 // ------------------------- Patient -------------------------
 model Patient {
   id             Int       @id @default(autoincrement())
   name           String
-  practiceId     Int
+  facilityId     Int
   ehrPatientId   String
   dob            DateTime
   gender         Gender
@@ -130,13 +117,14 @@ model Patient {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
-  practice        Practice                @relation(fields: [practiceId], references: [id])
+  facility        Facility                @relation(fields: [facilityId], references: [id])
   orders          Order[]
   insurancePlans  PatientInsurancePlan[]
   diagnoses       PatientDiagnosis[]
   recommendations PatientRecommendation[]
+  labOrders       LabOrder[]
 
-  @@index([practiceId])
+  @@index([facilityId])
   @@index([ehrPatientId])
 }
 
@@ -211,30 +199,18 @@ model PatientDiagnosis {
 }
 
 // ------------------------- Lab & Test -------------------------
-model LabUser {
-  id        Int      @id @default(autoincrement())
-  userId    Int      @unique
-  labId     Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id])
-  lab  Lab  @relation(fields: [labId], references: [id])
-
-  @@index([labId])
-}
 
 model Lab {
   id        Int      @id @default(autoincrement())
   name      String
-  logoUrl   String
-  status    Status   @default(ACTIVE)
+  email     String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
 
-  tests    Test[]
-  orders   Order[]
-  labUsers LabUser[]
+  tests     Test[]
+  orders    Order[]
+  labOrders LabOrder[]
+  users     User[]
 }
 
 model Test {
@@ -275,7 +251,7 @@ model PatientRecommendation {
   id         Int                         @id @default(autoincrement())
   patientId  Int
   testId     Int
-  providerId Int
+  facilityId Int
   status     PatientRecommendationStatus @default(PENDING)
   reason     Json?
   priority   TestPriority                @default(LOW)
@@ -285,10 +261,10 @@ model PatientRecommendation {
 
   patient  Patient  @relation(fields: [patientId], references: [id])
   test     Test     @relation(fields: [testId], references: [id])
-  provider Provider @relation(fields: [providerId], references: [id])
+  facility Facility @relation(fields: [facilityId], references: [id])
 
   @@index([patientId])
-  @@index([providerId])
+  @@index([facilityId])
   @@index([testId])
 }
 
@@ -307,13 +283,11 @@ model Order {
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
 
-  patient  Patient  @relation(fields: [patientId], references: [id])
-  test     Test     @relation(fields: [testId], references: [id])
-  provider Provider @relation(fields: [providerId], references: [id])
-  lab      Lab?     @relation(fields: [labId], references: [id])
+  patient Patient @relation(fields: [patientId], references: [id])
+  test    Test    @relation(fields: [testId], references: [id])
+  lab     Lab?    @relation(fields: [labId], references: [id])
 
   @@index([patientId])
-  @@index([providerId])
   @@index([labId])
   @@index([status])
 }
@@ -345,4 +319,20 @@ model TestCoverage {
 
   @@index([testId])
   @@index([insuranceId])
+}
+
+model LabOrder {
+  id Int @id @default(autoincrement())
+
+  orderDate DateTime @default(now())
+  result    String
+
+  facility   Facility @relation(fields: [facilityId], references: [id])
+  facilityId Int
+  lab        Lab      @relation(fields: [labId], references: [id])
+  labId      Int
+  patient    Patient  @relation(fields: [patientId], references: [id])
+  patientId  Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
