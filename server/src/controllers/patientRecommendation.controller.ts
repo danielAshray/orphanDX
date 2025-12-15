@@ -75,7 +75,7 @@ export const recommendPatient = async (
         message: "Patient not found",
       });
     }
-    const age = new Date().getFullYear() - new Date(patient!.dob).getFullYear();
+    const age = calculateAge(patient!.dob);
     if (age < 18) {
       return res.status(422).json({
         message:
@@ -101,13 +101,23 @@ export const recommendPatient = async (
       },
     });
 
-    res
-      .status(201)
-      .json({
-        message: "Patient recommendation successfully created",
-        data: response,
-      });
+    res.status(201).json({
+      message: "Patient recommendation successfully created",
+      data: response,
+    });
   } catch (exception) {
     next(exception);
   }
+};
+
+const calculateAge = (dob: Date | string) => {
+  const todayDate = new Date();
+  const birthDate = new Date(dob);
+  let age = todayDate.getFullYear() - birthDate.getFullYear();
+  let m = todayDate.getMonth() - birthDate.getMonth();
+
+  if (m < 0 || (m === 0 && todayDate.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  return age;
 };
