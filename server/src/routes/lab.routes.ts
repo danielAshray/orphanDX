@@ -20,7 +20,5 @@ labRouter.post("/", authenticate, validateReqBody(createLabSchema), createLab);
 labRouter.put("/:id", authenticate, validateReqBody(updateLabSchema), editLab);
 labRouter.get("/:id", authenticate, fetchLab);
 labRouter.delete("/:id", authenticate, deleteLab);
-labRouter.get("/")
-labRouter.get("/", authenticate);
 
 export default labRouter;
