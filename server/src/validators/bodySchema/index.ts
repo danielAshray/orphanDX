@@ -64,6 +64,20 @@ const userRegisterBodySchema = Joi.object({
     .optional(),
 }).required();
 
+const createFacilityScehma = Joi.object({
+  name: Joi.string().min(2).max(100),
+  email: Joi.string().email(),
+  businessEntity: Joi.string(),
+  status: Joi.boolean().optional().allow(null),
+}).required();
+
+const updateFacilitySchema = Joi.object({
+  name: Joi.string().min(2).max(100),
+  email: Joi.string().email(),
+  businessEntity: Joi.string(),
+  status: Joi.boolean().optional().allow(null),
+}).required();
+
 export {
   userLoginBodySchema,
   userRegisterBodySchema,
@@ -72,4 +86,6 @@ export {
   createOrderBodySchema,
   createPatientBodySchema,
   createPatientRecommendationBodySchema,
+  createFacilityScehma,
+  updateFacilitySchema
 };
