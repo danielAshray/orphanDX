@@ -63,9 +63,9 @@ model User {
 
   auths Auth[]
 
-  facility   Facility @relation(fields: [facilityId], references: [id])
-  facilityId Int
-  lab        Lab?     @relation(fields: [labId], references: [id])
+  facility   Facility? @relation(fields: [facilityId], references: [id])
+  facilityId Int?
+  lab        Lab?      @relation(fields: [labId], references: [id])
   labId      Int
 }
 
