@@ -8,7 +8,7 @@ export interface Patient {
     provider: string;
     planName: string;
     memberId: string;
-    type: "Commercial" | "Medicare" | "Medicaid";
+    type: 'Commercial' | 'Medicare' | 'Medicaid';
   };
   diagnoses: Diagnosis[];
   demographics: {
@@ -33,7 +33,7 @@ export interface RecommendedTest {
   id: string;
   testName: string;
   testCode: string;
-  priority: "high" | "medium" | "low";
+  priority: 'high' | 'medium' | 'low';
   reason: string;
   payerCoverage: {
     covered: boolean;
@@ -61,7 +61,7 @@ export interface ScheduledTest {
   testCode: string;
   scheduledDate: string;
   orderId: string;
-  status: "scheduled" | "collected" | "in-progress";
+  status: 'scheduled' | 'collected' | 'in-progress';
 }
 
 export interface LabResult {
@@ -80,7 +80,7 @@ export interface TestResultItem {
   value: string;
   unit: string;
   referenceRange: string;
-  flag?: "high" | "low" | "critical";
+  flag?: 'high' | 'low' | 'critical';
 }
 
 export interface Order {
@@ -90,16 +90,11 @@ export interface Order {
   providerId: string;
   providerName: string;
   clinicName: string;
+  facilityId?: string;
+  labId?: string;
   testName: string;
   testCode: string;
-  status:
-    | "pending"
-    | "sent"
-    | "scheduled"
-    | "collected"
-    | "in-progress"
-    | "completed"
-    | "cancelled";
+  status: 'pending' | 'sent' | 'scheduled' | 'collected' | 'in-progress' | 'completed' | 'cancelled';
   createdAt: string;
   updatedAt: string;
   scheduledDate?: string;
@@ -113,11 +108,39 @@ export interface EventLog {
   metadata: Record<string, any>;
 }
 
-export type UserRole = "ADMIN" | "PROVIDER" | "LAB";
-export interface AuthUserProps {
-  id: number;
-  name: string;
+export type UserRole = 'admin' | 'lab' | 'facility' | 'provider';
+
+export interface User {
+  id: string;
   email: string;
+  name: string;
   role: UserRole;
-  status: string;
+  organizationId?: string; // facilityId or labId
+  organizationName?: string;
+}
+
+export interface Facility {
+  id: string;
+  name: string;
+  address: string;
+  phone: string;
+  labPartnerId: string; // Which lab they send orders to
+}
+
+export interface Lab {
+  id: string;
+  name: string;
+  address: string;
+  phone: string;
+  testingCapabilities: string[];
+}
+
+export interface Provider {
+  id: string;
+  name: string;
+  npi: string;
+  specialty: string;
+  facilityId: string;
+  email: string;
+  phone: string;
 }

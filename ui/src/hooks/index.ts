@@ -1,0 +1,35 @@
+import { loginUserApi } from "@/api/user";
+import { Notification } from "@/components";
+import { useAuthContext } from "@/context/auth";
+import { getErrorMessage } from "@/lib/utils";
+import type { LoginProps } from "@/pages/auth/login";
+import { useMutation } from "@tanstack/react-query";
+
+export type ActiveUserDataType = {
+  token: string;
+  role: string;
+  user: any;
+};
+
+export const useLoginUser = () => {
+  const { login } = useAuthContext();
+
+  return useMutation({
+    mutationFn: (props: LoginProps) => loginUserApi(props),
+
+    onSuccess: (data: { user: ActiveUserDataType }) => {
+      login(data);
+
+      Notification({
+        toastMessage: "User login successfully",
+        toastStatus: "success",
+      });
+    },
+
+    onError: (error: any) =>
+      Notification({
+        toastMessage: getErrorMessage(error),
+        toastStatus: "error",
+      }),
+  });
+};

@@ -63,13 +63,16 @@ const loginUser = async (req: Request, res: Response, next: NextFunction) => {
       return next({ code: 400, message: "Invalid credentials" });
     }
 
+    const { password: _, ...rest } = userExists;
+
     const payload = {
       token: jwt.sign(
         { id: userExists.id, role: userExists.role },
         TOKEN_SECRET_KEY,
         { expiresIn: "1d" }
       ),
-      email: userExists.email,
+      role: userExists.role,
+      user: rest
     };
     return res.status(200).json(payload);
   } catch (error) {

@@ -1,10 +1,8 @@
-import { useLoginUser } from "@/api";
 import { ImageWithFallback, Input } from "@/components";
 import { Button } from "@/components/button";
 import { Card } from "@/components/card";
-import { localStorageUtil } from "@/lib/storage/localStorage";
+import { useLoginUser } from "@/hooks";
 import {
-  Activity,
   CheckCircle,
   Database,
   Eye,
@@ -15,10 +13,25 @@ import {
   Zap,
 } from "lucide-react";
 import { useState } from "react";
+import { useForm, type SubmitHandler } from "react-hook-form";
+
+export interface LoginProps {
+  email: string;
+  password: string;
+}
 
 const Login = () => {
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginProps>({
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
   const [showPassword, setShowPassword] = useState<boolean>(false);
 
   const { mutate, isPending } = useLoginUser();
@@ -27,16 +40,8 @@ const Login = () => {
     setShowPassword((prev) => !prev);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    mutate(
-      { email, password },
-      {
-        onSuccess: (res) => {
-          localStorageUtil.set("token", res.token);
-        },
-      }
-    );
+  const onSubmit: SubmitHandler<LoginProps> = (input) => {
+    mutate({ email: input.email, password: input.password });
   };
 
   return (
@@ -45,8 +50,12 @@ const Login = () => {
       <header className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-linear-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-              <span className="text-white">O</span>
+            <div className="w-10 h-10 bg-linear-to-br from-blue-600 to-purple-200 rounded-lg flex items-center justify-center drop-shadow shadow">
+              <ImageWithFallback
+                src="/logo.png"
+                alt="Logo"
+                className="w-10 h-auto object-cover"
+              />
             </div>
             <div>
               <h1 className="text-gray-900">OrphanDX</h1>
@@ -78,7 +87,7 @@ const Login = () => {
             {/* Hero Image */}
             <div className="relative rounded-xl overflow-hidden shadow-2xl">
               <ImageWithFallback
-                src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&q=80"
+                src="/images/doctor.jpeg"
                 alt="Healthcare Technology Platform"
                 className="w-full h-80 object-cover"
               />
@@ -164,8 +173,12 @@ const Login = () => {
           <div className="flex items-center justify-center">
             <Card className="w-full max-w-md p-8 shadow-xl">
               <div className="text-center mb-8">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-linear-to-br from-blue-600 to-purple-600 rounded-2xl mb-4">
-                  <Activity className="w-8 h-8 text-white" />
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-linear-to-br from-blue-600 to-purple-200 rounded-2xl mb-4 drop-shadow shadow">
+                  <ImageWithFallback
+                    src="/logo.png"
+                    alt="Logo"
+                    className="w-16 h-auto object-cover"
+                  />
                 </div>
                 <h3 className="text-gray-900 mb-2">Welcome Back</h3>
                 <p className="text-gray-600">
@@ -173,18 +186,23 @@ const Login = () => {
                 </p>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <div>
                   <label className="block text-sm text-gray-700 mb-2">
                     Email Address
                   </label>
                   <Input
                     type="email"
-                    placeholder="provider@clinic.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
+                    placeholder="user@company.com"
+                    autoComplete="on"
+                    {...register("email", { required: "Email is required." })}
                   />
+
+                  {errors.email && (
+                    <p className="text-sm text-red-500 mt-1">
+                      {errors.email.message}
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -195,9 +213,10 @@ const Login = () => {
                     <Input
                       type={showPassword ? "text" : "password"}
                       placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
+                      autoComplete="off"
+                      {...register("password", {
+                        required: "Password is required.",
+                      })}
                     />
                     <button
                       type="button"
@@ -211,6 +230,12 @@ const Login = () => {
                       )}
                     </button>
                   </div>
+                  
+                  {errors.password && (
+                    <p className="text-sm text-red-500 mt-1">
+                      {errors.password.message}
+                    </p>
+                  )}
                 </div>
 
                 <Button
