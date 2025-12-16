@@ -55,13 +55,32 @@ const qualifyingIcd10Codes: string[] = [
   "R74.8",
   "R94.5",
 ];
+
+const calculateAge = (dob: Date | string) => {
+  const todayDate = new Date();
+  const birthDate = new Date(dob);
+  let age = todayDate.getFullYear() - birthDate.getFullYear();
+  let m = todayDate.getMonth() - birthDate.getMonth();
+
+  if (m < 0 || (m === 0 && todayDate.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  return age;
+};
+
+export const throwNotFound = (data: any, entity: string) => {
+  if (!data) {
+    throw { message: `${entity} not found`, code: 404 };
+  }
+};
+
 export const recommendPatient = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const { patientId, testId, facilityId, reason, priority } = req.body;
+    const { patientId, testId, facilityId, reason, priority, labId } = req.body;
     const patient = await prisma.patient.findFirst({
       where: { id: +patientId },
       include: {
@@ -70,22 +89,29 @@ export const recommendPatient = async (
         },
       },
     });
-    if (!patient) {
-      res.status(404).json({
-        message: "Patient not found",
-      });
-    }
+
+    const facility = prisma.facility.findFirst({ where: { id: facilityId } });
+    const test = prisma.test.findFirst({ where: { id: testId } });
+    throwNotFound(test, "Test");
+    throwNotFound(facility, "Facility");
+    throwNotFound(patient, "Patient");
+
+    const lab = await prisma.lab.findFirst({ where: { id: labId } });
+    throwNotFound(lab, "Lab");
+    const labMatch = lab!.name === "Luxor Scientific Lab";
+
     const age = calculateAge(patient!.dob);
-    if (age < 18) {
+    if (labMatch && age < 18) {
       return res.status(422).json({
         message:
           "Patient must be at least 18 years of age to qualify for the test.",
       });
     }
+
     const status = patient?.patientDiagnoses.some((diagnosis) =>
       qualifyingIcd10Codes.includes(diagnosis.diagnosis.icd10)
     );
-    if (!status) {
+    if (labMatch && !status) {
       return res.status(422).json({
         message: "Patient does not meet the stated diagnosis code.",
       });
@@ -98,6 +124,7 @@ export const recommendPatient = async (
         facilityId,
         reason,
         priority,
+        labId: 1,
       },
     });
 
@@ -110,14 +137,72 @@ export const recommendPatient = async (
   }
 };
 
-const calculateAge = (dob: Date | string) => {
-  const todayDate = new Date();
-  const birthDate = new Date(dob);
-  let age = todayDate.getFullYear() - birthDate.getFullYear();
-  let m = todayDate.getMonth() - birthDate.getMonth();
+export const editPatientRecommendation = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const id = +req.params.id;
+    const { patientId, testId, facilityId, reason, priority, labId } = req.body;
+    const patient = await prisma.patient.findFirst({
+      where: { id: +patientId },
+      include: {
+        patientDiagnoses: {
+          select: { diagnosis: { select: { icd10: true } } },
+        },
+      },
+    });
 
-  if (m < 0 || (m === 0 && todayDate.getDate() < birthDate.getDate())) {
-    age--;
+    const patientRecommendation = prisma.patientRecommendation.findFirst({
+      where: { id },
+    });
+    throwNotFound(patientRecommendation, "Patient Recommendation");
+
+    const facility = prisma.facility.findFirst({ where: { id: facilityId } });
+    const test = prisma.test.findFirst({ where: { id: testId } });
+    throwNotFound(test, "Test");
+    throwNotFound(facility, "Facility");
+    throwNotFound(patient, "Patient");
+
+    const lab = await prisma.lab.findFirst({ where: { id: labId } });
+    throwNotFound(lab, "Lab");
+    const labMatch = lab!.name === "Luxor Scientific Lab";
+
+    const age = calculateAge(patient!.dob);
+    if (labMatch && age < 18) {
+      return res.status(422).json({
+        message:
+          "Patient must be at least 18 years of age to qualify for the test.",
+      });
+    }
+
+    const status = patient?.patientDiagnoses.some((diagnosis) =>
+      qualifyingIcd10Codes.includes(diagnosis.diagnosis.icd10)
+    );
+    if (labMatch && !status) {
+      return res.status(422).json({
+        message: "Patient does not meet the stated diagnosis code.",
+      });
+    }
+
+    const response = await prisma.patientRecommendation.update({
+      where: { id },
+      data: {
+        patientId,
+        testId,
+        facilityId,
+        reason,
+        priority,
+        labId: 1,
+      },
+    });
+
+    res.status(201).json({
+      message: "Patient recommendation successfully updated",
+      data: response,
+    });
+  } catch (exception) {
+    next(exception);
   }
-  return age;
 };

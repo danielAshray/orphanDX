@@ -208,10 +208,11 @@ model Lab {
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
 
-  tests     Test[]
-  orders    Order[]
-  labOrders LabOrder[]
-  users     User[]
+  tests                  Test[]
+  orders                 Order[]
+  labOrders              LabOrder[]
+  users                  User[]
+  patientRecommendations PatientRecommendation[]
 }
 
 model Test {
@@ -263,6 +264,8 @@ model PatientRecommendation {
   patient  Patient  @relation(fields: [patientId], references: [id])
   test     Test     @relation(fields: [testId], references: [id])
   facility Facility @relation(fields: [facilityId], references: [id])
+  lab      Lab      @relation(fields: [labId], references: [id])
+  labId    Int
 
   @@index([patientId])
   @@index([facilityId])

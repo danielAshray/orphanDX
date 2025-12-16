@@ -5,7 +5,6 @@ export const notFoundHandler = (
   _res: Response,
   next: NextFunction
 ) => {
-  console.log('inside not found hanlder')
   next({ code: 404, message: "resource not found", data: null });
 };
 

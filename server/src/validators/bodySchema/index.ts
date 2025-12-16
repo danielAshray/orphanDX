@@ -26,6 +26,22 @@ const createOrderBodySchema = Joi.object({
 const createPatientRecommendationBodySchema = Joi.object({
   patientId: Joi.number().integer().required(),
   testId: Joi.number().integer().required(),
+  labId: Joi.number().integer().required(),
+  facilityId: Joi.number().integer().required(),
+  status: Joi.string()
+    .regex(/^(PENDING|ACCEPTED|REJECTED)$/)
+    .optional()
+    .messages({
+      "string.pattern.base":
+        "Status must be one of the following values: PENDING, ACCEPTED, REJECTED",
+    }),
+  reasonText: Joi.array().items(Joi.string()).required(),
+});
+
+const editPatientRecommendationBodySchema = Joi.object({
+  patientId: Joi.number().integer().required(),
+  testId: Joi.number().integer().required(),
+  labId: Joi.number().integer().required(),
   facilityId: Joi.number().integer().required(),
   status: Joi.string()
     .regex(/^(PENDING|ACCEPTED|REJECTED)$/)
@@ -100,4 +116,5 @@ export {
   updateFacilitySchema,
   createLabSchema,
   updateLabSchema,
+  editPatientRecommendationBodySchema,
 };
