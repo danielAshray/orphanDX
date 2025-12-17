@@ -35,20 +35,16 @@ const Main = () => {
       <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-[1600px] mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-linear-to-br from-blue-600 to-purple-200 rounded-lg flex items-center justify-center drop-shadow shadow">
-                <ImageWithFallback
-                  src="/logo.png"
-                  alt="Logo"
-                  className="w-10 h-auto object-cover"
-                />
-              </div>
-              <div>
-                <h1 className="text-gray-900">OrphanDX</h1>
-                <p className="text-xs text-gray-500">
-                  Specialty Test Intelligence Platform
-                </p>
-              </div>
+            <div className="flex flex-col items-center justify-center">
+              <ImageWithFallback
+                src="/logo.png"
+                alt="Logo"
+                className="w-auto h-10 object-cover drop-shadow-lg drop-shadow-blue-400"
+              />
+              
+              <p className="text-xs text-gray-500 text-shadow-lg text-shadow-purple-200">
+                Specialty Test Intelligence Platform
+              </p>
             </div>
 
             <div className="flex items-center gap-4">

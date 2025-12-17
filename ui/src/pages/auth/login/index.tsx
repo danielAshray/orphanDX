@@ -50,16 +50,14 @@ const Login = () => {
       <header className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-linear-to-br from-blue-600 to-purple-200 rounded-lg flex items-center justify-center drop-shadow shadow">
+            <div className="flex flex-col items-center justify-center">
               <ImageWithFallback
                 src="/logo.png"
                 alt="Logo"
-                className="w-10 h-auto object-cover"
+                className="w-auto h-10 object-cover drop-shadow-lg drop-shadow-blue-400"
               />
-            </div>
-            <div>
-              <h1 className="text-gray-900">OrphanDX</h1>
-              <p className="text-xs text-gray-500">
+
+              <p className="text-xs text-gray-500 text-shadow-lg text-shadow-purple-200">
                 Specialty Test Intelligence Platform
               </p>
             </div>
@@ -172,16 +170,14 @@ const Login = () => {
           {/* Right Column - Login Form */}
           <div className="flex items-center justify-center">
             <Card className="w-full max-w-md p-8 shadow-xl">
-              <div className="text-center mb-8">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-linear-to-br from-blue-600 to-purple-200 rounded-2xl mb-4 drop-shadow shadow">
-                  <ImageWithFallback
-                    src="/logo.png"
-                    alt="Logo"
-                    className="w-16 h-auto object-cover"
-                  />
-                </div>
-                <h3 className="text-gray-900 mb-2">Welcome Back</h3>
-                <p className="text-gray-600">
+              <div className="flex flex-col items-center justify-center mb-8">
+                <ImageWithFallback
+                  src="/logo.png"
+                  alt="Logo"
+                  className="w-auto h-10 object-cover drop-shadow-lg drop-shadow-blue-400"
+                />
+
+                <p className="text-gray-600 text-shadow-lg">
                   Sign in to access your dashboard
                 </p>
               </div>
@@ -230,7 +226,7 @@ const Login = () => {
                       )}
                     </button>
                   </div>
-                  
+
                   {errors.password && (
                     <p className="text-sm text-red-500 mt-1">
                       {errors.password.message}
