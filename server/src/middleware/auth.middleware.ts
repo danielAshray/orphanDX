@@ -1,7 +1,7 @@
 import { UserRole } from "@prisma/client";
 import { Request, Response, NextFunction, RequestHandler } from "express";
 import jwt from "jsonwebtoken";
-import { TOKEN_SECRET_KEY } from "../config/app.config";
+import AppConfig from "../config/app.config";
 
 interface JwtPayload {
   id: number;
@@ -34,7 +34,7 @@ export const authenticate = (
   const token = authHeader.split(" ")[1];
 
   try {
-    const decoded = jwt.verify(token, TOKEN_SECRET_KEY) as JwtPayload;
+    const decoded = jwt.verify(token, AppConfig.TOKEN_SECRET_KEY) as JwtPayload;
     req.id = decoded.id;
     req.role = decoded.role;
     next();

@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from "express";
-import { prisma } from "../prisma";
+import { prisma } from "../lib/prisma";
 import { compareHashPassword, getHashPassword } from "../utils/bcryptService";
 import jwt from "jsonwebtoken";
-import { PF_JWT_SECRET, TOKEN_SECRET_KEY } from "../config/app.config";
+import AppConfig from "../config/app.config";
 import { AuthenticatedRequest } from "../middleware/auth.middleware";
 import crypto from "crypto";
 
@@ -68,11 +68,11 @@ const loginUser = async (req: Request, res: Response, next: NextFunction) => {
     const payload = {
       token: jwt.sign(
         { id: userExists.id, role: userExists.role },
-        TOKEN_SECRET_KEY,
+        AppConfig.TOKEN_SECRET_KEY,
         { expiresIn: "1d" }
       ),
       role: userExists.role,
-      user: rest
+      user: rest,
     };
     return res.status(200).json(payload);
   } catch (error) {
@@ -153,7 +153,7 @@ const practiceFusionLogin = async (
 
     const token = jwt.sign(
       { id: userExists.id, role: userExists.role, email: userExists.email },
-      PF_JWT_SECRET,
+      AppConfig.PF_JWT_SECRET,
       { expiresIn: "10m" }
     );
 
@@ -194,7 +194,7 @@ const practiceFusionCallback = async (
 
     const decoded = jwt.verify(
       token as string,
-      PF_JWT_SECRET
+      AppConfig.PF_JWT_SECRET
     ) as PfTokenPayload;
 
     const user = await prisma.user.findUnique({ where: { id: decoded.id } });
