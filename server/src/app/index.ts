@@ -7,8 +7,8 @@ import mainRoute from "../routes";
 import {
   globalErrorHandler,
   notFoundHandler,
-} from "../middleware/error.middleware";
-import { globalLimiter } from "../middleware/limit.middleware";
+} from "../middlewares/error.middleware";
+import { globalLimiter } from "../middlewares/limit.middleware";
 
 const App = Object.freeze({
   SET: "trust proxy",

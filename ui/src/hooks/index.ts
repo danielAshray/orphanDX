@@ -17,8 +17,8 @@ export const useLoginUser = () => {
   return useMutation({
     mutationFn: (props: LoginProps) => loginUserApi(props),
 
-    onSuccess: (data: { user: ActiveUserDataType }) => {
-      login(data);
+    onSuccess: (data: { data: ActiveUserDataType }) => {
+      login(data.data);
 
       Notification({
         toastMessage: "User login successfully",

@@ -1,19 +1,19 @@
 import { NextFunction, Request, Response } from "express";
 import { prisma } from "../lib/prisma";
-import { compareHashPassword, getHashPassword } from "../utils/bcryptService";
+import { comparePassword } from "../utils/bcryptService";
 import jwt from "jsonwebtoken";
 import AppConfig from "../config/app.config";
-import { AuthenticatedRequest } from "../middleware/auth.middleware";
 import crypto from "crypto";
+import { ApiError } from "../utils/apiService";
+import { Status } from "@prisma/client";
+import { sendResponse } from "../utils/responseService";
 
-const getProfile = async (
-  req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction
-) => {
+const getProfile = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const { user } = req;
+
     const userExists = await prisma.user.findUnique({
-      where: { id: req.id },
+      where: { id: user?.id },
       select: {
         id: true,
         name: true,
@@ -24,92 +24,23 @@ const getProfile = async (
     });
 
     if (!userExists) {
-      return next({ code: 400, message: "user not found" });
+      const message = "User not found";
+      return next(ApiError.notFound(message));
     }
 
-    if (userExists.status !== "ACTIVE") {
-      return next({ code: 400, message: "user not active" });
+    if (userExists.status !== Status.ACTIVE) {
+      const message = "User not active";
+      return next(ApiError.forbidden(message));
     }
 
-    return res.status(200).send(userExists);
-  } catch (error) {
-    next(error);
-  }
-};
-
-const loginUser = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { email, password } = req.body;
-
-    const userExists = await prisma.user.findUnique({
-      where: { email },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        password: true,
-        role: true,
-        status: true,
-      },
+    sendResponse(res, {
+      success: true,
+      code: 200,
+      message: "Profile fetched successfully",
+      data: userExists,
     });
-
-    if (!userExists) {
-      return next({ code: 400, message: "User not found" });
-    }
-
-    const matchPassword = compareHashPassword(password, userExists.password);
-
-    if (!matchPassword) {
-      return next({ code: 400, message: "Invalid credentials" });
-    }
-
-    const { password: _, ...rest } = userExists;
-
-    const payload = {
-      token: jwt.sign(
-        { id: userExists.id, role: userExists.role },
-        AppConfig.TOKEN_SECRET_KEY,
-        { expiresIn: "1d" }
-      ),
-      role: userExists.role,
-      user: rest,
-    };
-    return res.status(200).json(payload);
-  } catch (error) {
-    next(error);
-  }
-};
-
-const registerUser = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const { name, email, password, role } = req.body;
-
-    const userExists = await prisma.user.findUnique({
-      where: { email },
-    });
-
-    if (userExists) {
-      return next({ code: 400, message: "User already exists" });
-    }
-
-    const hashPassword = getHashPassword(password);
-
-    const newUser = await prisma.user.create({
-      data: {
-        name,
-        email,
-        password: hashPassword,
-        role,
-      },
-    });
-
-    return res.status(200).json(newUser);
-  } catch (error) {
-    next(error);
+  } catch (error: any) {
+    next(ApiError.internal(undefined, error.message));
   }
 };
 
@@ -141,7 +72,7 @@ const practiceFusionLogin = async (
       });
     }
 
-    const matchPassword = compareHashPassword(password, userExists.password);
+    const matchPassword = comparePassword(password, userExists.password);
 
     if (!matchPassword) {
       return res.status(401).json({
@@ -244,10 +175,4 @@ const practiceFusionCallback = async (
   }
 };
 
-export {
-  getProfile,
-  registerUser,
-  loginUser,
-  practiceFusionLogin,
-  practiceFusionCallback,
-};
+export { getProfile, practiceFusionLogin, practiceFusionCallback };

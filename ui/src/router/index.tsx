@@ -38,7 +38,7 @@ const Router = () => {
 
             {/* Provider */}
             <Route element={<RequireRole allowed={["provider"]} />}>
-              <Route path={PATH_KEYS.PROVIDER} element={<Facility />} />
+              <Route path={PATH_KEYS.PROVIDER} element={<Provider />} />
             </Route>
 
             {/* Default Index Route */}

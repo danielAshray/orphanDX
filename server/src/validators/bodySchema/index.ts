@@ -17,11 +17,11 @@ const createPatientBodySchema = Joi.object({
   email: Joi.string().email().max(100).required(),
 });
 
-const createOrderBodySchema = Joi.object({
+const createOrderSchema = Joi.object({
   patientId: Joi.number().integer().required(),
   testId: Joi.number().integer().required(),
   providerId: Joi.number().integer().required(),
-});
+}).required();
 
 const createPatientRecommendationBodySchema = Joi.object({
   patientId: Joi.number().integer().required(),
@@ -45,31 +45,36 @@ const recommendTestBodySchema = Joi.object({
   reasonText: Joi.array().items(Joi.string()).required(),
 });
 
-const userLoginBodySchema = Joi.object({
+const userLoginSchema = Joi.object({
   email: Joi.string().email().required(),
-  password: Joi.string().min(8).required(),
+  password: Joi.string().required(),
 }).required();
 
-const userRrefreshTokenBodySchema = Joi.object({
+const refreshTokenSchema = Joi.object({
   refreshToken: Joi.string().required(),
-});
+}).required();
 
-const userRegisterBodySchema = Joi.object({
+const userRegisterSchema = Joi.object({
+  name: Joi.string().required(),
   email: Joi.string().email().required(),
-  name: Joi.string().min(2).max(70).required(),
-  password: Joi.string().min(8).required(),
+  password: Joi.string().min(6).required(),
   role: Joi.string()
-    .valid("ADMIN", "PROVIDER", "LAB")
+    .valid("ADMIN", "LAB", "FACILITY", "PROVIDER")
     .default("PROVIDER")
     .optional(),
 }).required();
 
+const detailsSchema = Joi.object({
+  searchBox: Joi.string().required(),
+});
+
 export {
-  userLoginBodySchema,
-  userRegisterBodySchema,
-  userRrefreshTokenBodySchema,
+  userLoginSchema,
+  userRegisterSchema,
+  refreshTokenSchema,
+  createOrderSchema,
   recommendTestBodySchema,
-  createOrderBodySchema,
   createPatientBodySchema,
   createPatientRecommendationBodySchema,
+  detailsSchema,
 };

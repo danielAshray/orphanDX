@@ -144,3 +144,11 @@ export interface Provider {
   email: string;
   phone: string;
 }
+
+export interface ApiReponse {
+  status: string;
+  code: number;
+  message: string;
+  data: any;
+  detail: any;
+}

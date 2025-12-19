@@ -1,21 +1,17 @@
 import api from "@/config/axios.config";
 import type { LoginProps } from "@/pages/auth/login";
+import type { ApiReponse } from "@/types";
 
 const UserRoutes = Object.freeze({
-  login: "/user/login",
+  login: "/auth/login",
   profile: "/user/profile",
 });
 
-export interface LoginResponse {
-  status: boolean;
-  user: any;
-}
-
-export const loginUserApi = async ({
+const loginUserApi = async ({
   email,
   password,
-}: LoginProps): Promise<LoginResponse> => {
-  const { data } = await api.post<LoginResponse>(`${UserRoutes.login}`, {
+}: LoginProps): Promise<ApiReponse> => {
+  const { data } = await api.post<ApiReponse>(UserRoutes.login, {
     email,
     password,
   });
@@ -23,10 +19,10 @@ export const loginUserApi = async ({
   return data;
 };
 
-export const getProfileApi = async () => {
-  const response = await api
-    .get(`${UserRoutes.profile}`)
-    .then((res) => res.data);
+const fetchProfileApi = async () => {
+  const response = await api.get(UserRoutes.profile).then((res) => res.data);
 
   return response;
 };
+
+export { loginUserApi, fetchProfileApi };
