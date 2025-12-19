@@ -27,22 +27,12 @@ CREATE TABLE "User" (
     "password" TEXT NOT NULL,
     "role" "UserRole" NOT NULL,
     "status" "Status" NOT NULL DEFAULT 'ACTIVE',
+    "phone" TEXT,
+    "facilityId" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "PracticeConnection" (
-    "id" SERIAL NOT NULL,
-    "practiceId" TEXT NOT NULL,
-    "userId" INTEGER NOT NULL,
-    "token" TEXT NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "PracticeConnection_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -61,12 +51,39 @@ CREATE TABLE "Auth" (
 );
 
 -- CreateTable
+CREATE TABLE "PracticeConnection" (
+    "id" SERIAL NOT NULL,
+    "practiceId" TEXT NOT NULL,
+    "userId" INTEGER NOT NULL,
+    "token" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "PracticeConnection_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Facility" (
+    "id" SERIAL NOT NULL,
+    "name" TEXT NOT NULL,
+    "email" TEXT,
+    "address" TEXT,
+    "phone" TEXT,
+    "status" "Status" NOT NULL DEFAULT 'ACTIVE',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Facility_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "Practice" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
     "ehrVendor" TEXT NOT NULL,
     "ehrOrgId" TEXT NOT NULL,
     "status" "Status" NOT NULL DEFAULT 'ACTIVE',
+    "facilityId" INTEGER NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -77,8 +94,10 @@ CREATE TABLE "Practice" (
 CREATE TABLE "Provider" (
     "id" SERIAL NOT NULL,
     "userId" INTEGER NOT NULL,
+    "facilityId" INTEGER NOT NULL,
     "practiceId" INTEGER NOT NULL,
     "npiNumber" TEXT NOT NULL,
+    "specialty" TEXT,
     "status" "Status" NOT NULL DEFAULT 'ACTIVE',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -179,7 +198,10 @@ CREATE TABLE "Lab" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
     "logoUrl" TEXT NOT NULL,
+    "address" TEXT,
+    "phone" TEXT,
     "status" "Status" NOT NULL DEFAULT 'ACTIVE',
+    "facilityId" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -274,7 +296,10 @@ CREATE TABLE "TestCoverage" (
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "PracticeConnection_practiceId_key" ON "PracticeConnection"("practiceId");
+CREATE INDEX "User_role_idx" ON "User"("role");
+
+-- CreateIndex
+CREATE INDEX "User_facilityId_idx" ON "User"("facilityId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Auth_refreshToken_key" ON "Auth"("refreshToken");
@@ -286,7 +311,13 @@ CREATE UNIQUE INDEX "Auth_maskedAccessToken_key" ON "Auth"("maskedAccessToken");
 CREATE INDEX "Auth_userId_idx" ON "Auth"("userId");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "PracticeConnection_practiceId_key" ON "PracticeConnection"("practiceId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Provider_userId_key" ON "Provider"("userId");
+
+-- CreateIndex
+CREATE INDEX "Provider_facilityId_idx" ON "Provider"("facilityId");
 
 -- CreateIndex
 CREATE INDEX "Provider_practiceId_idx" ON "Provider"("practiceId");
@@ -325,6 +356,9 @@ CREATE UNIQUE INDEX "LabUser_userId_key" ON "LabUser"("userId");
 CREATE INDEX "LabUser_labId_idx" ON "LabUser"("labId");
 
 -- CreateIndex
+CREATE INDEX "Lab_facilityId_idx" ON "Lab"("facilityId");
+
+-- CreateIndex
 CREATE INDEX "Test_labId_idx" ON "Test"("labId");
 
 -- CreateIndex
@@ -361,13 +395,22 @@ CREATE INDEX "TestCoverage_testId_idx" ON "TestCoverage"("testId");
 CREATE INDEX "TestCoverage_insuranceId_idx" ON "TestCoverage"("insuranceId");
 
 -- AddForeignKey
-ALTER TABLE "PracticeConnection" ADD CONSTRAINT "PracticeConnection_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "User" ADD CONSTRAINT "User_facilityId_fkey" FOREIGN KEY ("facilityId") REFERENCES "Facility"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Auth" ADD CONSTRAINT "Auth_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "PracticeConnection" ADD CONSTRAINT "PracticeConnection_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Practice" ADD CONSTRAINT "Practice_facilityId_fkey" FOREIGN KEY ("facilityId") REFERENCES "Facility"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "Provider" ADD CONSTRAINT "Provider_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Provider" ADD CONSTRAINT "Provider_facilityId_fkey" FOREIGN KEY ("facilityId") REFERENCES "Facility"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Provider" ADD CONSTRAINT "Provider_practiceId_fkey" FOREIGN KEY ("practiceId") REFERENCES "Practice"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -395,6 +438,9 @@ ALTER TABLE "LabUser" ADD CONSTRAINT "LabUser_userId_fkey" FOREIGN KEY ("userId"
 
 -- AddForeignKey
 ALTER TABLE "LabUser" ADD CONSTRAINT "LabUser_labId_fkey" FOREIGN KEY ("labId") REFERENCES "Lab"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Lab" ADD CONSTRAINT "Lab_facilityId_fkey" FOREIGN KEY ("facilityId") REFERENCES "Facility"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Test" ADD CONSTRAINT "Test_labId_fkey" FOREIGN KEY ("labId") REFERENCES "Lab"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

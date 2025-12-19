@@ -6,6 +6,7 @@ datasource db {
   provider = "postgresql"
 }
 
+// ------------------------- Enums -------------------------
 enum UserRole {
   ADMIN
   LAB
@@ -51,13 +52,19 @@ enum Status {
   ARCHIVED
 }
 
+// ------------------------- Users -------------------------
 model User {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String   @unique
-  password  String
-  role      UserRole
-  status    Status   @default(ACTIVE)
+  id       Int      @id @default(autoincrement())
+  name     String
+  email    String   @unique
+  password String
+  role     UserRole
+  status   Status   @default(ACTIVE)
+
+  phone      String?
+  facilityId Int?
+  facility   Facility? @relation(fields: [facilityId], references: [id])
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -66,19 +73,12 @@ model User {
 
   provider Provider?
   labUser  LabUser?
+
+  @@index([role])
+  @@index([facilityId])
 }
 
-model PracticeConnection {
-  id         Int      @id @default(autoincrement())
-  practiceId String   @unique
-  userId     Int
-  token      String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id])
-}
-
+// ------------------------- Auth -------------------------
 model Auth {
   id                Int      @id @default(autoincrement())
   userId            Int
@@ -95,35 +95,72 @@ model Auth {
   @@index([userId])
 }
 
-// ------------------------- Practice -------------------------
-model Practice {
+// ------------------------- Practice Connection -------------------------
+model PracticeConnection {
+  id         Int      @id @default(autoincrement())
+  practiceId String   @unique
+  userId     Int
+  token      String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+// ------------------------- Facility -------------------------
+model Facility {
   id        Int      @id @default(autoincrement())
   name      String
-  ehrVendor String
-  ehrOrgId  String
+  email     String?
+  address   String?
+  phone     String?
   status    Status   @default(ACTIVE)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  users     User[]
+  practices Practice[]
+  labs      Lab[]
+  providers Provider[]
+}
+
+// ------------------------- Practice -------------------------
+model Practice {
+  id        Int    @id @default(autoincrement())
+  name      String
+  ehrVendor String
+  ehrOrgId  String
+  status    Status @default(ACTIVE)
+
+  facilityId Int
+  facility   Facility @relation(fields: [facilityId], references: [id])
+
   providers Provider[]
   patients  Patient[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 // ------------------------- Provider -------------------------
 model Provider {
   id         Int      @id @default(autoincrement())
   userId     Int      @unique
+  facilityId Int
   practiceId Int
   npiNumber  String
+  specialty  String?
   status     Status   @default(ACTIVE)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
   user                   User                    @relation(fields: [userId], references: [id])
+  facility               Facility                @relation(fields: [facilityId], references: [id])
   practice               Practice                @relation(fields: [practiceId], references: [id])
   patientRecommendations PatientRecommendation[]
   orders                 Order[]
 
+  @@index([facilityId])
   @@index([practiceId])
 }
 
@@ -163,6 +200,7 @@ model InsuranceProvider {
   plans InsurancePlan[]
 }
 
+// ------------------------- Insurance Plan -------------------------
 model InsurancePlan {
   id         Int      @id @default(autoincrement())
   providerId Int
@@ -178,6 +216,7 @@ model InsurancePlan {
   @@index([providerId])
 }
 
+// ------------------------- Patient Insurance Plan -------------------------
 model PatientInsurancePlan {
   id              Int       @id @default(autoincrement())
   patientId       Int
@@ -208,6 +247,7 @@ model Diagnosis {
   @@index([icd10])
 }
 
+// ------------------------- Patient Diagnosis -------------------------
 model PatientDiagnosis {
   id          Int      @id @default(autoincrement())
   patientId   Int
@@ -223,7 +263,7 @@ model PatientDiagnosis {
   @@index([diagnosisId])
 }
 
-// ------------------------- Lab & Test -------------------------
+// ------------------------- Lab User -------------------------
 model LabUser {
   id        Int      @id @default(autoincrement())
   userId    Int      @unique
@@ -237,19 +277,29 @@ model LabUser {
   @@index([labId])
 }
 
+// ------------------------- Lab -------------------------
 model Lab {
-  id        Int      @id @default(autoincrement())
-  name      String
-  logoUrl   String
-  status    Status   @default(ACTIVE)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
+  id      Int     @id @default(autoincrement())
+  name    String
+  logoUrl String
+  address String?
+  phone   String?
+  status  Status  @default(ACTIVE)
+
+  facilityId Int?
+  facility   Facility? @relation(fields: [facilityId], references: [id])
 
   tests    Test[]
   orders   Order[]
   labUsers LabUser[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  @@index([facilityId])
 }
 
+// ------------------------- Test -------------------------
 model Test {
   id          Int      @id @default(autoincrement())
   labId       Int

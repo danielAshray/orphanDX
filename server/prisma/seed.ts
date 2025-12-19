@@ -13,17 +13,30 @@ import {
 const adapter = new PrismaPg({
   connectionString: "postgresql://postgres:sysadmin@localhost:5434/orphan_dx",
 });
+
 const prisma = new PrismaClient({ adapter });
 
-async function main() { 
+async function main() {
+  // ------------------------- Facility -------------------------
+  const facility = await prisma.facility.create({
+    data: {
+      name: "Main Medical Facility",
+      email: "facility@example.com",
+      phone: "555-0000",
+      address: "123 Medical Street",
+      status: Status.ACTIVE,
+    },
+  });
+
   // ------------------------- Users -------------------------
-  await prisma.user.create({
+  const adminUser = await prisma.user.create({
     data: {
       name: "Admin User",
       email: "admin@example.com",
       password: "hashedpassword1",
       role: UserRole.ADMIN,
       status: Status.ACTIVE,
+      facilityId: facility.id,
     },
   });
 
@@ -34,6 +47,7 @@ async function main() {
       password: "hashedpassword2",
       role: UserRole.PROVIDER,
       status: Status.ACTIVE,
+      facilityId: facility.id,
     },
   });
 
@@ -44,6 +58,7 @@ async function main() {
       password: "hashedpassword3",
       role: UserRole.LAB,
       status: Status.ACTIVE,
+      facilityId: facility.id,
     },
   });
 
@@ -53,24 +68,30 @@ async function main() {
       name: "Care Practice 1",
       ehrVendor: "Epic",
       ehrOrgId: "EHR001",
+      facilityId: facility.id,
       status: Status.ACTIVE,
     },
   });
+
   const practice2 = await prisma.practice.create({
     data: {
       name: "Care Practice 2",
       ehrVendor: "Cerner",
       ehrOrgId: "EHR002",
+      facilityId: facility.id,
       status: Status.ACTIVE,
     },
   });
 
-  // ------------------------- Providers -------------------------
-  const provider1 = await prisma.provider.create({
+  // ------------------------- Provider -------------------------
+  const provider = await prisma.provider.create({
     data: {
       userId: providerUser.id,
+      facilityId: facility.id,
       practiceId: practice1.id,
       npiNumber: "1234567890",
+      specialty: "Internal Medicine",
+      status: Status.ACTIVE,
     },
   });
 
@@ -78,15 +99,25 @@ async function main() {
   const insuranceProvider1 = await prisma.insuranceProvider.create({
     data: { name: "Blue Shield" },
   });
+
   const insuranceProvider2 = await prisma.insuranceProvider.create({
     data: { name: "United Health" },
   });
 
   const plan1 = await prisma.insurancePlan.create({
-    data: { providerId: insuranceProvider1.id, name: "Plan A", code: "BSA001" },
+    data: {
+      providerId: insuranceProvider1.id,
+      name: "Plan A",
+      code: "BSA001",
+    },
   });
+
   const plan2 = await prisma.insurancePlan.create({
-    data: { providerId: insuranceProvider2.id, name: "Plan B", code: "UHB002" },
+    data: {
+      providerId: insuranceProvider2.id,
+      name: "Plan B",
+      code: "UHB002",
+    },
   });
 
   // ------------------------- Patients -------------------------
@@ -99,6 +130,7 @@ async function main() {
       gender: Gender.MALE,
       phone: "555-1234",
       email: "johndoe@example.com",
+      status: Status.ACTIVE,
     },
   });
 
@@ -111,6 +143,7 @@ async function main() {
       gender: Gender.FEMALE,
       phone: "555-5678",
       email: "janesmith@example.com",
+      status: Status.ACTIVE,
     },
   });
 
@@ -126,6 +159,7 @@ async function main() {
   const diagnosis1 = await prisma.diagnosis.create({
     data: { name: "Diabetes", icd10: "E11" },
   });
+
   const diagnosis2 = await prisma.diagnosis.create({
     data: { name: "Hypertension", icd10: "I10" },
   });
@@ -145,34 +179,43 @@ async function main() {
     ],
   });
 
-  // ------------------------- Labs -------------------------
-  const lab1 = await prisma.lab.create({
-    data: { name: "Central Lab", logoUrl: "https://example.com/logo.png" },
+  // ------------------------- Lab -------------------------
+  const lab = await prisma.lab.create({
+    data: {
+      name: "Central Lab",
+      logoUrl: "https://example.com/logo.png",
+      facilityId: facility.id,
+      status: Status.ACTIVE,
+    },
   });
 
   await prisma.labUser.create({
-    data: { userId: labUser.id, labId: lab1.id },
+    data: {
+      userId: labUser.id,
+      labId: lab.id,
+    },
   });
 
   // ------------------------- Tests -------------------------
   const test1 = await prisma.test.create({
     data: {
-      labId: lab1.id,
+      labId: lab.id,
       name: "Blood Test",
       description: "Routine blood test",
       cptCode: "80050",
     },
   });
+
   const test2 = await prisma.test.create({
     data: {
-      labId: lab1.id,
+      labId: lab.id,
       name: "Urine Test",
       description: "Routine urine test",
       cptCode: "81001",
     },
   });
 
-  // ------------------------- Test Eligibility Rules -------------------------
+  // ------------------------- Eligibility Rules -------------------------
   await prisma.testEligibilityRule.createMany({
     data: [
       { testId: test1.id, payer: "Blue Shield", rule: { maxAge: 65 } },
@@ -180,7 +223,7 @@ async function main() {
     ],
   });
 
-  // ------------------------- Test Coverages -------------------------
+  // ------------------------- Test Coverage -------------------------
   await prisma.testCoverage.createMany({
     data: [
       {
@@ -198,21 +241,19 @@ async function main() {
     ],
   });
 
-  // ------------------------- Patient Recommendations -------------------------
+  // ------------------------- Recommendations -------------------------
   await prisma.patientRecommendation.createMany({
     data: [
       {
         patientId: patient1.id,
         testId: test1.id,
-        providerId: provider1.id,
-        status: PatientRecommendationStatus.PENDING,
+        providerId: provider.id,
         priority: TestPriority.MEDIUM,
       },
       {
         patientId: patient2.id,
         testId: test2.id,
-        providerId: provider1.id,
-        status: PatientRecommendationStatus.PENDING,
+        providerId: provider.id,
         priority: TestPriority.HIGH,
       },
     ],
@@ -224,16 +265,16 @@ async function main() {
       {
         patientId: patient1.id,
         testId: test1.id,
-        providerId: provider1.id,
-        labId: lab1.id,
+        providerId: provider.id,
+        labId: lab.id,
         requisitionPdfUrl: "https://example.com/requisition1.pdf",
         status: OrderStatus.IN_PROGRESS,
       },
       {
         patientId: patient2.id,
         testId: test2.id,
-        providerId: provider1.id,
-        labId: lab1.id,
+        providerId: provider.id,
+        labId: lab.id,
         requisitionPdfUrl: "https://example.com/requisition2.pdf",
         status: OrderStatus.SCHEDULED,
       },
@@ -243,8 +284,8 @@ async function main() {
   // ------------------------- Events -------------------------
   await prisma.event.createMany({
     data: [
-      { eventType: "ORDER_CREATED", entityId: 1, metadata: { orderId: 1 } },
-      { eventType: "ORDER_COMPLETED", entityId: 2, metadata: { orderId: 2 } },
+      { eventType: "ORDER_CREATED", entityId: patient1.id, metadata: { testId: test1.id } },
+      { eventType: "ORDER_COMPLETED", entityId: patient2.id, metadata: { testId: test2.id } },
     ],
   });
 
@@ -252,5 +293,5 @@ async function main() {
 }
 
 main()
-  .catch((e) => console.error(e))
+  .catch(console.error)
   .finally(async () => prisma.$disconnect());
