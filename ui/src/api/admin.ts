@@ -2,7 +2,7 @@ import api from "@/config/axios.config";
 import type { ApiReponse } from "@/types";
 
 const AdminRoutes = Object.freeze({
-  details: "/admin",
+  stat: "/stat/details",
   overview: "/admin/overview",
   facilities: "/admin/facilities",
   labs: "/admin/labs",
@@ -11,7 +11,7 @@ const AdminRoutes = Object.freeze({
 });
 
 const fetchDetailsApi = async (): Promise<ApiReponse> => {
-  const response = await api.get(AdminRoutes.details);
+  const response = await api.get(AdminRoutes.stat);
   return response.data;
 };
 

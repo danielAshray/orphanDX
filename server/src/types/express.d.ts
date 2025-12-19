@@ -2,7 +2,7 @@ import { JwtPayload } from "jsonwebtoken";
 import { UserRole } from "@prisma/client";
 
 export interface CustomJwtPayload extends JwtPayload {
-  id: number;
+  id: string;
   email: string;
   role: UserRole;
 }

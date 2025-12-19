@@ -50,10 +50,6 @@ const userLoginSchema = Joi.object({
   password: Joi.string().required(),
 }).required();
 
-const refreshTokenSchema = Joi.object({
-  refreshToken: Joi.string().required(),
-}).required();
-
 const userRegisterSchema = Joi.object({
   name: Joi.string().required(),
   email: Joi.string().email().required(),
@@ -64,6 +60,37 @@ const userRegisterSchema = Joi.object({
     .optional(),
 }).required();
 
+const createFacilitySchema = Joi.object({
+  facility: Joi.object({
+    name: Joi.string().required().lowercase(),
+    email: Joi.string()
+      .email({ tlds: { allow: false } })
+      .required(),
+  }).required(),
+
+  user: Joi.object({
+    name: Joi.string().required().lowercase(),
+    email: Joi.string()
+      .email({ tlds: { allow: false } })
+      .required(),
+    password: Joi.string().min(6).required(),
+  }).required(),
+}).required();
+
+const createLabSchema = Joi.object({
+  lab: Joi.object({
+    name: Joi.string().required().lowercase(),
+  }).required(),
+
+  user: Joi.object({
+    name: Joi.string().required().lowercase(),
+    email: Joi.string()
+      .email({ tlds: { allow: false } })
+      .required(),
+    password: Joi.string().min(6).required(),
+  }).required(),
+}).required();
+
 const detailsSchema = Joi.object({
   searchBox: Joi.string().required(),
 });
@@ -71,10 +98,11 @@ const detailsSchema = Joi.object({
 export {
   userLoginSchema,
   userRegisterSchema,
-  refreshTokenSchema,
   createOrderSchema,
   recommendTestBodySchema,
   createPatientBodySchema,
   createPatientRecommendationBodySchema,
   detailsSchema,
+  createFacilitySchema,
+  createLabSchema,
 };

@@ -29,9 +29,9 @@ const Admin: React.FC = () => {
   });
 
   const {
-    totalFacilities = 0,
-    totalLabs = 0,
-    totalProviders = 0,
+    facilityCount = 0,
+    labCount = 0,
+    providerCount = 0,
     totalPatients = 0,
     totalOrders = 0,
     completedOrders = 0,
@@ -40,17 +40,17 @@ const Admin: React.FC = () => {
   const statsData = [
     {
       label: "Facilities",
-      value: totalFacilities,
+      value: facilityCount,
       icon: <Building2 className="w-5 h-5 text-blue-600" />,
     },
     {
       label: "Labs",
-      value: totalLabs,
+      value: labCount,
       icon: <FlaskConical className="w-5 h-5 text-purple-600" />,
     },
     {
       label: "Providers",
-      value: totalProviders,
+      value: providerCount,
       icon: <Users className="w-5 h-5 text-green-600" />,
     },
     {

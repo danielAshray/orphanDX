@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 import AppConfig from "../config/app.config";
 import crypto from "crypto";
 import { ApiError } from "../utils/apiService";
-import { Status } from "@prisma/client";
+
 import { sendResponse } from "../utils/responseService";
 
 const getProfile = async (req: Request, res: Response, next: NextFunction) => {
@@ -19,18 +19,12 @@ const getProfile = async (req: Request, res: Response, next: NextFunction) => {
         name: true,
         email: true,
         role: true,
-        status: true,
       },
     });
 
     if (!userExists) {
       const message = "User not found";
       return next(ApiError.notFound(message));
-    }
-
-    if (userExists.status !== Status.ACTIVE) {
-      const message = "User not active";
-      return next(ApiError.forbidden(message));
     }
 
     sendResponse(res, {
@@ -60,7 +54,6 @@ const practiceFusionLogin = async (
         email: true,
         password: true,
         role: true,
-        status: true,
       },
     });
 
@@ -110,7 +103,7 @@ const practiceFusionLogin = async (
 };
 
 interface PfTokenPayload {
-  id: number;
+  id: string;
   role: string;
   email: string;
 }

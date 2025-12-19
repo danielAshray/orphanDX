@@ -12,6 +12,7 @@ import {
 import { authenticate, authorize } from "../middlewares/auth.middleware";
 import { pfCallbackQuery } from "../validators/querySchema";
 import { loginLimiter } from "../middlewares/limit.middleware";
+import { loginUser } from "../controllers/auth.controller";
 
 const userRoute = Router();
 
@@ -22,9 +23,12 @@ const UserRoutes = Object.freeze({
 userRoute.get(
   UserRoutes.Profile,
   authenticate,
-  authorize("ADMIN", "LAB", "PROVIDER"),
+  authorize(["ADMIN", "LAB", "PROVIDER"]),
   getProfile
 );
+
+userRoute.post("/login", validateBody(userLoginSchema), loginUser);
+
 userRoute.post(
   "/auth",
   loginLimiter,

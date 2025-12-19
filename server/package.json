@@ -13,8 +13,7 @@
     "prisma:migrate:dev": "prisma migrate dev",
     "prisma:migrate:create": "prisma migrate dev --name",
     "prisma:migrate:prod": "prisma migrate deploy",
-    "prisma:reset": "prisma migrate reset",
-    "seed": "ts-node prisma/seed.ts"
+    "prisma:reset": "prisma migrate reset"
   },
   "keywords": [
     "JS",

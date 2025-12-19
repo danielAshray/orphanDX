@@ -1,7 +1,6 @@
 import { UserRole } from "@prisma/client";
 import { Request, Response, NextFunction } from "express";
 import { ApiError } from "../utils/apiService";
-import { prisma } from "../lib/prisma";
 import { verifyToken } from "../utils/jwtService";
 
 const authenticate = async (
@@ -15,17 +14,7 @@ const authenticate = async (
       return next(ApiError.notFound("Token missing"));
     }
 
-    const authExists = await prisma.auth.findUnique({
-      where: { maskedAccessToken: token },
-      include: { user: true },
-    });
-
-    if (!authExists) {
-      const message = "Invalid token";
-      return next(ApiError.unauthorized(message));
-    }
-
-    const decoded = verifyToken(authExists.accessToken);
+    const decoded = verifyToken(token);
     req.user = decoded;
 
     next();
@@ -34,7 +23,7 @@ const authenticate = async (
   }
 };
 
-const authorize = (...allowedRoles: UserRole[]) => {
+const authorize = (allowedRoles: UserRole[]) => {
   return (req: Request, _res: Response, next: NextFunction) => {
     const user = req.user;
 
