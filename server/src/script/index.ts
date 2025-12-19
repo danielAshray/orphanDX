@@ -106,6 +106,115 @@ async function seedPatient() {
   }
 }
 
-main();
+async function fillLabRule() {
+  try {
+    const OWLIVER_ELIGIBLE_CODES = [
+      {
+        icd10: "E11.9",
+        message: "Type 2 diabetes mellitus without complications",
+      },
+      { icd10: "E11.65", message: "Type 2 diabetes with hyperglycemia" },
+      { icd10: "R73.01", message: "Impaired fasting glucose" },
+      { icd10: "R73.02", message: "Impaired glucose tolerance (oral)" },
+      { icd10: "R73.09", message: "Other abnormal glucose" },
+      { icd10: "E66.01", message: "Morbid obesity (BMI ≥40)" },
+      { icd10: "E66.9", message: "Obesity, unspecified" },
+      { icd10: "Z68.30", message: "BMI 30-30.9" },
+      { icd10: "Z68.31", message: "BMI 31-31.9" },
+      { icd10: "Z68.32", message: "BMI 32-32.9" },
+      { icd10: "Z68.33", message: "BMI 33-33.9" },
+      { icd10: "Z68.34", message: "BMI 34-34.9" },
+      { icd10: "Z68.35", message: "BMI 35-35.9" },
+      { icd10: "Z68.36", message: "BMI 36-36.9" },
+      { icd10: "Z68.37", message: "BMI 37-37.9" },
+      { icd10: "Z68.38", message: "BMI 38-38.9" },
+      { icd10: "Z68.39", message: "BMI 39-39.9" },
+      { icd10: "E78.0", message: "Pure hypercholesterolemia" },
+      { icd10: "E78.1", message: "Pure hyperglyceridemia" },
+      { icd10: "E78.2", message: "Mixed hyperlipidemia" },
+      { icd10: "E78.41", message: "Elevated Lp(a)" },
+      { icd10: "E78.5", message: "Hypertriglyceridemia" },
+      { icd10: "E78.9", message: "Hyperlipidemia, unspecified" },
+      { icd10: "E28.2", message: "Polycystic ovarian syndrome" },
+      { icd10: "E03.9", message: "Hypothyroidism, unspecified" },
+      { icd10: "E03.8", message: "Other hypothyroidism" },
+      { icd10: "E89.0", message: "Post-procedural hypothyroidism" },
+      { icd10: "G47.33", message: "Obstructive sleep apnea" },
+      { icd10: "L40.9", message: "Psoriasis, unspecified" },
+      { icd10: "L40.1", message: "Generalized pustular psoriasis" },
+      { icd10: "L40.0", message: "Psoriasis vulgaris" },
+      { icd10: "L40.2", message: "Psoriasis guttate" },
+      { icd10: "L40.3", message: "Pustular psoriasis" },
+      { icd10: "L40.4", message: "Psoriatic arthropathy" },
+      { icd10: "L40.5", message: "Other psoriasis" },
+      { icd10: "L40.6", message: "Arthropathic psoriasis" },
+      { icd10: "L40.8", message: "Other psoriasis variants" },
+      { icd10: "E23.0", message: "Hypopituitarism" },
+      { icd10: "E29.1", message: "Testicular hypogonadism" },
+      { icd10: "E89.5", message: "Post-procedural hypogonadism" },
+      { icd10: "Z90.411", message: "Acquired absence of pancreas, partial" },
+      { icd10: "Z90.412", message: "Acquired absence of pancreas, total" },
+      { icd10: "K91.89", message: "Other post-procedural GI disorders" },
+      { icd10: "E86.1", message: "Exocrine pancreatic insufficiency" },
+      { icd10: "R74.01", message: "Elevation of liver transaminase levels" },
+      { icd10: "K76.0", message: "Fatty liver, not elsewhere classified" },
+      { icd10: "K74.01", message: "Fibrosis of liver, early (F1)" },
+      { icd10: "K75.81", message: "Non-alcoholic steatohepatitis (NASH)" },
+      {
+        icd10: "R74.8",
+        message: "Abnormal elevation of other serum enzyme levels",
+      },
+      { icd10: "R94.5", message: "Abnormal results of liver function studies" },
+    ];
 
-seedPatient();
+    const lab = await prisma.lab.findFirst();
+
+    if (!lab) return;
+    await prisma.labRule.createMany({
+      data: OWLIVER_ELIGIBLE_CODES.map((item) => ({
+        code: item.icd10,
+        message: item.message,
+        labId: lab.id,
+      })),
+    });
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+async function createRecomendation() {
+  try {
+    const diagnoses = await prisma.diagnosis.findMany();
+
+    for (const diagnisis of diagnoses) {
+      const ruleFounds = await prisma.labRule.findMany({
+        where: { code: diagnisis.icd10 },
+      });
+
+      for (const ruleFound of ruleFounds) {
+        await prisma.labRecommendation.create({
+          data: {
+            labRuleId: ruleFound.id,
+            title: "Test Recomendation",
+            reason: ruleFound.message,
+            patientId: diagnisis.patientId,
+            diagnosisId: diagnisis.id,
+          },
+        });
+        console.log(`created recomendation: `, ruleFound.code);
+      }
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+type tagType = "user" | "patient" | "labRule" | "recommendation";
+const callFunc: Record<tagType, Function> = {
+  labRule: fillLabRule,
+  patient: seedPatient,
+  user: main,
+  recommendation: createRecomendation,
+};
+
+callFunc["recommendation"]();

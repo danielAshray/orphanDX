@@ -53,9 +53,24 @@ model Lab {
   code        String?    @unique
 
   users       User[]
+  labRule   LabRule[]
 
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
+}
+
+model LabRule {
+  id          String     @id @default(uuid())
+  labId     String   
+  code String
+  message String
+  lab       Lab      @relation(fields: [labId], references: [id])
+  labRecommendatios LabRecommendation[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@unique([labId,code])
+  @@index([labId])
 }
 
 
@@ -117,6 +132,7 @@ model Patient {
   
   insurance    Insurance?
   diagnoses    Diagnosis[]
+  labRecommendations LabRecommendation[]
  
 
   createdAt    DateTime    @default(now())
@@ -155,7 +171,48 @@ model Diagnosis {
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
+  labRecommendations LabRecommendation[]
+  
   @@index([patientId])
   @@index([icd10])
 }
+
+
+
+enum RecommendationStatus {
+  PENDING
+  ACCEPTED
+  DISMISSED
+  ORDERED
+}
+
+
+
+model LabRecommendation {
+  id           String   @id @default(uuid())
+
+  patientId    String
+  facilityId   String?
+  providerId   String?
+
+  title        String        
+  reason       String        
+  status       RecommendationStatus @default(PENDING)
+
+  patient      Patient   @relation(fields: [patientId], references: [id])
+
+  
+  labRuleId String
+  labRule LabRule @relation(fields: [labRuleId],references: [id])
+  diagnosisId String
+  diagnosis    Diagnosis @relation(fields: [diagnosisId], references: [id])
+
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([patientId])
+  @@index([facilityId])
+  @@index([providerId])
+  @@unique([patientId, diagnosisId, labRuleId])
+}
+
