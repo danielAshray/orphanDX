@@ -1,32 +1,36 @@
 import { fetchPatientsApi } from "@/api/provider";
 import { Button } from "@/components/button";
 import { Card } from "@/components/card";
-import { PatientDetails, PatientList } from "@/elements";
 import type { Patient } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 import { AlertCircle, Calendar, CheckCircle2, Users } from "lucide-react";
 import { useState } from "react";
+import { PatientDetails, PatientList } from "./components";
+
 type PatientFilter = "all" | "candidates" | "scheduled" | "completed";
 
-type ProviderListProps = {
-  candidateCount: number;
+interface ProviderListProps {
+  testCandidatesCount: number;
   scheduledCount: number;
-  completedCount: number;
-};
-const ProviderList = ({
-  candidateCount = 0,
-  completedCount = 0,
-  scheduledCount = 0,
-}: ProviderListProps) => {
+  completedTestCount: number;
+}
+
+const ProviderList: React.FC<ProviderListProps> = ({
+  testCandidatesCount,
+  scheduledCount,
+  completedTestCount,
+}) => {
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [patientFilter, setPatientFilter] = useState<PatientFilter>("all");
 
-  const { data: details } = useQuery({
+  const { data: patients } = useQuery({
     queryKey: ["fetchPatientsApi"],
     queryFn: fetchPatientsApi,
     refetchOnReconnect: false,
     refetchOnWindowFocus: false,
   });
+
+  const allPatients = patients?.data || [];
 
   return (
     <>
@@ -45,7 +49,7 @@ const ProviderList = ({
           className="gap-2"
         >
           <AlertCircle className="w-4 h-4" />
-          Test Candidates ({candidateCount})
+          Test Candidates ({testCandidatesCount})
         </Button>
         <Button
           variant={patientFilter === "scheduled" ? "default" : "outline"}
@@ -63,7 +67,7 @@ const ProviderList = ({
           className="gap-2"
         >
           <CheckCircle2 className="w-4 h-4" />
-          Completed ({completedCount})
+          Completed ({completedTestCount})
         </Button>
       </div>
 
@@ -71,7 +75,7 @@ const ProviderList = ({
         {/* Patient List */}
         <div className="lg:col-span-2">
           <PatientList
-            patients={[]}
+            patients={allPatients}
             selectedPatient={selectedPatient}
             onSelectPatient={setSelectedPatient}
             filter={patientFilter}

@@ -1,89 +1,100 @@
-import { OrderTracking } from "@/elements";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/tabs";
 import { Card } from "@/components/card";
-import { mockPatients, mockOrders } from "@/data/mockData";
 import { Users, AlertCircle, Calendar, CheckCircle2 } from "lucide-react";
-import ProviderList from "./ProviderList";
+import { useState, type ReactNode } from "react";
+import { OrderTracking, ProviderList } from "./tabs";
+
+interface StatCardProps {
+  label: string;
+  value: number | string;
+  icon: ReactNode;
+}
 
 const Provider = () => {
-  const candidateCount = mockPatients.filter(
-    (p) => p.isCandidate && p.recommendedTests.length > 0
-  ).length;
-  const scheduledCount = mockPatients.filter(
-    (p) => p.scheduledTests && p.scheduledTests.length > 0
-  ).length;
-  const completedCount = mockPatients.filter(
-    (p) => p.completedTests && p.completedTests.length > 0
-  ).length;
+  const [activeTab, setActiveTab] = useState("patients");
+
+  const {
+    totalPatientCount = 0,
+    testCandidatesCount = 0,
+    scheduledCount = 0,
+    completedTestCount = 0,
+  } = {};
+
+  const statsData = [
+    {
+      label: "Total Patients",
+      value: totalPatientCount,
+      icon: (
+        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+          <Users className="w-5 h-5 text-blue-600" />
+        </div>
+      ),
+    },
+    {
+      label: "Test Candidates",
+      value: testCandidatesCount,
+      icon: (
+        <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+          <AlertCircle className="w-5 h-5 text-purple-600" />
+        </div>
+      ),
+    },
+    {
+      label: "Scheduled Tests",
+      value: scheduledCount,
+      icon: (
+        <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+          <Calendar className="w-5 h-5 text-orange-600" />
+        </div>
+      ),
+    },
+    {
+      label: "Completed Tests",
+      value: completedTestCount,
+      icon: (
+        <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+          <CheckCircle2 className="w-5 h-5 text-green-600" />
+        </div>
+      ),
+    },
+  ] as StatCardProps[];
+
+  const props = {
+    testCandidatesCount,
+    scheduledCount,
+    completedTestCount,
+  };
 
   return (
     <div className="max-w-[1600px] mx-auto px-6">
+      {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Total Patients</p>
-              <p className="text-gray-900 mt-1">{mockPatients.length}</p>
+        {statsData.map((stat, index) => (
+          <Card className="p-4" key={index}>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">{stat.label}</p>
+                <p className="text-gray-900 mt-1">{stat.value}</p>
+              </div>
+              {stat.icon}
             </div>
-            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-              <Users className="w-5 h-5 text-blue-600" />
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-4 cursor-pointer hover:bg-gray-50 transition-colors">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Test Candidates</p>
-              <p className="text-gray-900 mt-1">{candidateCount}</p>
-            </div>
-            <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-              <AlertCircle className="w-5 h-5 text-purple-600" />
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-4 cursor-pointer hover:bg-gray-50 transition-colors">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Scheduled Tests</p>
-              <p className="text-gray-900 mt-1">{scheduledCount}</p>
-            </div>
-            <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-              <Calendar className="w-5 h-5 text-orange-600" />
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-4 cursor-pointer hover:bg-gray-50 transition-colors">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Completed Tests</p>
-              <p className="text-gray-900 mt-1">{completedCount}</p>
-            </div>
-            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-              <CheckCircle2 className="w-5 h-5 text-green-600" />
-            </div>
-          </div>
-        </Card>
+          </Card>
+        ))}
       </div>
 
-      <Tabs defaultValue="patients" className="space-y-4">
-        <TabsList>
+      {/* Main Content */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="mb-6">
           <TabsTrigger value="patients">Patients</TabsTrigger>
           <TabsTrigger value="orders">Orders</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="patients">
-          <ProviderList
-            scheduledCount={scheduledCount}
-            candidateCount={candidateCount}
-            completedCount={completedCount}
-          />
+        <TabsContent value="patients" className="space-y-4">
+          <ProviderList {...props} />
         </TabsContent>
 
         <TabsContent value="orders">
-          <OrderTracking orders={mockOrders} viewMode="provider" />
+          <OrderTracking />
         </TabsContent>
       </Tabs>
     </div>

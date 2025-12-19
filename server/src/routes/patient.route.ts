@@ -7,7 +7,7 @@ const patientRoute: Router = Router();
 patientRoute.get(
   "",
   authenticate,
-  authorize(["FACILITY", "LAB"]),
+  authorize(["FACILITY", "PROVIDER", "LAB"]),
   fetchPatientDetails
 );
 
