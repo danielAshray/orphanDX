@@ -3,7 +3,7 @@ import type { LoginProps } from "@/pages/auth/login";
 import type { ApiReponse } from "@/types";
 
 const UserRoutes = Object.freeze({
-  login: "/auth/login",
+  login: "/user/login",
   profile: "/user/profile",
 });
 

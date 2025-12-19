@@ -1,20 +1,21 @@
 import Joi from "joi";
 
-const createPatientBodySchema = Joi.object({
-  name: Joi.string().min(2).max(100).required(),
-  practiceId: Joi.number().integer().required(),
-  ehrPatientId: Joi.string().max(50).required(),
-  dob: Joi.date().required(),
-  gender: Joi.string()
-    .regex(/^(MALE|FEMALE|OTHER)$/)
-    .required()
-    .messages({
-      "any.required": "Gender is required",
-      "string.pattern.base": "Gender must be MALE, FEMALE or OTHER",
-    }),
-  lastVisit: Joi.date().optional().allow(null, ""),
-  phone: Joi.string().max(15).required(),
-  email: Joi.string().email().max(100).required(),
+const createPatientSchema = Joi.object({
+  firstName: Joi.string().min(2).max(100).required(),
+  lastName: Joi.string().min(2).max(100).required(),
+  mrn: Joi.string().max(50).required(),
+  dateOfBirth: Joi.date().required(),
+  gender: Joi.string().valid("MALE", "FEMALE", "OTHER").required(),
+  phone: Joi.string().optional(),
+  email: Joi.string().email().optional(),
+
+  insurance: Joi.object({
+    provider: Joi.string().required(),
+    plan: Joi.string().required(),
+  }).optional(),
+
+  facilityId: Joi.string().uuid().optional(),
+  providerId: Joi.string().uuid().optional(),
 });
 
 const createOrderSchema = Joi.object({
@@ -100,7 +101,7 @@ export {
   userRegisterSchema,
   createOrderSchema,
   recommendTestBodySchema,
-  createPatientBodySchema,
+  createPatientSchema,
   createPatientRecommendationBodySchema,
   detailsSchema,
   createFacilitySchema,

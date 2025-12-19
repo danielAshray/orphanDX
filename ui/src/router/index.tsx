@@ -1,20 +1,12 @@
-import {
-  PublicRoute,
-  RequireAuth,
-  RequireRole,
-  useAuthContext,
-} from "@/context/auth";
+import { PublicRoute, RequireAuth, RequireRole } from "@/context/auth";
 import { Main } from "@/layouts";
 import { PATH_KEYS } from "@/lib/constants/pathKeys";
 import { Forbidden, NotFound } from "@/pages";
 import { Login } from "@/pages/auth";
-import { Admin, Facility, Lab, Provider } from "@/pages/dashboard";
+import { Admin, Lab, Provider } from "@/pages/dashboard";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 const Router = () => {
-  const { token } = useAuthContext();
-
-  console.log(token);
   return (
     <BrowserRouter>
       <Routes>
@@ -35,7 +27,7 @@ const Router = () => {
             </Route>
 
             <Route element={<RequireRole allowed={["facility"]} />}>
-              <Route path={PATH_KEYS.FACILITY} element={<Facility />} />
+              <Route path={PATH_KEYS.FACILITY} element={<Provider />} />
             </Route>
 
             <Route element={<RequireRole allowed={["provider"]} />}>

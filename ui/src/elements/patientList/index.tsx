@@ -49,7 +49,6 @@ const PatientList = ({
   });
 
   const handlePatientClick = (patient: Patient) => {
-    // If clicking the same patient, deselect it
     if (selectedPatient?.id === patient.id) {
       onSelectPatient(null);
     } else {
@@ -92,7 +91,6 @@ const PatientList = ({
 
       <ScrollArea className="h-[calc(100vh-320px)]">
         <div className="p-4 space-y-4">
-          {/* Candidate Patients */}
           {(filter === "all" || filter === "candidates") &&
             candidatePatients.length > 0 && (
               <div>
@@ -115,7 +113,6 @@ const PatientList = ({
               </div>
             )}
 
-          {/* Scheduled Tests */}
           {(filter === "all" || filter === "scheduled") &&
             scheduledPatients.length > 0 && (
               <div>
@@ -138,7 +135,6 @@ const PatientList = ({
               </div>
             )}
 
-          {/* Completed Tests */}
           {(filter === "all" || filter === "completed") &&
             completedPatients.length > 0 && (
               <div>
@@ -161,7 +157,6 @@ const PatientList = ({
               </div>
             )}
 
-          {/* Other Patients */}
           {filter === "all" && otherPatients.length > 0 && (
             <div>
               <div className="flex items-center gap-2 mb-2">
