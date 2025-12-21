@@ -228,8 +228,10 @@ model LabOrder {
 
 }
 
+
 model TestResult {
    id            String      @id @default(uuid())
+  isNormal Boolean @default(true)
   labOrder      LabOrder @relation( fields: [labOrderId], references: [id])
   labOrderId    String @unique
   recomendations Json[]

@@ -122,6 +122,7 @@ export const completeTestResultSchema = Joi.object({
   summary: Joi.string().required(),
   result: Joi.array().items(resultItemSchema).min(1).required(),
   recomendations: Joi.array().items(recommendationSchema).min(0).required(),
+  isNormal: Joi.boolean().required(),
 })
   .unknown(false)
   .required();

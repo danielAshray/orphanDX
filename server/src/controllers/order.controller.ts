@@ -123,7 +123,7 @@ export const completeOrder = async (
   try {
     const organizationId = req.user?.organization?.id || "";
 
-    const { summary, recomendations, result, orderId } = req.body;
+    const { summary, recomendations, result, orderId, isNormal } = req.body;
 
     const order = await prisma.labOrder.findUnique({
       where: { id: orderId, labId: organizationId, status: "PENDING" },
@@ -142,6 +142,7 @@ export const completeOrder = async (
               summary,
               recomendations,
               result,
+              isNormal,
             },
           },
           status: "COMPLETED",
