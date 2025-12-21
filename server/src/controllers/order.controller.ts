@@ -115,6 +115,62 @@ export const createOrder = async (
   }
 };
 
+export const completeOrder = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const organizationId = req.user?.organization?.id || "";
+
+    const { summary, recomendations, result, orderId } = req.body;
+
+    const order = await prisma.labOrder.findUnique({
+      where: { id: orderId, labId: organizationId, status: "PENDING" },
+    });
+
+    if (!order) return next({ code: 404, message: "order record not found" });
+
+    const { newOrder } = await prisma.$transaction(async (tx) => {
+      const newOrder = await tx.labOrder.update({
+        where: {
+          id: order.id,
+        },
+        data: {
+          testResult: {
+            create: {
+              summary,
+              recomendations,
+              result,
+            },
+          },
+          status: "COMPLETED",
+        },
+      });
+
+      await tx.patient.update({
+        where: {
+          id: newOrder.patientId,
+        },
+        data: {
+          scheduledCount: { decrement: -1 },
+        },
+      });
+
+      return { newOrder };
+    });
+
+    sendResponse(res, {
+      success: true,
+      code: 200,
+      message: "Order created successfully",
+      data: newOrder,
+    });
+  } catch (error: any) {
+    next(ApiError.internal("Failed to create order", error));
+  }
+};
+
 const getDashboard = async (
   _req: Request,
   res: Response,

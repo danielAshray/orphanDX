@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  completeOrder,
   createOrder,
   getDashboard,
   orderTracking,
@@ -8,6 +9,8 @@ import {
   authenticate,
   authorizeByRoleAndOrg,
 } from "../middlewares/auth.middleware";
+import { validateBody } from "../middlewares/requestValidator.middleware";
+import { completeTestResultSchema } from "../validators/bodySchema";
 
 const orderRoute: Router = Router();
 
@@ -30,6 +33,14 @@ orderRoute.get(
   authenticate,
   authorizeByRoleAndOrg(["ADMIN", "USER"], "LAB"),
   orderTracking
+);
+
+orderRoute.put(
+  "/complete",
+  authenticate,
+  authorizeByRoleAndOrg(["ADMIN"], "LAB"),
+  validateBody(completeTestResultSchema),
+  completeOrder
 );
 
 export default orderRoute;

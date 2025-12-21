@@ -99,3 +99,29 @@ export {
   detailsSchema,
   createOrganizationSchema,
 };
+
+const resultItemSchema = Joi.object({
+  component: Joi.string().required(),
+  value: Joi.number().required(),
+  unit: Joi.string().required(),
+
+  referenceRange: Joi.object({
+    low: Joi.number().required(),
+    high: Joi.number().required(),
+  }).required(),
+
+  status: Joi.string().valid("HIGH", "LOW", "NORMAL", "CRITICAL").required(),
+});
+
+const recommendationSchema = Joi.object({
+  action: Joi.string().min(3).required(),
+});
+
+export const completeTestResultSchema = Joi.object({
+  orderId: Joi.string().required(),
+  summary: Joi.string().required(),
+  result: Joi.array().items(resultItemSchema).min(1).required(),
+  recomendations: Joi.array().items(recommendationSchema).min(0).required(),
+})
+  .unknown(false)
+  .required();
