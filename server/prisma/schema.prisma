@@ -40,7 +40,7 @@ model User {
   role        UserRole
   organizationId String?
   organization Organization? @relation(fields: [organizationId],references: [id])
-
+  labOrders LabOrder[]
  
   practiceConnections PracticeConnection[]
 
@@ -193,12 +193,16 @@ model LabOrder {
   results       String?
   orderedAt     DateTime    @default(now())
   completedAt   DateTime?
+
+  createdBy       User        @relation(fields: [createdById], references: [id])
+  createdById     String
+
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
-@@index([facilityId])
-@@index([labId])
-@@index([diagnosisId])
-@@index([recommendationId])
+  @@index([facilityId])
+  @@index([labId])
+  @@index([diagnosisId])
+  @@index([recommendationId])
 
 }

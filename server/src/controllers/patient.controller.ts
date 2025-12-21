@@ -14,6 +14,12 @@ export const fetchPatientDetails = async (
       where: {
         facilityId: organizationId,
       },
+      include: {
+        insurance: true,
+        diagnoses: true,
+        labRecommendations: true,
+        labOrder: true,
+      },
     });
 
     sendResponse(res, {

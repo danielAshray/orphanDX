@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import { prisma } from "../lib/prisma";
+import { faker } from "@faker-js/faker";
 
 async function main() {
   const adminEmail = "daniel@ashrayconsulting.com";
@@ -28,13 +29,12 @@ async function main() {
   console.log("Developer account created:", admin.email);
 }
 
-import { faker } from "@faker-js/faker";
-
 async function seedPatient() {
   console.log("Seeding 100 patients with insurance and diagnoses...");
   const organization = await prisma.organization.findFirst({
     where: { role: "FACILITY" },
   });
+
   if (!organization) return;
   for (let i = 0; i < 100; i++) {
     const firstName = faker.person.firstName();
@@ -106,7 +106,9 @@ async function seedPatient() {
         );
       });
       console.log("Seeding completed!");
-    } catch {}
+    } catch (error) {
+      console.log(error);
+    }
   }
 }
 
@@ -213,14 +215,51 @@ async function createRecomendation() {
   }
 }
 
-type tagType = "user" | "patient" | "labRule" | "recommendation";
+async function createLabOrderForRecommendation() {
+  try {
+    const user = await prisma.user.findFirst({
+      where: { organization: { role: "FACILITY" } },
+      select: { id: true, organization: { select: { id: true } } },
+    });
+
+    if (!user) return;
+
+    const recommendation = await prisma.labRecommendation.findFirst({
+      where: { status: "PENDING" },
+      include: { patient: true, diagnosis: true, labRule: true },
+    });
+
+    if (!recommendation) {
+      throw new Error("LabRecommendation not found");
+    }
+
+    const labOrder = await prisma.labOrder.create({
+      data: {
+        facilityId: recommendation.patient.facilityId,
+        labId: recommendation.labRule.labId,
+        patientId: recommendation.patientId,
+        diagnosisId: recommendation.diagnosisId,
+        recommendationId: recommendation.id,
+        status: "PENDING",
+        createdById: user.id,
+      },
+    });
+
+    console.log("LabOrder created:", labOrder.id);
+    return labOrder;
+  } catch (error) {
+    console.error("Error creating LabOrder:", error);
+    throw error;
+  }
+}
+
+type tagType = "user" | "patient" | "labRule" | "recommendation" | "order";
 const callFunc: Record<tagType, Function> = {
   user: main,
   patient: seedPatient,
   labRule: fillLabRule,
   recommendation: createRecomendation,
+  order: createLabOrderForRecommendation,
 };
 
-callFunc["patient"]();
-callFunc["labRule"]();
-callFunc["recommendation"]();
+callFunc["order"]();
