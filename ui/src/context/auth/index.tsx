@@ -98,7 +98,6 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
 
 const PublicRoute = () => {
   const { token, user } = useAuthContext();
-  console.log({ token, user });
   if (token) {
     switch (user.organization?.role?.toLowerCase()) {
       case "facility":
