@@ -1,8 +1,10 @@
 import type { ReactNode } from "react";
 import { Card } from "@/components/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/tabs";
-import { TrendingUp, Building2, ClipboardList, DollarSign } from "lucide-react";
+import { TrendingUp, Building2, ClipboardList, Stethoscope } from "lucide-react";
 import { Analytics, Orders } from "./tabs";
+import { fetchDashboardApi } from "@/api/order";
+import { useQuery } from "@tanstack/react-query";
 
 interface StatCardProps {
   label: string;
@@ -11,12 +13,19 @@ interface StatCardProps {
 }
 
 const Lab = () => {
+  const { data: dashboard } = useQuery({
+    queryKey: ["fetchDashboardApi"],
+    queryFn: fetchDashboardApi,
+    refetchOnReconnect: false,
+    refetchOnWindowFocus: false,
+  });
+
   const {
     totalOrders = 0,
     activeOrders = 0,
     partnerClinics = 0,
-    monthlyRevenue = 0,
-  } = {};
+    providerCount = 0,
+  } = dashboard?.data || {};
 
   const statsData = [
     {
@@ -47,11 +56,11 @@ const Lab = () => {
       ),
     },
     {
-      label: "Monthly Revenue",
-      value: monthlyRevenue,
+      label: "Total Provider",
+      value: providerCount,
       icon: (
         <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-          <DollarSign className="w-5 h-5 text-green-600" />
+          <Stethoscope className="w-5 h-5 text-green-600" />
         </div>
       ),
     },

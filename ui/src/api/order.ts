@@ -32,4 +32,19 @@ const useCreateOrder = () => {
   });
 };
 
-export { createOrderApi, useCreateOrder };
+const OrderRoutes = Object.freeze({
+  dashboard: "/order",
+  track: "/order/track",
+});
+
+const fetchDashboardApi = async (): Promise<ApiReponse> => {
+  const response = await api.get(OrderRoutes.dashboard);
+  return response.data;
+};
+
+const fetchOrderTrackingApi = async (): Promise<ApiReponse> => {
+  const response = await api.get(OrderRoutes.track);
+  return response.data;
+};
+
+export { fetchDashboardApi, fetchOrderTrackingApi, useCreateOrder };

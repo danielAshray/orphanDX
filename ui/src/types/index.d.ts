@@ -2,7 +2,6 @@ export interface Patient {
   id: string;
   firstName: string;
   lastName: string;
-  age: number;
   mrn: string;
   dateOfBirth: string;
   insurance: {
