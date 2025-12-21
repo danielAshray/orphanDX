@@ -1,7 +1,6 @@
 export interface Patient {
   id: string;
-  firstName: string;
-  lastName: string;
+  name: string;
   age: number;
   mrn: string;
   dob: string;
@@ -9,7 +8,7 @@ export interface Patient {
     provider: string;
     planName: string;
     memberId: string;
-    type: "Commercial" | "Medicare" | "Medicaid";
+    type: 'Commercial' | 'Medicare' | 'Medicaid';
   };
   diagnoses: Diagnosis[];
   demographics: {
@@ -25,8 +24,8 @@ export interface Patient {
 }
 
 export interface Diagnosis {
-  icd10: string;
-  name: string;
+  code: string;
+  description: string;
   onsetDate: string;
 }
 
@@ -34,7 +33,7 @@ export interface RecommendedTest {
   id: string;
   testName: string;
   testCode: string;
-  priority: "high" | "medium" | "low";
+  priority: 'high' | 'medium' | 'low';
   reason: string;
   payerCoverage: {
     covered: boolean;
@@ -62,7 +61,7 @@ export interface ScheduledTest {
   testCode: string;
   scheduledDate: string;
   orderId: string;
-  status: "scheduled" | "collected" | "in-progress";
+  status: 'scheduled' | 'collected' | 'in-progress';
 }
 
 export interface LabResult {
@@ -81,7 +80,7 @@ export interface TestResultItem {
   value: string;
   unit: string;
   referenceRange: string;
-  flag?: "high" | "low" | "critical";
+  flag?: 'high' | 'low' | 'critical';
 }
 
 export interface Order {
@@ -95,14 +94,7 @@ export interface Order {
   labId?: string;
   testName: string;
   testCode: string;
-  status:
-    | "pending"
-    | "sent"
-    | "scheduled"
-    | "collected"
-    | "in-progress"
-    | "completed"
-    | "cancelled";
+  status: 'pending' | 'sent' | 'scheduled' | 'collected' | 'in-progress' | 'completed' | 'cancelled';
   createdAt: string;
   updatedAt: string;
   scheduledDate?: string;
@@ -116,7 +108,7 @@ export interface EventLog {
   metadata: Record<string, any>;
 }
 
-export type UserRole = "admin" | "lab" | "facility" | "provider";
+export type UserRole = 'admin' | 'lab' | 'facility' | 'provider';
 
 export interface User {
   id: string;

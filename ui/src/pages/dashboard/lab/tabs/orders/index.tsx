@@ -22,7 +22,14 @@ import {
   FileText,
   Eye,
 } from "lucide-react";
-import { mockOrders } from "@/data/mockData";
+import { useQuery } from "@tanstack/react-query";
+import { fetchOrderTrackingApi } from "@/api/order";
+
+// interface OrderTrackingFilters {
+//   status?: string;
+//   patientId?: string;
+//   providerId?: string;
+// }
 
 const Orders: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -30,13 +37,28 @@ const Orders: React.FC = () => {
   const [selectedRequisition, setSelectedRequisition] = useState<any>(null);
   const [showLabResults, setShowLabResults] = useState(false);
   const [selectedLabResult, setSelectedLabResult] = useState<any>(null);
+  // const [filters, _setFilters] = useState<OrderTrackingFilters>({});
 
-  const filteredOrders = mockOrders.filter(
-    (order) =>
-      order.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.testName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.id.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // const hasFilters = Object.keys(filters).length > 0;
+
+  const { data: track } = useQuery({
+    queryKey: ["fetchOrderTrackingApi"],
+    // queryFn: () => fetchOrderTrackingApi(filters),
+    queryFn: fetchOrderTrackingApi,
+    refetchOnReconnect: false,
+    refetchOnWindowFocus: false,
+  });
+
+  console.log({ track });
+
+  const orders = track?.data || [];
+
+  // const filteredOrders = mockOrders.filter(
+  //   (order) =>
+  //     order.patientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  //     order.testName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  //     order.id.toLowerCase().includes(searchQuery.toLowerCase())
+  // );
 
   const getStatusColor = (status: Order["status"]) => {
     const colors = {
@@ -133,7 +155,7 @@ const Orders: React.FC = () => {
         <ScrollArea className="h-[calc(100vh-400px)]">
           <div className="p-4">
             <div className="space-y-3">
-              {filteredOrders.map((order) => (
+              {orders.map((order: any) => (
                 <div
                   key={order.id}
                   className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
@@ -239,7 +261,7 @@ const Orders: React.FC = () => {
                 </div>
               ))}
 
-              {filteredOrders.length === 0 && (
+              {orders.length === 0 && (
                 <div className="text-center py-12 text-gray-500">
                   <p>No orders found</p>
                 </div>
