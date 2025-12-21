@@ -154,6 +154,7 @@ export const completeOrder = async (
         },
         data: {
           scheduledCount: { decrement: -1 },
+          completedCount: { increment: 1 },
         },
       });
 
