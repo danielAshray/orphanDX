@@ -205,8 +205,6 @@ async function createRecomendation() {
         where: { code: diagnisis.icd10 },
       });
 
-      console.log({ diagnisis, ruleFounds });
-
       for (const ruleFound of ruleFounds) {
         await prisma.labRecommendation.create({
           data: {
@@ -217,6 +215,12 @@ async function createRecomendation() {
             diagnosisId: diagnisis.id,
             priority: ruleFound.priority,
             code: ruleFound.code,
+          },
+        });
+        await prisma.patient.update({
+          where: { id: diagnisis.patientId },
+          data: {
+            recomendationCount: { increment: 1 },
           },
         });
         console.log(`created recomendation: `, ruleFound.code);
@@ -265,107 +269,13 @@ async function createLabOrderForRecommendation() {
   }
 }
 
-async function createOrganizations() {
-  let labOrg = await prisma.organization.findFirst({ where: { role: "LAB" } });
-  if (!labOrg) {
-    labOrg = await prisma.organization.create({
-      data: { name: "Default Lab", role: "LAB" },
-    });
-  }
-
-  let facilityOrg = await prisma.organization.findFirst({
-    where: { role: "FACILITY" },
-  });
-  if (!facilityOrg) {
-    facilityOrg = await prisma.organization.create({
-      data: { name: "Default Facility", role: "FACILITY" },
-    });
-  }
-
-  console.log("Organizations ready:", labOrg.name, facilityOrg.name);
-  return { labOrg, facilityOrg };
-}
-
-async function createLabAndFacilityUsers() {
-  try {
-    // Check if LAB user exists
-    const labUserExists = await prisma.user.findFirst({
-      where: { role: "USER", organization: { role: "LAB" } },
-    });
-
-    if (!labUserExists) {
-      const labOrg = await prisma.organization.findFirst({
-        where: { role: "LAB" },
-      });
-      if (!labOrg) throw new Error("LAB organization not found");
-
-      const labUser = await prisma.user.create({
-        data: {
-          email: "labuser@example.com",
-          password: await bcrypt.hash("LabUser@123", 10),
-          name: "Lab User",
-          role: "USER",
-          organizationId: labOrg.id,
-        },
-      });
-
-      console.log("LAB user created:", labUser.email);
-    } else {
-      console.log("LAB user already exists");
-    }
-
-    // Check if FACILITY user exists
-    const facilityUserExists = await prisma.user.findFirst({
-      where: { role: "USER", organization: { role: "FACILITY" } },
-    });
-
-    if (!facilityUserExists) {
-      const facilityOrg = await prisma.organization.findFirst({
-        where: { role: "FACILITY" },
-      });
-      if (!facilityOrg) throw new Error("FACILITY organization not found");
-
-      const facilityUser = await prisma.user.create({
-        data: {
-          email: "facilityuser@example.com",
-          password: await bcrypt.hash("FacilityUser@123", 10),
-          name: "Facility User",
-          role: "USER",
-          organizationId: facilityOrg.id,
-        },
-      });
-
-      console.log("FACILITY user created:", facilityUser.email);
-    } else {
-      console.log("FACILITY user already exists");
-    }
-  } catch (error) {
-    console.error("Error creating lab/facility users:", error);
-  }
-}
-
-type tagType =
-  | "user"
-  | "org"
-  | "labUser"
-  | "patient"
-  | "labRule"
-  | "recommendation"
-  | "order";
+type tagType = "user" | "patient" | "labRule" | "recommendation" | "order";
 const callFunc: Record<tagType, Function> = {
   user: main,
-  org: createOrganizations,
-  labUser: createLabAndFacilityUsers,
   patient: seedPatient,
   labRule: fillLabRule,
   recommendation: createRecomendation,
   order: createLabOrderForRecommendation,
 };
 
-callFunc["user"]();
-callFunc["org"]();
-callFunc["labUser"]();
-callFunc["patient"]();
-callFunc["labRule"]();
 callFunc["recommendation"]();
-callFunc["order"]();

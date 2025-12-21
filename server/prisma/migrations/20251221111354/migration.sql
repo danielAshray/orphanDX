@@ -1,5 +1,5 @@
 -- CreateEnum
-CREATE TYPE "UserRole" AS ENUM ('ADMIN', 'USER');
+CREATE TYPE "UserRole" AS ENUM ('ADMIN', 'USER', 'SERVICE_ACCOUNT');
 
 -- CreateEnum
 CREATE TYPE "OrganizationRole" AS ENUM ('LAB', 'FACILITY');
@@ -8,12 +8,24 @@ CREATE TYPE "OrganizationRole" AS ENUM ('LAB', 'FACILITY');
 CREATE TYPE "Gender" AS ENUM ('MALE', 'FEMALE', 'OTHER');
 
 -- CreateEnum
-CREATE TYPE "RecommendationStatus" AS ENUM ('PENDING', 'ACCEPTED', 'DISMISSED', 'ORDERED');
+CREATE TYPE "RecommendationStatus" AS ENUM ('PENDING', 'DISMISSED', 'ORDERED');
+
+-- CreateEnum
+CREATE TYPE "Priority" AS ENUM ('LOW', 'MEDIUM', 'HIGH', 'URGENT');
+
+-- CreateEnum
+CREATE TYPE "LabOrderStatus" AS ENUM ('PENDING', 'COMPLETED', 'CANCELLED');
 
 -- CreateTable
 CREATE TABLE "Organization" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
+    "phone" TEXT NOT NULL,
+    "city" TEXT NOT NULL,
+    "state" TEXT NOT NULL,
+    "zipCode" TEXT NOT NULL,
+    "suite" TEXT NOT NULL,
+    "street" TEXT NOT NULL,
     "role" "OrganizationRole" NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -28,7 +40,7 @@ CREATE TABLE "User" (
     "password" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "role" "UserRole" NOT NULL,
-    "organizationId" TEXT NOT NULL,
+    "organizationId" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -41,6 +53,7 @@ CREATE TABLE "LabRule" (
     "labId" TEXT NOT NULL,
     "code" TEXT NOT NULL,
     "message" TEXT NOT NULL,
+    "priority" "Priority" NOT NULL DEFAULT 'LOW',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -65,10 +78,14 @@ CREATE TABLE "Patient" (
     "firstName" TEXT NOT NULL,
     "lastName" TEXT NOT NULL,
     "mrn" TEXT NOT NULL,
-    "dateOfBirth" TIMESTAMP(3) NOT NULL,
+    "dateOfBirth" TEXT NOT NULL,
     "gender" "Gender" NOT NULL,
     "phone" TEXT,
     "email" TEXT,
+    "lastVisit" TIMESTAMP(3) NOT NULL,
+    "scheduledCount" INTEGER NOT NULL DEFAULT 0,
+    "recomendationCount" INTEGER NOT NULL DEFAULT 0,
+    "completedCount" INTEGER NOT NULL DEFAULT 0,
     "facilityId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -82,6 +99,8 @@ CREATE TABLE "Insurance" (
     "patientId" TEXT NOT NULL,
     "provider" TEXT NOT NULL,
     "plan" TEXT NOT NULL,
+    "memberId" TEXT NOT NULL,
+    "type" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -104,6 +123,8 @@ CREATE TABLE "Diagnosis" (
 -- CreateTable
 CREATE TABLE "LabRecommendation" (
     "id" TEXT NOT NULL,
+    "code" TEXT NOT NULL,
+    "priority" "Priority" NOT NULL,
     "patientId" TEXT NOT NULL,
     "title" TEXT NOT NULL,
     "reason" TEXT NOT NULL,
@@ -116,11 +137,30 @@ CREATE TABLE "LabRecommendation" (
     CONSTRAINT "LabRecommendation_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "LabOrder" (
+    "id" TEXT NOT NULL,
+    "facilityId" TEXT NOT NULL,
+    "labId" TEXT NOT NULL,
+    "patientId" TEXT NOT NULL,
+    "diagnosisId" TEXT NOT NULL,
+    "recommendationId" TEXT,
+    "status" "LabOrderStatus" NOT NULL DEFAULT 'PENDING',
+    "results" TEXT,
+    "orderedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "completedAt" TIMESTAMP(3),
+    "createdById" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "LabOrder_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
 -- CreateIndex
-CREATE INDEX "User_role_idx" ON "User"("role");
+CREATE INDEX "User_organizationId_idx" ON "User"("organizationId");
 
 -- CreateIndex
 CREATE INDEX "LabRule_labId_idx" ON "LabRule"("labId");
@@ -152,8 +192,23 @@ CREATE INDEX "LabRecommendation_patientId_idx" ON "LabRecommendation"("patientId
 -- CreateIndex
 CREATE UNIQUE INDEX "LabRecommendation_patientId_diagnosisId_labRuleId_key" ON "LabRecommendation"("patientId", "diagnosisId", "labRuleId");
 
+-- CreateIndex
+CREATE UNIQUE INDEX "LabOrder_recommendationId_key" ON "LabOrder"("recommendationId");
+
+-- CreateIndex
+CREATE INDEX "LabOrder_facilityId_idx" ON "LabOrder"("facilityId");
+
+-- CreateIndex
+CREATE INDEX "LabOrder_labId_idx" ON "LabOrder"("labId");
+
+-- CreateIndex
+CREATE INDEX "LabOrder_diagnosisId_idx" ON "LabOrder"("diagnosisId");
+
+-- CreateIndex
+CREATE INDEX "LabOrder_recommendationId_idx" ON "LabOrder"("recommendationId");
+
 -- AddForeignKey
-ALTER TABLE "User" ADD CONSTRAINT "User_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Organization"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "User" ADD CONSTRAINT "User_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Organization"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "LabRule" ADD CONSTRAINT "LabRule_labId_fkey" FOREIGN KEY ("labId") REFERENCES "Organization"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -178,3 +233,21 @@ ALTER TABLE "LabRecommendation" ADD CONSTRAINT "LabRecommendation_labRuleId_fkey
 
 -- AddForeignKey
 ALTER TABLE "LabRecommendation" ADD CONSTRAINT "LabRecommendation_diagnosisId_fkey" FOREIGN KEY ("diagnosisId") REFERENCES "Diagnosis"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "LabOrder" ADD CONSTRAINT "LabOrder_facilityId_fkey" FOREIGN KEY ("facilityId") REFERENCES "Organization"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "LabOrder" ADD CONSTRAINT "LabOrder_labId_fkey" FOREIGN KEY ("labId") REFERENCES "Organization"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "LabOrder" ADD CONSTRAINT "LabOrder_patientId_fkey" FOREIGN KEY ("patientId") REFERENCES "Patient"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "LabOrder" ADD CONSTRAINT "LabOrder_diagnosisId_fkey" FOREIGN KEY ("diagnosisId") REFERENCES "Diagnosis"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "LabOrder" ADD CONSTRAINT "LabOrder_recommendationId_fkey" FOREIGN KEY ("recommendationId") REFERENCES "LabRecommendation"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "LabOrder" ADD CONSTRAINT "LabOrder_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

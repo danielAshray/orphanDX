@@ -1,7 +1,0 @@
--- AlterTable
-ALTER TABLE "Organization" ADD COLUMN     "city" TEXT NOT NULL DEFAULT 'Springfield',
-ADD COLUMN     "phone" TEXT NOT NULL DEFAULT '(555) 100-1000',
-ADD COLUMN     "state" TEXT NOT NULL DEFAULT 'IL',
-ADD COLUMN     "street" TEXT NOT NULL DEFAULT '123 Medical Plaza',
-ADD COLUMN     "suite" TEXT NOT NULL DEFAULT 'Suite 100',
-ADD COLUMN     "zipCode" TEXT NOT NULL DEFAULT '62701';

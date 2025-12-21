@@ -26,12 +26,22 @@ const Provider = () => {
     patientCount = 0,
     scheduledTestCount = 0,
     completedTestCount = 0,
+    recomendedTestCount = 0,
   } = statusRes?.data || {};
 
   const statsData = [
     {
       label: "Total Patients",
       value: patientCount,
+      icon: (
+        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+          <Users className="w-5 h-5 text-blue-600" />
+        </div>
+      ),
+    },
+    {
+      label: "Test Candidates",
+      value: recomendedTestCount,
       icon: (
         <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
           <Users className="w-5 h-5 text-blue-600" />

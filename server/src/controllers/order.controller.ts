@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { sendResponse } from "../utils/responseService";
 import { prisma } from "../lib/prisma";
 import { ApiError } from "../utils/apiService";
+import { mapStatus } from "../utils";
 
 export const createOrder = async (
   req: Request,
@@ -65,6 +66,15 @@ export const createOrder = async (
           status: "ORDERED",
         },
       });
+      await tx.patient.update({
+        where: {
+          id: recomendation.patientId,
+        },
+        data: {
+          scheduledCount: { increment: 1 },
+          recomendationCount: { decrement: 1 },
+        },
+      });
 
       return { newOrder };
     });
@@ -104,11 +114,6 @@ export const createOrder = async (
     next(ApiError.internal("Failed to create order", error));
   }
 };
-import { NextFunction, Request, Response } from "express";
-import { prisma } from "../lib/prisma";
-import { ApiError } from "../utils/apiService";
-import { sendResponse } from "../utils/responseService";
-import { mapStatus } from "../utils";
 
 const getDashboard = async (
   _req: Request,

@@ -1,3 +1,0 @@
--- AlterTable
-ALTER TABLE "Insurance" ALTER COLUMN "memberId" DROP DEFAULT,
-ALTER COLUMN "type" DROP DEFAULT;

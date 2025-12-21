@@ -38,20 +38,29 @@ const getFacilityStatDetails = async (
   next: NextFunction
 ) => {
   try {
-    const [patientCount, scheduledTestCount, completedTestCount] =
-      await Promise.all([
-        prisma.patient.count(),
-        prisma.labOrder.count({
-          where: {
-            status: "PENDING",
-          },
-        }),
-        prisma.labOrder.count({
-          where: {
-            status: "COMPLETED",
-          },
-        }),
-      ]);
+    const [
+      patientCount,
+      scheduledTestCount,
+      completedTestCount,
+      recomendedTestCount,
+    ] = await Promise.all([
+      prisma.patient.count(),
+      prisma.labOrder.count({
+        where: {
+          status: "PENDING",
+        },
+      }),
+      prisma.labOrder.count({
+        where: {
+          status: "COMPLETED",
+        },
+      }),
+      prisma.labRecommendation.count({
+        where: {
+          status: "PENDING",
+        },
+      }),
+    ]);
 
     sendResponse(res, {
       success: true,
@@ -61,6 +70,7 @@ const getFacilityStatDetails = async (
         patientCount,
         scheduledTestCount,
         completedTestCount,
+        recomendedTestCount,
       },
     });
   } catch (error: any) {

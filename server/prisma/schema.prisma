@@ -95,6 +95,9 @@ model Patient {
   phone        String?
   email        String?
   lastVisit DateTime
+  scheduledCount Int @default(0)
+  recomendationCount Int @default(0)
+  completedCount Int @default(0)
 
   insurance    Insurance?
   diagnoses    Diagnosis[]
