@@ -30,6 +30,8 @@ const ProviderList: React.FC<ProviderListProps> = ({
 
   const allPatients = patients?.data || [];
 
+  console.log({allPatients})
+
   return (
     <>
       <div className="flex gap-2 flex-wrap">

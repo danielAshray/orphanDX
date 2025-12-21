@@ -8,7 +8,6 @@ import {
   AlertCircle,
   CheckCircle,
   Calendar,
-  AlertTriangle,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -40,9 +39,9 @@ const PatientList = ({
       case "candidates":
         return patient.isCandidate;
       case "scheduled":
-        return patient.scheduledTests && patient.scheduledTests.length > 0;
+        return patient.scheduledCount > 0;
       case "completed":
-        return patient.completedTests && patient.completedTests.length > 0;
+        return patient.completedCount > 0;
       default:
         return true;
     }
@@ -58,20 +57,18 @@ const PatientList = ({
 
   const candidatePatients = filteredPatients.filter((p) => p.isCandidate);
   const scheduledPatients = filteredPatients.filter(
-    (p) => p.scheduledTests && p.scheduledTests.length > 0 && !p.isCandidate
+    (p) => p.scheduledCount > 0 && !p.isCandidate
   );
   const completedPatients = filteredPatients.filter(
     (p) =>
-      p.completedTests &&
-      p.completedTests.length > 0 &&
-      !p.isCandidate &&
-      !(p.scheduledTests && p.scheduledTests.length > 0)
+      p.completedCount > 0 &&
+      !(p.scheduledCount > 0)
   );
   const otherPatients = filteredPatients.filter(
     (p) =>
       !p.isCandidate &&
-      (!p.scheduledTests || p.scheduledTests.length === 0) &&
-      (!p.completedTests || p.completedTests.length === 0)
+      (!p.scheduledCount || p.scheduledCount === 0) &&
+      (!p.completedCount || p.completedCount === 0)
   );
 
   return (
@@ -196,16 +193,10 @@ interface PatientCardProps {
 }
 
 function PatientCard({ patient, isSelected, onClick }: PatientCardProps) {
-  const hasScheduled =
-    patient.scheduledTests && patient.scheduledTests.length > 0;
-  const hasCompleted =
-    patient.completedTests && patient.completedTests.length > 0;
-  const hasAbnormalResults = patient.completedTests?.some(
-    (t) => t.hasAbnormalResults
-  );
-  const hasNewRecommendations = patient.completedTests?.some(
-    (t) => t.hasNewRecommendations
-  );
+  console.log({ patient });
+  const hasScheduled = patient.scheduledCount > 0;
+  const hasCompleted = patient.completedCount > 0;
+  const hasRecommendation = patient.recomendationCount > 0;
 
   return (
     <button
@@ -222,22 +213,10 @@ function PatientCard({ patient, isSelected, onClick }: PatientCardProps) {
             <p className="text-gray-900">
               {patient.firstName} {patient.lastName}
             </p>
-            {hasAbnormalResults && (
-              <AlertTriangle className="w-4 h-4 text-red-600" />
-            )}
           </div>
           <p className="text-xs text-gray-500">MRN: {patient.mrn}</p>
         </div>
         <div className="flex flex-col gap-1 items-end">
-          {patient.isCandidate && (
-            <Badge
-              variant="secondary"
-              className="bg-orange-100 text-orange-700 border-orange-200"
-            >
-              {patient.recommendedTests.length} Test
-              {patient.recommendedTests.length !== 1 ? "s" : ""}
-            </Badge>
-          )}
           {hasScheduled && (
             <Badge
               variant="secondary"
@@ -254,21 +233,19 @@ function PatientCard({ patient, isSelected, onClick }: PatientCardProps) {
               Results
             </Badge>
           )}
-          {hasNewRecommendations && (
+          {hasRecommendation && (
             <Badge
               variant="secondary"
               className="bg-purple-100 text-purple-700 border-purple-200"
             >
-              New Tests
+              {patient.recomendationCount} Test
+              {patient.recomendationCount !== 1 ? "s" : ""}
             </Badge>
           )}
         </div>
       </div>
 
       <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-xs text-gray-600">
-          {patient.age}yo • {patient.demographics?.gender}
-        </span>
         <Badge variant="outline" className="text-xs">
           {patient.insurance?.type}
         </Badge>

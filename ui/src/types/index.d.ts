@@ -18,8 +18,9 @@ export interface Patient {
 
   lastVisit: string;
   isCandidate: boolean;
-  completedTests?: CompletedTest[];
-  scheduledTests?: ScheduledTest[];
+  completedCount: number;
+  scheduledCount: number;
+  recomendationCount: number;
 }
 
 export interface Diagnosis {
