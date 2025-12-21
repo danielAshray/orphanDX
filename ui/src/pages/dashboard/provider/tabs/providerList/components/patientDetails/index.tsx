@@ -26,62 +26,30 @@ import {
   AlertTriangle,
   Eye,
 } from "lucide-react";
-import { toast } from "sonner";
+
+import { useCreateOrder } from "@/api/order";
 
 interface PatientDetailsProps {
   patient: Patient;
 }
 
 const PatientDetails = ({ patient }: PatientDetailsProps) => {
-  const [processingTestId, setProcessingTestId] = useState<string | null>(null);
-  const [showRequisition, setShowRequisition] = useState(false);
   const [selectedRequisitionData, setSelectedRequisitionData] =
     useState<any>(null);
   const [showLabResults, setShowLabResults] = useState(false);
   const [selectedLabResult, setSelectedLabResult] = useState<any>(null);
 
-  const handleCreateOrder = async (
-    testId: string,
-    testName: string,
-    testCode: string
-  ) => {
-    setProcessingTestId(testId);
+  const { mutate, isPending } = useCreateOrder();
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    // Generate order data for requisition
-    const orderData = {
-      orderId: `ORD-${Date.now().toString().slice(-6)}`,
-      patient: patient,
-      test: {
-        name: testName,
-        code: testCode,
-        id: testId,
-      },
-      provider: {
-        name: "Dr. James Smith",
-        npi: "NPI-123456789",
-        phone: "(555) 100-2000",
-      },
-      clinic: {
-        name: "Riverside Medical Center",
-        address: "123 Medical Plaza, Suite 100",
-        city: "Springfield",
-        state: "IL",
-        zip: "62701",
-        phone: "(555) 100-1000",
-      },
-    };
-
-    setSelectedRequisitionData(orderData);
-    setShowRequisition(true);
-
-    toast.success(`Order created for ${testName}`, {
-      description: "Requisition generated and sent to EHR",
-    });
-
-    setProcessingTestId(null);
+  const handleCreateOrder = async (testId: string) => {
+    mutate(
+      { recomendationId: testId },
+      {
+        onSuccess: (res) => {
+          setSelectedRequisitionData(res.data);
+        },
+      }
+    );
   };
 
   const handleViewResults = (completedTest: any) => {
@@ -89,9 +57,7 @@ const PatientDetails = ({ patient }: PatientDetailsProps) => {
     setShowLabResults(true);
   };
 
-  const allLabRecommendations = patient.diagnoses.flatMap(
-    (d) => d.labRecommendations
-  );
+  const allLabRecommendations = patient.labRecommendations;
 
   return (
     <>
@@ -123,17 +89,12 @@ const PatientDetails = ({ patient }: PatientDetailsProps) => {
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div>
                   <p className="text-gray-500">Date of Birth</p>
-                  <p className="text-gray-900">{patient.dob}</p>
+                  <p className="text-gray-900">{patient.dateOfBirth}</p>
                 </div>
-                <div>
-                  <p className="text-gray-500">Age</p>
-                  <p className="text-gray-900">{patient.age} years</p>
-                </div>
+
                 <div>
                   <p className="text-gray-500">Gender</p>
-                  <p className="text-gray-900">
-                    {patient.demographics?.gender}
-                  </p>
+                  <p className="text-gray-900">{patient.gender}</p>
                 </div>
                 <div>
                   <p className="text-gray-500">Last Visit</p>
@@ -146,22 +107,17 @@ const PatientDetails = ({ patient }: PatientDetailsProps) => {
               <div className="mt-3 space-y-2">
                 <div className="flex items-center gap-2 text-sm">
                   <Phone className="w-4 h-4 text-gray-400" />
-                  <span className="text-gray-900">
-                    {patient.demographics?.phone}
-                  </span>
+                  <span className="text-gray-900">{patient.phone}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <Mail className="w-4 h-4 text-gray-400" />
-                  <span className="text-gray-900">
-                    {patient.demographics?.email}
-                  </span>
+                  <span className="text-gray-900">{patient.email}</span>
                 </div>
               </div>
             </div>
 
             <Separator />
 
-            {/* Insurance */}
             <div>
               <h3 className="text-sm text-gray-700 mb-3 flex items-center gap-2">
                 <CreditCard className="w-4 h-4" />
@@ -174,21 +130,20 @@ const PatientDetails = ({ patient }: PatientDetailsProps) => {
                 </div>
                 <div>
                   <p className="text-gray-500">Plan</p>
-                  <p className="text-gray-900">{patient.insurance?.planName}</p>
+                  <p className="text-gray-900">{patient.insurance?.plan}</p>
                 </div>
                 <div>
                   <p className="text-gray-500">Member ID</p>
                   <p className="text-gray-900">{patient.insurance?.memberId}</p>
                 </div>
                 <Badge variant="outline" className="mt-1">
-                  {patient.insurance?.type}
+                  {patient.insurance?.plan}
                 </Badge>
               </div>
             </div>
 
             <Separator />
 
-            {/* Diagnoses */}
             <div>
               <h3 className="text-sm text-gray-700 mb-3 flex items-center gap-2">
                 <FileText className="w-4 h-4" />
@@ -213,7 +168,6 @@ const PatientDetails = ({ patient }: PatientDetailsProps) => {
               </div>
             </div>
 
-            {/* Completed Tests */}
             {patient.completedTests && patient.completedTests?.length > 0 && (
               <>
                 <Separator />
@@ -277,7 +231,6 @@ const PatientDetails = ({ patient }: PatientDetailsProps) => {
               </>
             )}
 
-            {/* Scheduled Tests */}
             {patient.scheduledTests && patient.scheduledTests?.length > 0 && (
               <>
                 <Separator />
@@ -311,8 +264,7 @@ const PatientDetails = ({ patient }: PatientDetailsProps) => {
               </>
             )}
 
-            {/* Recommended Tests */}
-            {/* {allLabRecommendations.length > 0 && (
+            {allLabRecommendations.length > 0 && (
               <>
                 <Separator />
                 <div>
@@ -328,14 +280,14 @@ const PatientDetails = ({ patient }: PatientDetailsProps) => {
                       >
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex-1">
-                            <p className="text-gray-900">{test.testName}</p>
+                            <p className="text-gray-900">{test.title}</p>
                             <p className="text-xs text-gray-600 mt-1">
-                              CPT: {test.cptCode}
+                              CPT: {test.code}
                             </p>
                           </div>
                           <Badge
                             className={
-                              test.priority === "high"
+                              test.priority === "HIGH"
                                 ? "bg-red-100 text-red-700 border-red-200"
                                 : "bg-yellow-100 text-yellow-700 border-yellow-200"
                             }
@@ -354,30 +306,19 @@ const PatientDetails = ({ patient }: PatientDetailsProps) => {
                             <Check className="w-4 h-4 text-green-600 mt-0.5 shrink-0" />
                             <div className="flex-1">
                               <p className="text-sm text-green-900">
-                                {test.payerCoverage.notes}
+                                {patient.insurance.plan}
                               </p>
-                              {test.payerCoverage.requiresAuth && (
-                                <p className="text-xs text-green-700 mt-1">
-                                  ⚠ Prior authorization required
-                                </p>
-                              )}
                             </div>
                           </div>
                         </div>
 
                         <div className="mt-3">
                           <Button
-                            onClick={() =>
-                              handleCreateOrder(
-                                test.id,
-                                test.testName,
-                                test.testCode
-                              )
-                            }
-                            disabled={processingTestId === test.id}
+                            onClick={() => handleCreateOrder(test.id)}
+                            disabled={test.status !== "PENDING"}
                             className="w-full"
                           >
-                            {processingTestId === test.id ? (
+                            {isPending ? (
                               "Creating Order..."
                             ) : (
                               <>
@@ -392,27 +333,28 @@ const PatientDetails = ({ patient }: PatientDetailsProps) => {
                   </div>
                 </div>
               </>
-            )} */}
+            )}
           </div>
         </ScrollArea>
       </Card>
 
-      {/* Lab Requisition Dialog */}
-      <Dialog open={showRequisition} onOpenChange={setShowRequisition}>
-        <DialogContent className="max-w-6xl max-h-[95vh]">
-          <DialogHeader>
-            <DialogTitle>Lab Test Requisition</DialogTitle>
-          </DialogHeader>
+      {!!selectedRequisitionData && (
+        <Dialog
+          open={!!selectedRequisitionData}
+          onOpenChange={() => setSelectedRequisitionData(null)}
+        >
+          <DialogContent className="max-w-6xl max-h-[95vh]">
+            <DialogHeader>
+              <DialogTitle>Lab Test Requisition</DialogTitle>
+            </DialogHeader>
 
-          {selectedRequisitionData && (
             <ScrollArea className="h-[calc(100vh-120px)]">
               <LabRequisition data={selectedRequisitionData} />
             </ScrollArea>
-          )}
-        </DialogContent>
-      </Dialog>
+          </DialogContent>
+        </Dialog>
+      )}
 
-      {/* Lab Results Dialog */}
       <Dialog open={showLabResults} onOpenChange={setShowLabResults}>
         <DialogContent className="max-w-6xl max-h-[95vh]">
           <DialogHeader>

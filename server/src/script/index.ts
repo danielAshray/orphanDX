@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import { prisma } from "../lib/prisma";
 import { faker } from "@faker-js/faker";
+import dayjs from "dayjs";
 
 async function main() {
   const adminEmail = "daniel@ashrayconsulting.com";
@@ -41,6 +42,7 @@ async function seedPatient() {
     const lastName = faker.person.lastName();
     const mrn = `MRN-2025-${i.toString().padStart(3, "0")}`;
     const dob = faker.date.birthdate({ min: 50, max: 90, mode: "age" });
+    const dobFormatted = dayjs(dob).format("MM/DD/YYYY");
     const gender = faker.helpers.arrayElement(["MALE", "FEMALE", "OTHER"]);
     const phone = faker.phone.number({ style: "national" });
     const email = faker.internet.email({ firstName, lastName });
@@ -53,6 +55,8 @@ async function seedPatient() {
         "Cigna",
       ]),
       plan: faker.helpers.arrayElement(["Part B", "PPO", "HMO", "Medicaid"]),
+      type: faker.helpers.arrayElement(["Primary", "Secondary", "Self"]),
+      memberId: "0111",
     };
 
     const numDiagnoses = faker.number.int({ min: 1, max: 3 });
@@ -82,10 +86,11 @@ async function seedPatient() {
             firstName,
             lastName,
             mrn,
-            dateOfBirth: dob,
+            dateOfBirth: dobFormatted,
             gender,
             phone,
             email,
+            lastVisit: new Date(),
             insurance: {
               create: insuranceData,
             },
@@ -205,6 +210,8 @@ async function createRecomendation() {
             reason: ruleFound.message,
             patientId: diagnisis.patientId,
             diagnosisId: diagnisis.id,
+            priority: ruleFound.priority,
+            code: ruleFound.code,
           },
         });
         console.log(`created recomendation: `, ruleFound.code);

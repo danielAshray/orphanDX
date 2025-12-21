@@ -1,8 +1,10 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/tabs";
 import { Card } from "@/components/card";
-import { Users, AlertCircle, Calendar, CheckCircle2 } from "lucide-react";
+import { Users, Calendar, CheckCircle2 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { OrderTracking, ProviderList } from "./tabs";
+import { fetchFacilityStatApi } from "@/api/stat";
+import { useQuery } from "@tanstack/react-query";
 
 interface StatCardProps {
   label: string;
@@ -13,35 +15,33 @@ interface StatCardProps {
 const Provider = () => {
   const [activeTab, setActiveTab] = useState("patients");
 
+  const { data: statusRes } = useQuery({
+    queryKey: ["fetchFacilityStatApi"],
+    queryFn: fetchFacilityStatApi,
+    refetchOnReconnect: false,
+    refetchOnWindowFocus: false,
+  });
+
   const {
-    totalPatientCount = 0,
-    testCandidatesCount = 0,
-    scheduledCount = 0,
+    patientCount = 0,
+    scheduledTestCount = 0,
     completedTestCount = 0,
-  } = {};
+  } = statusRes?.data || {};
 
   const statsData = [
     {
       label: "Total Patients",
-      value: totalPatientCount,
+      value: patientCount,
       icon: (
         <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
           <Users className="w-5 h-5 text-blue-600" />
         </div>
       ),
     },
-    {
-      label: "Test Candidates",
-      value: testCandidatesCount,
-      icon: (
-        <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-          <AlertCircle className="w-5 h-5 text-purple-600" />
-        </div>
-      ),
-    },
+
     {
       label: "Scheduled Tests",
-      value: scheduledCount,
+      value: scheduledTestCount,
       icon: (
         <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
           <Calendar className="w-5 h-5 text-orange-600" />
@@ -59,15 +59,8 @@ const Provider = () => {
     },
   ] as StatCardProps[];
 
-  const props = {
-    testCandidatesCount,
-    scheduledCount,
-    completedTestCount,
-  };
-
   return (
     <div className="max-w-[1600px] mx-auto px-6">
-      {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         {statsData.map((stat, index) => (
           <Card className="p-4" key={index}>
@@ -82,7 +75,6 @@ const Provider = () => {
         ))}
       </div>
 
-      {/* Main Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="mb-6">
           <TabsTrigger value="patients">Patients</TabsTrigger>
@@ -90,7 +82,10 @@ const Provider = () => {
         </TabsList>
 
         <TabsContent value="patients" className="space-y-4">
-          <ProviderList {...props} />
+          <ProviderList
+            scheduledTestCount={scheduledTestCount}
+            completedTestCount={completedTestCount}
+          />
         </TabsContent>
 
         <TabsContent value="orders">

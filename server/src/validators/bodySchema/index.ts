@@ -68,6 +68,11 @@ const createOrganizationSchema = Joi.object({
     role: Joi.string()
       .valid(...Object.values(OrganizationRole))
       .required(),
+    street: Joi.string().required(),
+    suite: Joi.string().required(),
+    city: Joi.string().required(),
+    state: Joi.string().required(),
+    zipCode: Joi.string().required(),
   }).required(),
 
   user: Joi.object({

@@ -8,6 +8,10 @@ interface LabRequisitionProps {
   data: {
     orderId: string;
     patient: any;
+    diagnosis: {
+      name: string;
+      icd10: string;
+    };
     test: {
       name: string;
       code: string;
@@ -39,12 +43,10 @@ const LabRequisition = ({ data }: LabRequisitionProps) => {
     toast.success("Requisition downloaded as PDF");
   };
 
-  // Generate a simple barcode representation
   const barcodeValue = data.orderId;
 
   return (
     <div className="space-y-4">
-      {/* Action Buttons */}
       <div className="flex gap-2 print:hidden">
         <Button onClick={handlePrint} className="gap-2">
           <Printer className="w-4 h-4" />
@@ -56,9 +58,7 @@ const LabRequisition = ({ data }: LabRequisitionProps) => {
         </Button>
       </div>
 
-      {/* Requisition Form */}
       <Card className="p-8 bg-white">
-        {/* Header */}
         <div className="text-center mb-6">
           <div className="flex items-center justify-center gap-3 mb-2">
             <div className="w-12 h-12 bg-linear-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
@@ -74,7 +74,6 @@ const LabRequisition = ({ data }: LabRequisitionProps) => {
           <Separator className="my-4" />
         </div>
 
-        {/* Order Information */}
         <div className="mb-6">
           <div className="bg-gray-50 p-4 rounded-lg mb-4">
             <div className="flex items-center justify-between mb-2">
@@ -133,7 +132,6 @@ const LabRequisition = ({ data }: LabRequisitionProps) => {
           </div>
         </div>
 
-        {/* Patient Information */}
         <div className="mb-6">
           <h3 className="text-gray-900 mb-3 pb-2 border-b">
             Patient Information
@@ -141,11 +139,13 @@ const LabRequisition = ({ data }: LabRequisitionProps) => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <p className="text-sm text-gray-600">Name</p>
-              <p className="text-gray-900">{data.patient.name}</p>
+              <p className="text-gray-900">
+                {data.patient.firstName} {data.patient.lastName}
+              </p>
             </div>
             <div>
               <p className="text-sm text-gray-600">Date of Birth</p>
-              <p className="text-gray-900">{data.patient.dob}</p>
+              <p className="text-gray-900">{data.patient.dateOfBirth}</p>
             </div>
             <div>
               <p className="text-sm text-gray-600">Medical Record Number</p>
@@ -153,47 +153,50 @@ const LabRequisition = ({ data }: LabRequisitionProps) => {
             </div>
             <div>
               <p className="text-sm text-gray-600">Gender</p>
-              <p className="text-gray-900">
-                {data.patient.demographics.gender}
-              </p>
+              <p className="text-gray-900">{data.patient.gender}</p>
             </div>
             <div>
               <p className="text-sm text-gray-600">Phone</p>
-              <p className="text-gray-900">{data.patient.demographics.phone}</p>
+              <p className="text-gray-900">{data.patient.phone}</p>
             </div>
             <div>
               <p className="text-sm text-gray-600">Email</p>
-              <p className="text-gray-900">{data.patient.demographics.email}</p>
+              <p className="text-gray-900">{data.patient.email}</p>
             </div>
           </div>
         </div>
 
         <Separator className="my-6" />
 
-        {/* Insurance Information */}
-        <div className="mb-6">
-          <h3 className="text-gray-900 mb-3 pb-2 border-b">
-            Insurance Information
-          </h3>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm text-gray-600">Insurance Provider</p>
-              <p className="text-gray-900">{data.patient.insurance.provider}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Plan Name</p>
-              <p className="text-gray-900">{data.patient.insurance.planName}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Member ID</p>
-              <p className="text-gray-900">{data.patient.insurance.memberId}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Insurance Type</p>
-              <p className="text-gray-900">{data.patient.insurance.type}</p>
+        {data.patient.insurance && (
+          <div className="mb-6">
+            <h3 className="text-gray-900 mb-3 pb-2 border-b">
+              Insurance Information
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-gray-600">Insurance Provider</p>
+                <p className="text-gray-900">
+                  {data.patient.insurance.provider}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Plan Name</p>
+                <p className="text-gray-900">{data.patient.insurance.plan}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Member ID</p>
+                <p className="text-gray-900">
+                  {data.patient.insurance.memberId}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Insurance Type</p>
+                <p className="text-gray-900">{data.patient.insurance.type}</p>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         <Separator className="my-6" />
 
@@ -206,26 +209,23 @@ const LabRequisition = ({ data }: LabRequisitionProps) => {
           </div>
         </div>
 
-        {/* Diagnosis Codes */}
         <div className="mb-6">
           <h3 className="text-gray-900 mb-3 pb-2 border-b">
             Diagnosis Information
           </h3>
+
           <div className="space-y-2">
-            {data.patient.diagnoses.map((diagnosis: any, idx: number) => (
-              <div key={idx} className="flex items-center gap-4">
-                <div className="bg-gray-100 px-3 py-1 rounded">
-                  <p className="text-sm text-gray-900">{diagnosis.code}</p>
-                </div>
-                <p className="text-sm text-gray-700">{diagnosis.description}</p>
+            <div className="flex items-center gap-4">
+              <div className="bg-gray-100 px-3 py-1 rounded">
+                <p className="text-sm text-gray-900">{data.diagnosis.icd10}</p>
               </div>
-            ))}
+              <p className="text-sm text-gray-700">{data.diagnosis.name}</p>
+            </div>
           </div>
         </div>
 
         <Separator className="my-6" />
 
-        {/* Provider Information */}
         <div className="mb-6">
           <h3 className="text-gray-900 mb-3 pb-2 border-b">
             Ordering Provider

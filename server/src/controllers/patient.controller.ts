@@ -13,6 +13,7 @@ export const fetchPatientDetails = async (
     const patients = await prisma.patient.findMany({
       where: {
         facilityId: organizationId,
+        labRecommendations: { some: {} },
       },
       include: {
         insurance: true,

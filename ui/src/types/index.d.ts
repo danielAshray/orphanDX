@@ -4,20 +4,19 @@ export interface Patient {
   lastName: string;
   age: number;
   mrn: string;
-  dob: string;
+  dateOfBirth: string;
   insurance: {
     provider: string;
-    planName: string;
+    plan: string;
     memberId: string;
-    type: "Commercial" | "Medicare" | "Medicaid";
+    type: string;
   };
   diagnoses: Diagnosis[];
-  demographics: {
-    gender: string;
-    phone: string;
-    email: string;
-  };
-  recommendedTests: RecommendedTest[];
+  gender: string;
+  phone: string;
+  email: string;
+  labRecommendations: LabRecommendations[];
+
   lastVisit: string;
   isCandidate: boolean;
   completedTests?: CompletedTest[];
@@ -30,19 +29,19 @@ export interface Diagnosis {
   onsetDate: string;
 }
 
-export interface RecommendedTest {
+export interface LabRecommendations {
   id: string;
-  testName: string;
-  testCode: string;
-  priority: "high" | "medium" | "low";
+  priority: "HIGH" | "MEDIUM" | "LOW";
   reason: string;
   payerCoverage: {
     covered: boolean;
     notes: string;
     requiresAuth: boolean;
   };
-  cptCode: string;
+  code: string;
+  title: string;
   icdCodes: string[];
+  status: string;
 }
 
 export interface CompletedTest {

@@ -3,7 +3,10 @@ import {
   authenticate,
   authorizeByRoleAndOrg,
 } from "../middlewares/auth.middleware";
-import { getStatDetails } from "../controllers/stat.controller";
+import {
+  getFacilityStatDetails,
+  getStatDetails,
+} from "../controllers/stat.controller";
 
 const statRoute = Router();
 
@@ -13,4 +16,11 @@ statRoute.get(
   authorizeByRoleAndOrg(["ADMIN"]),
   getStatDetails
 );
+statRoute.get(
+  "/facility",
+  authenticate,
+  authorizeByRoleAndOrg(["ADMIN"], "FACILITY"),
+  getFacilityStatDetails
+);
+
 export default statRoute;

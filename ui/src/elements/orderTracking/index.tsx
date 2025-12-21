@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/dialog";
-import LabRequisition from "../labRequisition";
+import LabRequisition from "../../pages/dashboard/provider/tabs/providerList/components/patientDetails/labRequisition";
 import LabResultsViewer from "../labResultsViewer";
 import {
   Search,

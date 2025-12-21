@@ -32,4 +32,40 @@ const getStatDetails = async (
   }
 };
 
-export { getStatDetails };
+const getFacilityStatDetails = async (
+  _req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const [patientCount, scheduledTestCount, completedTestCount] =
+      await Promise.all([
+        prisma.patient.count(),
+        prisma.labOrder.count({
+          where: {
+            status: "PENDING",
+          },
+        }),
+        prisma.labOrder.count({
+          where: {
+            status: "COMPLETED",
+          },
+        }),
+      ]);
+
+    sendResponse(res, {
+      success: true,
+      code: 200,
+      message: "Profile fetched successfully",
+      data: {
+        patientCount,
+        scheduledTestCount,
+        completedTestCount,
+      },
+    });
+  } catch (error: any) {
+    next(ApiError.internal(undefined, error.message));
+  }
+};
+
+export { getStatDetails, getFacilityStatDetails };

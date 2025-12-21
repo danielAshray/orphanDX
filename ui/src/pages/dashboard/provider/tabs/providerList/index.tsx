@@ -3,21 +3,19 @@ import { Button } from "@/components/button";
 import { Card } from "@/components/card";
 import type { Patient } from "@/types";
 import { useQuery } from "@tanstack/react-query";
-import { AlertCircle, Calendar, CheckCircle2, Users } from "lucide-react";
+import { Calendar, CheckCircle2, Users } from "lucide-react";
 import { useState } from "react";
 import { PatientDetails, PatientList } from "./components";
 
 type PatientFilter = "all" | "candidates" | "scheduled" | "completed";
 
 interface ProviderListProps {
-  testCandidatesCount: number;
-  scheduledCount: number;
+  scheduledTestCount: number;
   completedTestCount: number;
 }
 
 const ProviderList: React.FC<ProviderListProps> = ({
-  testCandidatesCount,
-  scheduledCount,
+  scheduledTestCount,
   completedTestCount,
 }) => {
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
@@ -42,15 +40,7 @@ const ProviderList: React.FC<ProviderListProps> = ({
         >
           All Patients
         </Button>
-        <Button
-          variant={patientFilter === "candidates" ? "default" : "outline"}
-          size="sm"
-          onClick={() => setPatientFilter("candidates")}
-          className="gap-2"
-        >
-          <AlertCircle className="w-4 h-4" />
-          Test Candidates ({testCandidatesCount})
-        </Button>
+
         <Button
           variant={patientFilter === "scheduled" ? "default" : "outline"}
           size="sm"
@@ -58,7 +48,7 @@ const ProviderList: React.FC<ProviderListProps> = ({
           className="gap-2"
         >
           <Calendar className="w-4 h-4" />
-          Scheduled ({scheduledCount})
+          Scheduled ({scheduledTestCount})
         </Button>
         <Button
           variant={patientFilter === "completed" ? "default" : "outline"}

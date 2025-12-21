@@ -1,10 +1,8 @@
 import AddProviderDialog from "./addProviderDialog";
 import ContactLabDialog from "./contactLabDialog";
-import LabRequisition from "./labRequisition";
+import LabRequisition from "../pages/dashboard/provider/tabs/providerList/components/patientDetails/labRequisition";
 import LabResultsViewer from "./labResultsViewer";
-import NewOrderDialog from "./newOrderDialog";
 import OrderTracking from "./orderTracking";
-import PatientDetails from "./patientDetails";
 import PatientList from "./patientList";
 import ProviderOrdersDialog from "./providerOrdersDialog";
 import ProviderPatientsDialog from "./providerPatientsDialog";
@@ -15,9 +13,7 @@ export {
   ContactLabDialog,
   LabRequisition,
   LabResultsViewer,
-  NewOrderDialog,
   OrderTracking,
-  PatientDetails,
   PatientList,
   ProviderOrdersDialog,
   ProviderPatientsDialog,

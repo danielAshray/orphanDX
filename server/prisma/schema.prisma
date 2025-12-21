@@ -21,6 +21,12 @@ enum OrganizationRole {
 model Organization {
   id          String     @id @default(uuid())
   name String
+  phone String
+  city      String 
+  state     String
+  zipCode   String
+  suite String
+  street String
   role OrganizationRole
   users User[]
   patients Patient[]
@@ -56,6 +62,7 @@ model LabRule {
   lab         Organization @relation(fields: [labId], references: [id])
   code        String
   message     String
+  priority Priority @default(LOW)
 
   labRecommendations LabRecommendation[]
 
@@ -83,10 +90,11 @@ model Patient {
   firstName    String
   lastName     String
   mrn          String       @unique     
-  dateOfBirth  DateTime
+  dateOfBirth  String
   gender       Gender
   phone        String?
   email        String?
+  lastVisit DateTime
 
   insurance    Insurance?
   diagnoses    Diagnosis[]
@@ -114,6 +122,8 @@ model Insurance {
   patientId  String   @unique
   provider   String
   plan       String
+  memberId String 
+  type       String
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
@@ -141,13 +151,21 @@ model Diagnosis {
 
 enum RecommendationStatus {
   PENDING
-  ACCEPTED
   DISMISSED
   ORDERED
 }
 
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
 model LabRecommendation {
   id           String   @id @default(uuid())
+  code String
+  priority Priority
   patientId    String
   title        String        
   reason       String        
@@ -173,7 +191,6 @@ enum LabOrderStatus {
   PENDING
   COMPLETED
   CANCELLED
-  FAILED
 }
 
 model LabOrder {
