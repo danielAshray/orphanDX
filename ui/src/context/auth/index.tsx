@@ -12,11 +12,9 @@ import { Navigate, Outlet } from "react-router-dom";
 
 type AuthContextType = {
   token: string | null;
-  role: string | null;
   orgRole: string | null;
   user: any | null;
   setToken: (T: string | null) => void;
-  setRole: (R: string | null) => void;
   setUser: (U: any | null) => void;
   login: (L: any) => void;
   logout: () => void;
@@ -85,11 +83,9 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     <AuthContext.Provider
       value={{
         token,
-        role,
         orgRole,
         user,
         setToken,
-        setRole,
         setUser,
         login,
         logout,
@@ -101,28 +97,16 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
 };
 
 const PublicRoute = () => {
-  const { token, role, orgRole } = useAuthContext();
+  const { token, user } = useAuthContext();
+  console.log({ token, user });
   if (token) {
-    switch (role?.toLowerCase()) {
-      case "service_account":
-      case "admin":
-        return <Navigate to={PATH_KEYS.ADMIN} replace />;
-
-      case "user":
-        if (orgRole) {
-          switch (orgRole.toLowerCase()) {
-            case "lab":
-              return <Navigate to={PATH_KEYS.LAB} replace />;
-            case "facility":
-              return <Navigate to={PATH_KEYS.FACILITY} replace />;
-            default:
-              return <Navigate to={PATH_KEYS.PROVIDER} replace />;
-          }
-        }
-        return <Navigate to={PATH_KEYS.PROVIDER} replace />;
-
+    switch (user.organization?.role?.toLowerCase()) {
+      case "facility":
+        return <Navigate to={PATH_KEYS.FACILITY} replace />;
+      case "lab":
+        return <Navigate to={PATH_KEYS.LAB} replace />;
       default:
-        return <Navigate to={PATH_KEYS.DEFAULT} replace />;
+        return <Navigate to={PATH_KEYS.ADMIN} replace />;
     }
   }
   return <Outlet />;
@@ -139,9 +123,12 @@ interface RequireRoleProps {
 }
 
 const RequireRole = ({ allowed }: RequireRoleProps) => {
-  const { role } = useAuthContext();
-  if (!role) return <Navigate to={PATH_KEYS.LOGIN} replace />;
-  return allowed.map((r) => r.toLowerCase()).includes(role.toLowerCase()) ? (
+  const { user } = useAuthContext();
+
+  if (!user) return <Navigate to={PATH_KEYS.LOGIN} replace />;
+  return allowed
+    .map((r) => r.toLowerCase())
+    .includes(user.organization?.role?.toLowerCase()) ? (
     <Outlet />
   ) : (
     <Navigate to={PATH_KEYS.FORBIDDEN} replace />

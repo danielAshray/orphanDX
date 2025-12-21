@@ -44,6 +44,9 @@ const loginUser = async (req: Request, res: Response, next: NextFunction) => {
       message: "User logged in successfully",
       data: {
         token,
+        orgRole: !userExists.organization
+          ? userExists.role
+          : userExists.organization.role,
         user: {
           name: userExists.name,
           role: userExists.role,
