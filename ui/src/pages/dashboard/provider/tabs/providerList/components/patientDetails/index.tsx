@@ -53,7 +53,7 @@ const PatientDetails = ({ patient }: PatientDetailsProps) => {
   };
 
   const handleViewResults = (completedTest: any) => {
-    setSelectedLabResult(completedTest.result);
+    setSelectedLabResult(completedTest);
     setShowLabResults(true);
   };
 
@@ -168,7 +168,7 @@ const PatientDetails = ({ patient }: PatientDetailsProps) => {
               </div>
             </div>
 
-            {patient.completedTests && patient.completedTests?.length > 0 && (
+            {patient.completedCount && patient.completedCount > 0 && (
               <>
                 <Separator />
                 <div>
@@ -177,11 +177,11 @@ const PatientDetails = ({ patient }: PatientDetailsProps) => {
                     <h3 className="text-sm text-gray-700">Completed Tests</h3>
                   </div>
                   <div className="space-y-3">
-                    {patient.completedTests.map((test) => (
+                    {patient.labOrder.map((test) => (
                       <div
                         key={test.id}
                         className={`p-4 rounded-lg border ${
-                          test.hasAbnormalResults
+                          test.testResult?.isNormal === false
                             ? "bg-red-50 border-red-200"
                             : "bg-green-50 border-green-200"
                         }`}
@@ -189,29 +189,29 @@ const PatientDetails = ({ patient }: PatientDetailsProps) => {
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
-                              <p className="text-gray-900">{test.testName}</p>
-                              {test.hasAbnormalResults && (
+                              <p className="text-gray-900">
+                                {test.diagnosis?.name}
+                              </p>
+                              {test.testResult?.isNormal === false && (
                                 <AlertTriangle className="w-4 h-4 text-red-600" />
                               )}
                             </div>
                             <p className="text-xs text-gray-600 mt-1">
                               Completed:{" "}
-                              {new Date(
-                                test.completedDate
-                              ).toLocaleDateString()}
+                              {new Date(test.updatedAt).toLocaleDateString()}
                             </p>
                           </div>
                           <div className="flex flex-col gap-1 items-end">
-                            {test.hasAbnormalResults && (
+                            {test.testResult?.isNormal === false && (
                               <Badge className="bg-red-100 text-red-700 border-red-200">
                                 Abnormal
                               </Badge>
                             )}
-                            {test.hasNewRecommendations && (
+                            {/* {test.hasNewRecommendations && (
                               <Badge className="bg-purple-100 text-purple-700 border-purple-200">
                                 New Tests Available
                               </Badge>
-                            )}
+                            )} */}
                           </div>
                         </div>
 
@@ -231,7 +231,7 @@ const PatientDetails = ({ patient }: PatientDetailsProps) => {
               </>
             )}
 
-            {patient.scheduledTests && patient.scheduledTests?.length > 0 && (
+            {patient.scheduledCount && patient.scheduledCount > 0 && (
               <>
                 <Separator />
                 <div>
@@ -240,7 +240,7 @@ const PatientDetails = ({ patient }: PatientDetailsProps) => {
                     <h3 className="text-sm text-gray-700">Scheduled Tests</h3>
                   </div>
                   <div className="space-y-3">
-                    {patient.scheduledTests.map((test) => (
+                    {/* {patient.scheduledTests.map((test) => (
                       <div
                         key={test.id}
                         className="p-4 bg-blue-50 border border-blue-200 rounded-lg"
@@ -258,7 +258,7 @@ const PatientDetails = ({ patient }: PatientDetailsProps) => {
                           </Badge>
                         </div>
                       </div>
-                    ))}
+                    ))} */}
                   </div>
                 </div>
               </>

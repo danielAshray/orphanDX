@@ -193,7 +193,6 @@ interface PatientCardProps {
 }
 
 function PatientCard({ patient, isSelected, onClick }: PatientCardProps) {
-  console.log({ patient });
   const hasScheduled = patient.scheduledCount > 0;
   const hasCompleted = patient.completedCount > 0;
   const hasRecommendation = patient.recomendationCount > 0;

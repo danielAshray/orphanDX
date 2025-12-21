@@ -19,7 +19,23 @@ export const fetchPatientDetails = async (
         insurance: true,
         diagnoses: true,
         labRecommendations: true,
-        labOrder: true,
+        labOrder: {
+          include: {
+            diagnosis: {
+              select: {
+                name: true,
+              },
+            },
+            testResult: {
+              select: {
+                isNormal: true,
+                result: true,
+                createdAt: true,
+                summary: true,
+              },
+            },
+          },
+        },
       },
     });
 
