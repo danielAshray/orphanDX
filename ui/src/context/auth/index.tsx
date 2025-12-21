@@ -13,6 +13,7 @@ import { Navigate, Outlet } from "react-router-dom";
 type AuthContextType = {
   token: string | null;
   role: string | null;
+  orgRole: string | null;
   user: any | null;
   setToken: (T: string | null) => void;
   setRole: (R: string | null) => void;
@@ -34,6 +35,9 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
   const [role, setRole] = useState<string | null>(
     localStorageUtil.get(STORAGE_KEYS.ROLE)
   );
+  const [orgRole, setOrgRole] = useState<string | null>(
+    localStorageUtil.get(STORAGE_KEYS.ORG_ROLE)
+  );
   const [user, setUser] = useState<any | null>(
     localStorageUtil.get(STORAGE_KEYS.USER)
   );
@@ -49,13 +53,23 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
   }, [role]);
 
   useEffect(() => {
+    if (orgRole) localStorageUtil.set(STORAGE_KEYS.ORG_ROLE, role);
+    else localStorageUtil.remove(STORAGE_KEYS.ORG_ROLE);
+  }, [orgRole]);
+
+  useEffect(() => {
     if (user) localStorageUtil.set(STORAGE_KEYS.USER, user);
     else localStorageUtil.remove(STORAGE_KEYS.USER);
   }, [user]);
 
   const login = (L: any) => {
     setToken(L.token);
-    setRole(L.role);
+    if (L.user?.organization?.role) {
+      setOrgRole(L.user?.organization?.role);
+    }
+    if (L.user?.role) {
+      setRole(L.user?.role);
+    }
     setUser(L.user);
   };
 
@@ -63,12 +77,23 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     localStorageUtil.clear();
     setToken(null);
     setRole(null);
+    setOrgRole(null);
     setUser(null);
   };
 
   return (
     <AuthContext.Provider
-      value={{ token, role, user, setToken, setRole, setUser, login, logout }}
+      value={{
+        token,
+        role,
+        orgRole,
+        user,
+        setToken,
+        setRole,
+        setUser,
+        login,
+        logout,
+      }}
     >
       {children}
     </AuthContext.Provider>
@@ -76,17 +101,26 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
 };
 
 const PublicRoute = () => {
-  const { token, role } = useAuthContext();
+  const { token, role, orgRole } = useAuthContext();
   if (token) {
     switch (role?.toLowerCase()) {
+      case "service_account":
       case "admin":
         return <Navigate to={PATH_KEYS.ADMIN} replace />;
-      case "lab":
-        return <Navigate to={PATH_KEYS.LAB} replace />;
-      case "facility":
-        return <Navigate to={PATH_KEYS.FACILITY} replace />;
-      case "provider":
+
+      case "user":
+        if (orgRole) {
+          switch (orgRole.toLowerCase()) {
+            case "lab":
+              return <Navigate to={PATH_KEYS.LAB} replace />;
+            case "facility":
+              return <Navigate to={PATH_KEYS.FACILITY} replace />;
+            default:
+              return <Navigate to={PATH_KEYS.PROVIDER} replace />;
+          }
+        }
         return <Navigate to={PATH_KEYS.PROVIDER} replace />;
+
       default:
         return <Navigate to={PATH_KEYS.DEFAULT} replace />;
     }

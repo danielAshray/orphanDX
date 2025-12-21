@@ -7,7 +7,8 @@ import { useMutation } from "@tanstack/react-query";
 
 export type ActiveUserDataType = {
   token: string;
-  role: string;
+  // role: string;
+  // orgRole: string;
   user: any;
 };
 

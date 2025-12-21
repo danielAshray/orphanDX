@@ -18,7 +18,9 @@ const Router = () => {
 
         <Route element={<RequireAuth />}>
           <Route element={<Main />}>
-            <Route element={<RequireRole allowed={["admin"]} />}>
+            <Route
+              element={<RequireRole allowed={["service_account", "admin"]} />}
+            >
               <Route path={PATH_KEYS.ADMIN} element={<Admin />} />
             </Route>
 
