@@ -10,9 +10,11 @@ const getStatDetails = async (
 ) => {
   try {
     const [labCount, facilityCount, providerCount] = await Promise.all([
-      prisma.lab.count(),
-      prisma.facility.count(),
-      prisma.provider.count(),
+      prisma.organization.count({ where: { role: "LAB" } }),
+      prisma.organization.count({ where: { role: "FACILITY" } }),
+      prisma.user.count({
+        where: { organization: { role: "FACILITY" }, role: "USER" },
+      }),
     ]);
 
     sendResponse(res, {

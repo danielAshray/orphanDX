@@ -89,13 +89,19 @@ const PatientDetails = ({ patient }: PatientDetailsProps) => {
     setShowLabResults(true);
   };
 
+  const allLabRecommendations = patient.diagnoses.flatMap(
+    (d) => d.labRecommendations
+  );
+
   return (
     <>
       <Card className="flex flex-col">
         <div className="p-4 border-b border-gray-200">
           <div className="flex items-start justify-between">
             <div>
-              <h2 className="text-gray-900">{patient.name}</h2>
+              <h2 className="text-gray-900">
+                {patient.firstName} {patient.lastName}
+              </h2>
               <p className="text-sm text-gray-500">MRN: {patient.mrn}</p>
             </div>
             {patient.isCandidate && (
@@ -194,10 +200,10 @@ const PatientDetails = ({ patient }: PatientDetailsProps) => {
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <p className="text-sm text-gray-900">
-                          {diagnosis.description}
+                          {diagnosis.name}
                         </p>
                         <p className="text-xs text-gray-500 mt-1">
-                          ICD-10: {diagnosis.code} • Onset:{" "}
+                          ICD-10: {diagnosis.icd10} • Onset:{" "}
                           {new Date(diagnosis.onsetDate).toLocaleDateString()}
                         </p>
                       </div>
@@ -306,7 +312,7 @@ const PatientDetails = ({ patient }: PatientDetailsProps) => {
             )}
 
             {/* Recommended Tests */}
-            {patient.recommendedTests?.length > 0 && (
+            {/* {allLabRecommendations.length > 0 && (
               <>
                 <Separator />
                 <div>
@@ -315,7 +321,7 @@ const PatientDetails = ({ patient }: PatientDetailsProps) => {
                     <h3 className="text-sm text-gray-700">Recommended Tests</h3>
                   </div>
                   <div className="space-y-3">
-                    {patient.recommendedTests.map((test) => (
+                    {allLabRecommendations.map((test) => (
                       <div
                         key={test.id}
                         className="p-4 bg-orange-50 border border-orange-200 rounded-lg"
@@ -386,7 +392,7 @@ const PatientDetails = ({ patient }: PatientDetailsProps) => {
                   </div>
                 </div>
               </>
-            )}
+            )} */}
           </div>
         </ScrollArea>
       </Card>

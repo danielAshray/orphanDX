@@ -19,7 +19,6 @@ export const createPatient = async (
       email,
       insurance,
       facilityId,
-      providerId,
     } = req.body;
 
     const patient = await prisma.$transaction(async (tx) => {
@@ -33,7 +32,6 @@ export const createPatient = async (
           phone,
           email,
           facilityId,
-          providerId,
         },
       });
 
@@ -62,12 +60,17 @@ export const createPatient = async (
 };
 
 export const fetchPatientDetails = async (
-  _req: Request,
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
-    const patients = await prisma.patient.findMany();
+    const organizationId = req.user?.organization?.id;
+    const patients = await prisma.patient.findMany({
+      where: {
+        facilityId: organizationId,
+      },
+    });
 
     sendResponse(res, {
       success: true,

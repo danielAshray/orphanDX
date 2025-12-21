@@ -11,6 +11,7 @@ const loginUser = async (req: Request, res: Response, next: NextFunction) => {
 
     const userExists = await prisma.user.findUnique({
       where: { email },
+      include: { organization: { select: { id: true, role: true } } },
     });
 
     if (!userExists) {
@@ -29,6 +30,10 @@ const loginUser = async (req: Request, res: Response, next: NextFunction) => {
       id: userExists.id,
       role: userExists.role,
       email: userExists.email,
+      organization: {
+        id: userExists.organizationId,
+        role: userExists.organization?.role,
+      },
     };
 
     const token = generateToken(tokenPayload);
@@ -39,8 +44,12 @@ const loginUser = async (req: Request, res: Response, next: NextFunction) => {
       message: "User logged in successfully",
       data: {
         token,
-        ...tokenPayload,
-        user: { name: userExists.name, role: userExists.role },
+        user: {
+          name: userExists.name,
+          role: userExists.role,
+          id: userExists.id,
+          organization: tokenPayload.organization,
+        },
       },
     });
   } catch (error: any) {

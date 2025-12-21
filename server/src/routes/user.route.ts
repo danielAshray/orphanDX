@@ -9,7 +9,7 @@ import {
   practiceFusionCallback,
   practiceFusionLogin,
 } from "../controllers/user.controller";
-import { authenticate, authorize } from "../middlewares/auth.middleware";
+import { authenticate } from "../middlewares/auth.middleware";
 import { pfCallbackQuery } from "../validators/querySchema";
 import { loginLimiter } from "../middlewares/limit.middleware";
 import { loginUser } from "../controllers/auth.controller";
@@ -20,12 +20,7 @@ const UserRoutes = Object.freeze({
   Profile: "/profile",
 });
 
-userRoute.get(
-  UserRoutes.Profile,
-  authenticate,
-  authorize(["ADMIN", "LAB", "PROVIDER"]),
-  getProfile
-);
+userRoute.get(UserRoutes.Profile, authenticate, getProfile);
 
 userRoute.post("/login", validateBody(userLoginSchema), loginUser);
 

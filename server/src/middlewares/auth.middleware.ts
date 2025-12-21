@@ -1,4 +1,4 @@
-import { UserRole } from "@prisma/client";
+import { OrganizationRole, UserRole } from "@prisma/client";
 import { Request, Response, NextFunction } from "express";
 import { ApiError } from "../utils/apiService";
 import { verifyToken } from "../utils/jwtService";
@@ -23,22 +23,31 @@ const authenticate = async (
   }
 };
 
-const authorize = (allowedRoles: UserRole[]) => {
+const authorizeByRoleAndOrg = (
+  allowedRoles: UserRole[],
+  allowedOrgRole?: OrganizationRole
+) => {
   return (req: Request, _res: Response, next: NextFunction) => {
     const user = req.user;
 
     if (!user) {
-      const message = "Unauthorized";
-      return next(ApiError.unauthorized(message));
+      return next(ApiError.unauthorized("Unauthorized"));
     }
 
     if (!allowedRoles.includes(user.role)) {
-      const message = "Forbidden: Access denied";
-      return next(ApiError.forbidden(message));
+      return next(ApiError.forbidden("Forbidden: Access denied"));
+    }
+
+    if (allowedOrgRole) {
+      if (allowedOrgRole !== user.organization?.role) {
+        return next(
+          ApiError.forbidden(`Forbidden: Only ${allowedOrgRole} allowed`)
+        );
+      }
     }
 
     next();
   };
 };
 
-export { authenticate, authorize };
+export { authenticate, authorizeByRoleAndOrg };

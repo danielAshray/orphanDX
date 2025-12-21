@@ -31,7 +31,7 @@ const PatientList = ({
 
   const filteredPatients = patients.filter((patient) => {
     const matchesSearch =
-      patient.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      patient.firstName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       patient.mrn.toLowerCase().includes(searchQuery.toLowerCase());
 
     if (!matchesSearch) return false;
@@ -219,7 +219,9 @@ function PatientCard({ patient, isSelected, onClick }: PatientCardProps) {
       <div className="flex items-start justify-between mb-2">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
-            <p className="text-gray-900">{patient.name}</p>
+            <p className="text-gray-900">
+              {patient.firstName} {patient.lastName}
+            </p>
             {hasAbnormalResults && (
               <AlertTriangle className="w-4 h-4 text-red-600" />
             )}
@@ -275,7 +277,7 @@ function PatientCard({ patient, isSelected, onClick }: PatientCardProps) {
       {patient.diagnoses?.length > 0 && (
         <div className="mt-2">
           <p className="text-xs text-gray-500 line-clamp-1">
-            {patient.diagnoses.map((d) => d.code).join(", ")}
+            {patient.diagnoses.map((d) => d.icd10).join(", ")}
           </p>
         </div>
       )}

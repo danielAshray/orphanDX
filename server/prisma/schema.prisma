@@ -9,68 +9,26 @@ datasource db {
 
 enum UserRole {
   ADMIN
-  FACILITY
-  PROVIDER
+  USER
+  SERVICE_ACCOUNT
+}
+
+enum OrganizationRole {
   LAB
+  FACILITY
 }
 
-model Facility {
+model Organization {
   id          String     @id @default(uuid())
-  name        String
-  email       String     @unique
-
-  providers   Provider[]
-  users       User[]
-
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-
+  name String
+  role OrganizationRole
+  users User[]
   patients Patient[]
-
-  @@index([name])
-}
-
-model Provider {
-  id          String     @id @default(uuid())
-  name        String
-  npi         String?    @unique
-
-  facilityId  String
-  facility    Facility  @relation(fields: [facilityId], references: [id])
-  patients Patient[]
-
-  users       User[]
-
+  labRules LabRule[]
+  labOrders LabOrder[] @relation("LabOrders")
+  facilityOrders LabOrder[] @relation("FacilityOrders")
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
-
-  @@index([facilityId])
-}
-
-model Lab {
-  id          String     @id @default(uuid())
-  name        String
-  code        String?    @unique
-
-  users       User[]
-  labRule   LabRule[]
-
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-}
-
-model LabRule {
-  id          String     @id @default(uuid())
-  labId     String   
-  code String
-  message String
-  lab       Lab      @relation(fields: [labId], references: [id])
-  labRecommendatios LabRecommendation[]
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-
-  @@unique([labId,code])
-  @@index([labId])
 }
 
 
@@ -78,27 +36,33 @@ model User {
   id          String    @id @default(uuid())
   email       String    @unique
   password    String
-
   name   String
-
   role        UserRole
+  organizationId String?
+  organization Organization? @relation(fields: [organizationId],references: [id])
 
-  facilityId  String?
-  facility    Facility? @relation(fields: [facilityId], references: [id])
-
-  providerId  String?
-  provider    Provider? @relation(fields: [providerId], references: [id])
-
-  labId       String?
-  lab         Lab?      @relation(fields: [labId], references: [id])
+ 
   practiceConnections PracticeConnection[]
 
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  @@index([role])
-  @@index([facilityId])
-  @@index([providerId])
+  @@index([organizationId])
+}
+
+model LabRule {
+  id          String     @id @default(uuid())
+  labId       String
+  lab         Organization @relation(fields: [labId], references: [id])
+  code        String
+  message     String
+
+  labRecommendations LabRecommendation[]
+
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@unique([labId, code])
   @@index([labId])
 }
 
@@ -124,22 +88,19 @@ model Patient {
   phone        String?
   email        String?
 
-  facilityId   String? 
-  facility     Facility?   @relation(fields: [facilityId], references: [id])
-  
-  providerId   String? 
-  provider     Provider?   @relation(fields: [providerId], references: [id])
-  
   insurance    Insurance?
   diagnoses    Diagnosis[]
   labRecommendations LabRecommendation[]
+  labOrder LabOrder[]
+
+  facilityId     String
+  facility       Organization @relation(fields: [facilityId], references: [id])
  
 
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
 
-  @@index([mrn])
-  @@index([lastName, firstName])
+  @@index([facilityId])
 }
 
 enum Gender {
@@ -172,12 +133,11 @@ model Diagnosis {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   labRecommendations LabRecommendation[]
+  labOrders LabOrder[]
   
   @@index([patientId])
   @@index([icd10])
 }
-
-
 
 enum RecommendationStatus {
   PENDING
@@ -186,33 +146,59 @@ enum RecommendationStatus {
   ORDERED
 }
 
-
-
 model LabRecommendation {
   id           String   @id @default(uuid())
-
   patientId    String
-  facilityId   String?
-  providerId   String?
-
   title        String        
   reason       String        
   status       RecommendationStatus @default(PENDING)
-
   patient      Patient   @relation(fields: [patientId], references: [id])
-
-  
   labRuleId String
   labRule LabRule @relation(fields: [labRuleId],references: [id])
   diagnosisId String
   diagnosis    Diagnosis @relation(fields: [diagnosisId], references: [id])
 
+  labOrder     LabOrder?              @relation("LabOrderRecommendation") 
+
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
+ 
 
   @@index([patientId])
-  @@index([facilityId])
-  @@index([providerId])
   @@unique([patientId, diagnosisId, labRuleId])
 }
 
+
+enum LabOrderStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+  FAILED
+}
+
+model LabOrder {
+  id            String      @id @default(uuid())
+  facility      Organization @relation("FacilityOrders", fields: [facilityId], references: [id])
+  facilityId    String
+  lab           Organization @relation("LabOrders", fields: [labId], references: [id])
+  labId         String
+  patient       Patient     @relation(fields: [patientId], references: [id])
+  patientId     String
+  diagnosis     Diagnosis   @relation(fields: [diagnosisId], references: [id])
+  diagnosisId   String
+  recommendationId String? @unique                
+  recommendation   LabRecommendation?    @relation("LabOrderRecommendation", fields: [recommendationId], references: [id])
+
+  status        LabOrderStatus     @default(PENDING)
+  results       String?
+  orderedAt     DateTime    @default(now())
+  completedAt   DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+@@index([facilityId])
+@@index([labId])
+@@index([diagnosisId])
+@@index([recommendationId])
+
+}

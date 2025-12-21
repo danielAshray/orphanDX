@@ -4,13 +4,17 @@ import { sendResponse } from "../utils/responseService";
 import { prisma } from "../lib/prisma";
 import { hashPassword } from "../utils/bcryptService";
 
-const registerLab = async (req: Request, res: Response, next: NextFunction) => {
+const registerOrganization = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
-    const { lab, user } = req.body;
+    const { organization, user } = req.body;
 
     await prisma.$transaction(async (tx) => {
-      const newLab = await tx.lab.create({
-        data: { name: lab.name },
+      const newOrganization = await tx.organization.create({
+        data: organization,
       });
 
       const hashedPassword = hashPassword(user.password);
@@ -20,8 +24,8 @@ const registerLab = async (req: Request, res: Response, next: NextFunction) => {
           name: user.name,
           password: hashedPassword,
           email: user.email,
-          role: "LAB",
-          labId: newLab.id,
+          role: "ADMIN",
+          organizationId: newOrganization.id,
         },
       });
     });
@@ -36,4 +40,4 @@ const registerLab = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-export { registerLab };
+export { registerOrganization };

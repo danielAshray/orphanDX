@@ -5,12 +5,12 @@ async function main() {
   const adminEmail = "daniel@ashrayconsulting.com";
   const adminPassword = "Rememberme@123";
 
-  const existingAdmin = await prisma.user.findUnique({
-    where: { email: adminEmail },
+  const serviceUser = await prisma.user.findFirst({
+    where: { role: "SERVICE_ACCOUNT" },
   });
 
-  if (existingAdmin) {
-    console.log("Admin already exists");
+  if (serviceUser) {
+    console.log("ServiceUser already exists");
     return;
   }
 
@@ -21,7 +21,7 @@ async function main() {
       email: adminEmail,
       password: hashedPassword,
       name: "Developer",
-      role: "ADMIN",
+      role: "SERVICE_ACCOUNT",
     },
   });
 
@@ -32,7 +32,10 @@ import { faker } from "@faker-js/faker";
 
 async function seedPatient() {
   console.log("Seeding 100 patients with insurance and diagnoses...");
-
+  const organization = await prisma.organization.findFirst({
+    where: { role: "FACILITY" },
+  });
+  if (!organization) return;
   for (let i = 0; i < 100; i++) {
     const firstName = faker.person.firstName();
     const lastName = faker.person.lastName();
@@ -75,6 +78,7 @@ async function seedPatient() {
       await prisma.$transaction(async (tx) => {
         const patient = await tx.patient.create({
           data: {
+            facilityId: organization.id,
             firstName,
             lastName,
             mrn,
@@ -167,7 +171,7 @@ async function fillLabRule() {
       { icd10: "R94.5", message: "Abnormal results of liver function studies" },
     ];
 
-    const lab = await prisma.lab.findFirst();
+    const lab = await prisma.organization.findFirst({ where: { role: "LAB" } });
 
     if (!lab) return;
     await prisma.labRule.createMany({
@@ -211,10 +215,12 @@ async function createRecomendation() {
 
 type tagType = "user" | "patient" | "labRule" | "recommendation";
 const callFunc: Record<tagType, Function> = {
-  labRule: fillLabRule,
-  patient: seedPatient,
   user: main,
+  patient: seedPatient,
+  labRule: fillLabRule,
   recommendation: createRecomendation,
 };
 
+callFunc["patient"]();
+callFunc["labRule"]();
 callFunc["recommendation"]();

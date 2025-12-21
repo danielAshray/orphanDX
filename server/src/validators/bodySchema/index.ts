@@ -1,3 +1,4 @@
+import { OrganizationRole } from "@prisma/client";
 import Joi from "joi";
 
 const createPatientSchema = Joi.object({
@@ -61,26 +62,12 @@ const userRegisterSchema = Joi.object({
     .optional(),
 }).required();
 
-const createFacilitySchema = Joi.object({
-  facility: Joi.object({
+const createOrganizationSchema = Joi.object({
+  organization: Joi.object({
     name: Joi.string().required().lowercase(),
-    email: Joi.string()
-      .email({ tlds: { allow: false } })
+    role: Joi.string()
+      .valid(...Object.values(OrganizationRole))
       .required(),
-  }).required(),
-
-  user: Joi.object({
-    name: Joi.string().required().lowercase(),
-    email: Joi.string()
-      .email({ tlds: { allow: false } })
-      .required(),
-    password: Joi.string().min(6).required(),
-  }).required(),
-}).required();
-
-const createLabSchema = Joi.object({
-  lab: Joi.object({
-    name: Joi.string().required().lowercase(),
   }).required(),
 
   user: Joi.object({
@@ -104,6 +91,5 @@ export {
   createPatientSchema,
   createPatientRecommendationBodySchema,
   detailsSchema,
-  createFacilitySchema,
-  createLabSchema,
+  createOrganizationSchema,
 };
