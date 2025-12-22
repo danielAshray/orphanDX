@@ -15,7 +15,7 @@ export interface Patient {
   phone: string;
   email: string;
   labRecommendations: LabRecommendations[];
-
+  labOrder: LabOrder[];
   lastVisit: string;
   isCandidate: boolean;
   completedCount: number;
@@ -44,6 +44,36 @@ export interface LabRecommendations {
   status: string;
 }
 
+export interface LabOrder {
+  id: string;
+  completedAt: string | null;
+  createdAt: string | null;
+  createdById: string | null;
+  diagnosisId: string;
+  diagnosis: { name: string };
+  facilityId: string;
+  testResult: {
+    isNormal: boolean;
+    createdAt: string;
+    result: {
+      unit: string;
+      value: string;
+      status: string;
+      component: string;
+      referenceRange: string;
+    }[];
+    summary: string;
+  };
+  id: string;
+  labId: string;
+  orderedAt: string;
+  patientId: string;
+  recommendationId: string | null;
+  results: string | null;
+  status: string;
+  updatedAt: string;
+}
+
 export interface CompletedTest {
   id: string;
   testName: string;
@@ -66,21 +96,25 @@ export interface ScheduledTest {
 
 export interface LabResult {
   id: string;
-  orderId: string;
-  testName: string;
-  completedDate: string;
+  diagnosis: { name: string };
+  updatedAt: string;
   reportUrl?: string;
-  results: TestResultItem[];
-  interpretation: string;
+  testResult: {
+    result: TestResultItem[];
+    summary: string;
+  };
   recommendedFollowUp?: string[];
 }
 
 export interface TestResultItem {
-  name: string;
+  component: string;
   value: string;
   unit: string;
-  referenceRange: string;
-  flag?: "high" | "low" | "critical";
+  referenceRange?: {
+    low: string;
+    high: string;
+  };
+  status?: "high" | "HIGH" | "low" | "LOW" | "critical" | "Normal" | "NORMAL";
 }
 
 export interface Order {
