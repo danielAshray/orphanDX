@@ -191,7 +191,8 @@ model LabRecommendation {
 
 
 enum LabOrderStatus {
-  PENDING
+  ORDERED
+  COLLECTED
   COMPLETED
   CANCELLED
 }
@@ -208,8 +209,7 @@ model LabOrder {
   diagnosisId   String
   recommendationId String? @unique                
   recommendation   LabRecommendation?    @relation("LabOrderRecommendation", fields: [recommendationId], references: [id])
-
-  status        LabOrderStatus     @default(PENDING)
+  status        LabOrderStatus     @default(ORDERED)
   results       String?
   orderedAt     DateTime    @default(now())
   completedAt   DateTime?

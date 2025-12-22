@@ -1,0 +1,5 @@
+-- AlterEnum
+ALTER TYPE "LabOrderStatus" ADD VALUE 'SCHEDULED';
+
+-- AlterTable
+ALTER TABLE "LabOrder" ADD COLUMN     "scheduledAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;

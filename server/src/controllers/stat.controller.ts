@@ -47,7 +47,7 @@ const getFacilityStatDetails = async (
       prisma.patient.count(),
       prisma.labOrder.count({
         where: {
-          status: "PENDING",
+          status: "ORDERED",
         },
       }),
       prisma.labOrder.count({

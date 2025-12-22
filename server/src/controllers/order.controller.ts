@@ -43,7 +43,7 @@ export const createOrder = async (
           patientId: recomendation.patientId,
           diagnosisId: recomendation.diagnosisId,
           createdById: userId,
-          status: "PENDING",
+          status: "ORDERED",
         },
         include: {
           facility: true,
@@ -126,7 +126,7 @@ export const completeOrder = async (
     const { summary, recomendations, result, orderId, isNormal } = req.body;
 
     const order = await prisma.labOrder.findUnique({
-      where: { id: orderId, labId: organizationId, status: "PENDING" },
+      where: { id: orderId, labId: organizationId, status: "COLLECTED" },
     });
 
     if (!order) return next({ code: 404, message: "order record not found" });
@@ -179,22 +179,17 @@ const getDashboard = async (
   next: NextFunction
 ) => {
   try {
-    const [providerCount, totalOrders, activeOrders, facilityCount] =
-      await Promise.all([
-        prisma.user.count({
-          where: { organization: { role: "FACILITY" }, role: "USER" },
-        }),
-        prisma.labOrder.count(),
-        prisma.labOrder.count({ where: { status: "PENDING" } }),
-        prisma.organization.count({ where: { role: "FACILITY" } }),
-      ]);
+    const [totalOrders, activeOrders, facilityCount] = await Promise.all([
+      prisma.labOrder.count(),
+      prisma.labOrder.count({ where: { status: "ORDERED" } }),
+      prisma.organization.count({ where: { role: "FACILITY" } }),
+    ]);
 
     sendResponse(res, {
       success: true,
       code: 200,
       message: "Dashboard fetched successfully",
       data: {
-        providerCount,
         totalOrders,
         activeOrders,
         partnerClinics: facilityCount,
@@ -211,15 +206,17 @@ const orderTracking = async (
   next: NextFunction
 ) => {
   try {
-    const { status, patientId, providerId } = req.query;
-
-    const whereClause: any = {};
-    if (status) whereClause.status = status.toString().toUpperCase();
-    if (patientId) whereClause.patientId = patientId.toString();
-    if (providerId) whereClause.createdById = providerId.toString();
+    const isFacility = req.user?.organization?.role === "FACILITY";
+    const organizationId = req.user?.organization?.id;
 
     const labOrders = await prisma.labOrder.findMany({
-      where: whereClause,
+      where: isFacility
+        ? {
+            facilityId: organizationId,
+          }
+        : {
+            labId: organizationId,
+          },
       include: {
         patient: true,
         diagnosis: true,

@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Card } from "@/components/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/tabs";
-import { TrendingUp, Building2, ClipboardList, Stethoscope } from "lucide-react";
+import { TrendingUp, Building2, ClipboardList } from "lucide-react";
 import { Analytics, Orders } from "./tabs";
 import { fetchDashboardApi } from "@/api/order";
 import { useQuery } from "@tanstack/react-query";
@@ -24,7 +24,6 @@ const Lab = () => {
     totalOrders = 0,
     activeOrders = 0,
     partnerClinics = 0,
-    providerCount = 0,
   } = dashboard?.data || {};
 
   const statsData = [
@@ -55,20 +54,10 @@ const Lab = () => {
         </div>
       ),
     },
-    {
-      label: "Total Provider",
-      value: providerCount,
-      icon: (
-        <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-          <Stethoscope className="w-5 h-5 text-green-600" />
-        </div>
-      ),
-    },
   ] as StatCardProps[];
 
   return (
     <div className="max-w-[1600px] mx-auto px-6 py-6">
-      {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         {statsData.map((stat, index) => (
           <Card className="p-4" key={index}>
