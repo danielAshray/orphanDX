@@ -90,6 +90,13 @@ export interface Order {
   createdBy: User;
 }
 
+const colorScheme = {
+  ORDERED: "bg-blue-200 text-blue-600 border-blue-600",
+  COLLECTED: "bg-purple-200 text-purple-600 border-purple-600",
+  COMPLETED: "bg-green-200 text-green-600 border-green-600",
+  CANCELLED: "bg-orange-200 text-orange-300 border-orange-300",
+};
+
 const Order = () => {
   const [selectedLabResult, setSelectedLabResult] = useState<any>(null);
   const { data: ordersResp } = useQuery({
@@ -128,7 +135,7 @@ const Order = () => {
         <div className="flex gap-3 items-center">
           <div className="border boreder-gray-200 flex items-center w-fit px-2 py-1 text-sm rounded-lg gap-1 font-semibold cursor-pointer hover:bg-accent duration-200 ">
             <span>
-              <CiFilter  />
+              <CiFilter />
             </span>
             <p> Filter</p>
           </div>
@@ -161,12 +168,20 @@ const Order = () => {
             key={order.id}
             className="bg-white rounded-xl p-4 mb-4 space-y-3  transition-shadow border border-gray-200"
           >
-            {/* first row */}
             <div className="flex justify-between items-center ">
               <div className="flex flex-col">
-                <p className="text-gray-700">
-                  {order.diagnosis[0].diagnosis.name}
-                </p>
+                <div className="flex items-center gap-2">
+                  <p className="text-gray-700">
+                    {order.diagnosis[0].diagnosis.name}
+                  </p>
+                  <p
+                    className={`text-xs border ${
+                      colorScheme[order.status]
+                    } px-1 rounded-xl`}
+                  >
+                    {order.status.toLowerCase()}
+                  </p>
+                </div>
                 <p className="text-sm text-gray-400 ">{order.cptCode}</p>
               </div>
               <div className="text-sm text-gray-400">
@@ -217,9 +232,8 @@ const Order = () => {
                   <p className="text-gray-400">Scheduled</p>
                   <p>
                     {new Date(order.orderedAt).toLocaleDateString()}
-                    {order.completedAt ? " - " : ""}{" "}
-                    {order.completedAt &&
-                      new Date(order?.completedAt).toLocaleDateString()}
+                    {", "}
+                    {new Date(order.orderedAt).toLocaleTimeString()}
                   </p>
                 </div>
               </div>
@@ -238,7 +252,7 @@ const Order = () => {
                 <span>
                   <IoCreateOutline />
                 </span>
-                <p> Create Order</p>
+                <p> View Order</p>
               </div>
 
               <label className="bg-white text-sm inline-flex items-center gap-2 cursor-pointer rounded-lg border border-gray-200 px-2 py-1 hover:bg-accent duration-200 transition-colors">
