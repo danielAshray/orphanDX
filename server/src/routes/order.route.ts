@@ -4,16 +4,15 @@ import {
   createOrder,
   getDashboard,
   orderTracking,
+  uploadResultPDF,
 } from "../controllers/order.controller";
 import {
   authenticate,
   authorizeByRoleAndOrg,
 } from "../middlewares/auth.middleware";
 import { validateBody } from "../middlewares/requestValidator.middleware";
-import {
-  completeTestResultSchema,
-  createOrderSchema,
-} from "../validators/bodySchema";
+import { createOrderSchema } from "../validators/bodySchema";
+import { uploadFile } from "../config/multer.config";
 
 const orderRoute: Router = Router();
 
@@ -40,11 +39,18 @@ orderRoute.get(
 );
 
 orderRoute.put(
-  "/complete",
+  "/complete/:id",
   authenticate,
   authorizeByRoleAndOrg(["ADMIN"], "LAB"),
-  validateBody(completeTestResultSchema),
   completeOrder
+);
+
+orderRoute.put(
+  "/upload/:id",
+  authenticate,
+  authorizeByRoleAndOrg(["ADMIN"], "LAB"),
+  uploadFile,
+  uploadResultPDF
 );
 
 export default orderRoute;

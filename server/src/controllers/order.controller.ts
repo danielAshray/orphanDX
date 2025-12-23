@@ -11,7 +11,7 @@ export const createOrder = async (
   try {
     const organizationId = req.user?.organization?.id || "";
     const userId = req.user?.id || "";
-    const { recomendationIds, cptCode, testName } = req.body;
+    const { recomendationIds } = req.body;
 
     const user = await prisma.user.findUnique({
       where: {
@@ -54,15 +54,13 @@ export const createOrder = async (
       });
     }
 
-    const { newOrder } = await prisma.$transaction(async (tx) => {
+    const { newOrder, tests } = await prisma.$transaction(async (tx) => {
       const diagnosisIds = Array.from(
         new Set(recommendations.map((r) => r.diagnosisId))
       );
 
       const newOrder = await tx.labOrder.create({
         data: {
-          testName,
-          cptCode,
           facilityId: organizationId,
           labId,
           patientId,
@@ -89,6 +87,14 @@ export const createOrder = async (
         },
       });
 
+      const tests = await tx.labTest.createMany({
+        data: recommendations.map(({ testName, cptCode }) => ({
+          testName,
+          cptCode,
+          labOrderId: labId,
+        })),
+      });
+
       await tx.labRecommendation.updateMany({
         where: {
           id: { in: recomendationIds },
@@ -107,17 +113,13 @@ export const createOrder = async (
         },
       });
 
-      return { newOrder };
+      return { newOrder, tests };
     });
 
     const orderData = {
       orderId: newOrder.id,
       patient: newOrder.patient,
-      test: {
-        name: testName,
-        code: cptCode,
-        id: newOrder.id,
-      },
+      tests,
       provider: {
         name: user.name,
         npi: "NPI-123456789",
@@ -154,7 +156,7 @@ export const completeOrder = async (
   try {
     const organizationId = req.user?.organization?.id || "";
 
-    const { summary, recomendations, result, orderId, isNormal } = req.body;
+    const orderId = req.params.id;
 
     const order = await prisma.labOrder.findUnique({
       where: { id: orderId, labId: organizationId },
@@ -168,14 +170,6 @@ export const completeOrder = async (
           id: order.id,
         },
         data: {
-          testResult: {
-            create: {
-              summary,
-              recomendations,
-              result,
-              isNormal,
-            },
-          },
           status: "COMPLETED",
         },
       });
@@ -185,9 +179,7 @@ export const completeOrder = async (
           id: newOrder.patientId,
         },
         data: {
-          scheduledCount: { decrement: -1 },
           completedCount: { increment: 1 },
-          resultCount: { increment: 1 },
         },
       });
 
@@ -197,7 +189,7 @@ export const completeOrder = async (
     sendResponse(res, {
       success: true,
       code: 200,
-      message: "Order created successfully",
+      message: "Order completed successfully",
       data: newOrder,
     });
   } catch (error: any) {
@@ -251,7 +243,7 @@ const orderTracking = async (
             labId: organizationId,
           },
       include: {
-        testResult: true,
+        tests: true,
         patient: true,
         diagnosis: true,
         facility: true,
@@ -272,4 +264,50 @@ const orderTracking = async (
   }
 };
 
-export { getDashboard, orderTracking };
+const uploadResultPDF = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const orderId = req.params.id;
+
+    if (!req.file) {
+      return next(ApiError.notFound("PDF file is required"));
+    }
+
+    const pdfPath = `/uploads/results/${req.file.filename}`;
+
+    const { orderTest } = await prisma.$transaction(async (tx) => {
+      const orderTest = await tx.labOrder.update({
+        where: {
+          id: orderId,
+        },
+        data: { resultPdfUrl: pdfPath, status: "COLLECTED" },
+      });
+
+      await tx.patient.update({
+        where: {
+          id: orderTest.patientId,
+        },
+        data: {
+          scheduledCount: { decrement: -1 },
+          resultCount: { increment: 1 },
+        },
+      });
+
+      return { orderTest };
+    });
+
+    sendResponse(res, {
+      success: true,
+      code: 200,
+      message: "Result pdf uploaded successfully",
+      data: orderTest,
+    });
+  } catch (error: any) {
+    next(ApiError.internal(undefined, error.message));
+  }
+};
+
+export { getDashboard, orderTracking, uploadResultPDF };

@@ -6,7 +6,6 @@ datasource db {
   provider = "postgresql"
 }
 
-
 enum UserRole {
   ADMIN
   USER
@@ -19,57 +18,56 @@ enum OrganizationRole {
 }
 
 model Organization {
-  id          String     @id @default(uuid())
-  name String
-  phone String
-  city      String 
-  state     String
-  zipCode   String
-  suite String
-  street String
-  role OrganizationRole
-  users User[]
-  patients Patient[]
-  labRules LabRule[]
-  labOrders LabOrder[] @relation("LabOrders")
-  facilityOrders LabOrder[] @relation("FacilityOrders")
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  id             String           @id @default(uuid())
+  name           String
+  phone          String
+  city           String
+  state          String
+  zipCode        String
+  suite          String
+  street         String
+  role           OrganizationRole
+  users          User[]
+  patients       Patient[]
+  labRules       LabRule[]
+  labOrders      LabOrder[]       @relation("LabOrders")
+  facilityOrders LabOrder[]       @relation("FacilityOrders")
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
 }
 
-
 model User {
-  id          String    @id @default(uuid())
-  email       String    @unique
-  password    String
-  name   String
-  role        UserRole
+  id             String        @id @default(uuid())
+  email          String        @unique
+  password       String
+  name           String
+  role           UserRole
   organizationId String?
-  organization Organization? @relation(fields: [organizationId],references: [id])
-  labOrders LabOrder[]
- 
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  labOrders      LabOrder[]
+
   practiceConnections PracticeConnection[]
 
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([organizationId])
 }
 
 model LabRule {
-  id          String     @id @default(uuid())
-  testName String 
-  cptCode String 
-  labId       String
-  lab         Organization @relation(fields: [labId], references: [id])
-  code        String
-  message     String
-  priority Priority @default(LOW)
+  id       String       @id @default(uuid())
+  testName String
+  cptCode  String
+  labId    String
+  lab      Organization @relation(fields: [labId], references: [id])
+  code     String
+  message  String
+  priority Priority     @default(LOW)
 
   labRecommendations LabRecommendation[]
 
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([labId, code])
   @@index([labId])
@@ -86,33 +84,31 @@ model PracticeConnection {
   user User @relation(fields: [userId], references: [id])
 }
 
-
 model Patient {
-  id           String       @id @default(uuid())
-  firstName    String
-  lastName     String
-  mrn          String       @unique     
-  dateOfBirth  String
-  gender       Gender
-  phone        String?
-  email        String?
-  lastVisit DateTime
-  scheduledCount Int @default(0)
-  recomendationCount Int @default(0)
-  resultCount Int @default(0)
-  completedCount Int @default(0)
+  id                 String   @id @default(uuid())
+  firstName          String
+  lastName           String
+  mrn                String   @unique
+  dateOfBirth        String
+  gender             Gender
+  phone              String?
+  email              String?
+  lastVisit          DateTime
+  scheduledCount     Int      @default(0)
+  recomendationCount Int      @default(0)
+  resultCount        Int      @default(0)
+  completedCount     Int      @default(0)
 
-  insurance    Insurance?
-  diagnosis    Diagnosis[]
+  insurance          Insurance?
+  diagnosis          Diagnosis[]
   labRecommendations LabRecommendation[]
-  labOrder LabOrder[]
+  labOrder           LabOrder[]
 
-  facilityId     String
-  facility       Organization @relation(fields: [facilityId], references: [id])
- 
+  facilityId String
+  facility   Organization @relation(fields: [facilityId], references: [id])
 
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([facilityId])
 }
@@ -124,34 +120,32 @@ enum Gender {
 }
 
 model Insurance {
-  id         String   @id @default(uuid())
-  patientId  String   @unique
-  provider   String
-  plan       String
-  memberId String 
-  type       String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id        String   @id @default(uuid())
+  patientId String   @unique
+  provider  String
+  plan      String
+  memberId  String
+  type      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  patient    Patient  @relation(fields: [patientId], references: [id])
+  patient Patient @relation(fields: [patientId], references: [id])
 }
 
-
 model Diagnosis {
-  id          String   @id @default(uuid())
-  patientId   String
-  name        String
-  icd10       String
-  onsetDate   DateTime
+  id        String   @id @default(uuid())
+  patientId String
+  name      String
+  icd10     String
+  onsetDate DateTime
 
-  patient     Patient @relation(fields: [patientId], references: [id])
+  patient Patient @relation(fields: [patientId], references: [id])
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
   labRecommendations LabRecommendation[]
-  labOrderLinks     LabOrderDiagnosis[]
-  
-  
+  labOrderLinks      LabOrderDiagnosis[]
+
   @@index([patientId])
   @@index([icd10])
 }
@@ -170,27 +164,26 @@ enum Priority {
 }
 
 model LabRecommendation {
-  id           String   @id @default(uuid())
-  testName String 
-  cptCode String 
-  priority Priority
-  patientId    String       
-  reason       String        
-  status       RecommendationStatus @default(PENDING)
-  patient      Patient   @relation(fields: [patientId], references: [id])
-  labRuleId String
-  labRule LabRule @relation(fields: [labRuleId],references: [id])
+  id          String               @id @default(uuid())
+  testName    String
+  cptCode     String
+  priority    Priority
+  patientId   String
+  reason      String
+  status      RecommendationStatus @default(PENDING)
+  patient     Patient              @relation(fields: [patientId], references: [id])
+  labRuleId   String
+  labRule     LabRule              @relation(fields: [labRuleId], references: [id])
   diagnosisId String
-  diagnosis    Diagnosis @relation(fields: [diagnosisId], references: [id])
+  diagnosis   Diagnosis            @relation(fields: [diagnosisId], references: [id])
 
-  labOrderRecommendations  LabOrderRecommendation[]
+  labOrderRecommendations LabOrderRecommendation[]
 
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
- 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@unique([diagnosisId, labRuleId])
 }
-
 
 enum LabOrderStatus {
   ORDERED
@@ -200,69 +193,74 @@ enum LabOrderStatus {
 }
 
 model LabOrderDiagnosis {
-  id          String   @id @default(uuid())
+  id          String @id @default(uuid())
   labOrderId  String
   diagnosisId String
 
-  labOrder    LabOrder  @relation(fields: [labOrderId], references: [id])
-  diagnosis   Diagnosis @relation(fields: [diagnosisId], references: [id])
+  labOrder  LabOrder  @relation(fields: [labOrderId], references: [id])
+  diagnosis Diagnosis @relation(fields: [diagnosisId], references: [id])
 
   @@unique([labOrderId, diagnosisId])
   @@index([diagnosisId])
 }
 
 model LabOrderRecommendation {
-  id                 String   @id @default(uuid())
-  labOrderId         String
+  id                  String @id @default(uuid())
+  labOrderId          String
   labRecommendationId String
 
-  labOrder           LabOrder           @relation(fields: [labOrderId], references: [id])
-  labRecommendation  LabRecommendation  @relation(fields: [labRecommendationId], references: [id])
+  labOrder          LabOrder          @relation(fields: [labOrderId], references: [id])
+  labRecommendation LabRecommendation @relation(fields: [labRecommendationId], references: [id])
 
   @@unique([labOrderId, labRecommendationId])
   @@index([labRecommendationId])
 }
 
-
 model LabOrder {
-  id            String      @id @default(uuid())
-  testName String 
-  cptCode String 
-  facility      Organization @relation("FacilityOrders", fields: [facilityId], references: [id])
-  facilityId    String
-  lab           Organization @relation("LabOrders", fields: [labId], references: [id])
-  labId         String
-  patient       Patient     @relation(fields: [patientId], references: [id])
-  patientId     String
+  id String @id @default(uuid())
 
-  diagnosis        LabOrderDiagnosis[]
-  recommendations  LabOrderRecommendation[]
+  facility   Organization @relation("FacilityOrders", fields: [facilityId], references: [id])
+  facilityId String
 
-  status        LabOrderStatus     @default(ORDERED)
-  orderedAt     DateTime    @default(now())
-  completedAt   DateTime?
+  lab   Organization @relation("LabOrders", fields: [labId], references: [id])
+  labId String
+
+  patient   Patient @relation(fields: [patientId], references: [id])
+  patientId String
+
+  status LabOrderStatus @default(ORDERED)
+
+  orderedAt   DateTime  @default(now())
+  completedAt DateTime?
   collectedAt DateTime?
 
-  createdBy       User        @relation(fields: [createdById], references: [id])
-  createdById     String
+  createdBy   User   @relation(fields: [createdById], references: [id])
+  createdById String
 
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-  testResult TestResult?
+  resultPdfUrl String?
 
-  @@index([facilityId,patientId])
-  @@index([labId,patientId])
+  tests           LabTest[]
+  diagnosis       LabOrderDiagnosis[]
+  recommendations LabOrderRecommendation[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([facilityId, patientId])
+  @@index([labId, patientId])
 }
 
+model LabTest {
+  id String @id @default(uuid())
 
-model TestResult {
-   id            String      @id @default(uuid())
-  isNormal Boolean @default(true)
-  labOrder      LabOrder @relation( fields: [labOrderId], references: [id])
-  labOrderId    String @unique
-  recomendations Json[]
-  result Json[]
-  summary String
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  labOrder   LabOrder @relation(fields: [labOrderId], references: [id])
+  labOrderId String
+
+  testName String
+  cptCode  String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([labOrderId])
 }

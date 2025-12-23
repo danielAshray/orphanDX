@@ -51,7 +51,7 @@ export const fetchPatientDetails = async (
             labRule: { select: { lab: { select: { name: true, id: true } } } },
           },
         },
-        labOrder: { include: { testResult: true } },
+        labOrder: { include: { tests: true } },
       },
     });
 

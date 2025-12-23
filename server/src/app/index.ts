@@ -31,6 +31,10 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.text({ type: App.TYPE }));
 
 app.use(AppConfig.BASE_API_PATH, mainRoute);
+app.use(
+  AppConfig.BASE_SERVE_PATH,
+  express.static(path.join(__dirname, "../uploads/results"))
+);
 
 const frontendPath = path.join(__dirname, App.PATH);
 app.use(express.static(frontendPath));
