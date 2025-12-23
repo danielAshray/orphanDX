@@ -10,6 +10,85 @@ import {
 } from "@/components/dialog";
 import { LabResultsViewer } from "@/elements";
 import { ScrollArea } from "@/components/scrollArea";
+import { CiSearch } from "react-icons/ci";
+import { RxPerson } from "react-icons/rx";
+import { PiHospitalThin } from "react-icons/pi";
+import { FaRegFileLines } from "react-icons/fa6";
+import { IoCreateOutline } from "react-icons/io5";
+import { CiFilter } from "react-icons/ci";
+import { MdOutlineFileDownload } from "react-icons/md";
+
+interface Patient {
+  id: string;
+  firstName: string;
+  lastName: string;
+  mrn: string;
+  dateOfBirth: string;
+  gender: string;
+  phone: string;
+  email: string;
+  lastVisit: string;
+  scheduledCount: number;
+  recomendationCount: number;
+  resultCount: number;
+  completedCount: number;
+  facilityId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface DiagnosisItem {
+  diagnosis: {
+    name: string;
+  };
+}
+
+interface FacilityOrLab {
+  id: string;
+  name: string;
+  phone: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  suite: string;
+  street: string;
+  role: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface User {
+  id: string;
+  email: string;
+  password: string;
+  name: string;
+  role: string;
+  organizationId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Order {
+  id: string;
+  testName: string;
+  cptCode: string;
+  facilityId: string;
+  labId: string;
+  patientId: string;
+  status: "ORDERED" | "COMPLETED"; // can extend if more statuses
+  orderedAt: string;
+  completedAt: string | null;
+  collectedAt: string | null;
+  createdById: string;
+  createdAt: string;
+  updatedAt: string;
+  testResult: any | null;
+  patient: Patient;
+  diagnosis: DiagnosisItem[];
+  facility: FacilityOrLab;
+  lab: FacilityOrLab;
+  createdBy: User;
+}
 
 const Order = () => {
   const [selectedLabResult, setSelectedLabResult] = useState<any>(null);
@@ -18,57 +97,183 @@ const Order = () => {
     queryFn: fetchOrderTrackingApi,
   });
 
-  const orders = ordersResp?.data || [];
+  const orders: Order[] = ordersResp?.data || [];
 
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.type !== "application/pdf") {
+      alert("Only pdfs are allowed");
+      e.target.value = "";
+      return;
+    }
 
+    const allowedFileSize = 1024 * 1025 * 5;
+    if (file.size > allowedFileSize) {
+      alert("File size must be less than 5 mb");
+      e.target.value = "";
+      return;
+    }
+
+    alert("File yet to be uploaded in the server");
+    e.target.value = "";
+    return;
+  };
   return (
-    <div>
-      {orders.map((order: any) => (
-        <div
-          key={order.id}
-          className="bg-white shadow-sm rounded-xl p-4 mb-4 hover:shadow-md transition-shadow"
-        >
-          <div className="flex justify-between items-center">
-            <div>
-              <p className="text-lg font-semibold text-gray-800">
-                {order.patient.firstName} {order.patient.lastName}
-              </p>
-              <p className="text-sm text-gray-500">
-                {order.testName} ({order.cptCode})
+    <div className="bg-card text-card-foreground flex flex-col rounded-xl py-2 border ">
+      <div className="px-4 py-2 flex justify-between items-center">
+        <div>Order Tracking</div>
+        <div className="flex gap-3 items-center">
+          <div className="border boreder-gray-200 flex items-center w-fit px-2 py-1 text-sm rounded-lg gap-1 font-semibold cursor-pointer hover:bg-accent duration-200 ">
+            <span>
+              <CiFilter  />
+            </span>
+            <p> Filter</p>
+          </div>
+
+          <div className="border boreder-gray-200 flex items-center w-fit px-2 py-1 text-sm rounded-lg gap-1 font-semibold cursor-pointer hover:bg-accent duration-200 ">
+            <span>
+              <MdOutlineFileDownload />
+            </span>
+            <p> Export</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="px-4 py-2 bg-red-40">
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Search Orders..."
+            className=" bg-sidebar-accent py-2  pl-10 rounded-lg w-full focus:ring-0"
+          />
+          <div className="absolute top-3 left-4">
+            <CiSearch />
+          </div>
+        </div>
+      </div>
+      {/*  */}
+      <div className="h-[calc(100vh-400px)] overflow-y-auto px-4 text-gray-600">
+        {orders.map((order: Order) => (
+          <div
+            key={order.id}
+            className="bg-white rounded-xl p-4 mb-4 space-y-3  transition-shadow border border-gray-200"
+          >
+            {/* first row */}
+            <div className="flex justify-between items-center ">
+              <div className="flex flex-col">
+                <p className="text-gray-700">
+                  {order.diagnosis[0].diagnosis.name}
+                </p>
+                <p className="text-sm text-gray-400 ">{order.cptCode}</p>
+              </div>
+              <div className="text-sm text-gray-400">
+                {order.completedAt
+                  ? new Date(order.completedAt).toLocaleDateString()
+                  : new Date(order.orderedAt).toLocaleDateString()}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-y-2">
+              <div className="flex items-center gap-2">
+                <div className="text-gray-400">
+                  <RxPerson />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <p className="text-gray-400">Patient</p>
+                  <p>
+                    {order.patient.firstName} {order.patient.lastName}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <div className="text-gray-400">
+                  <RxPerson />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <p className="text-gray-400">Provider</p>
+                  <p>Provider name</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <div className="text-gray-400">
+                  <PiHospitalThin />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <p className="text-gray-400">Clinic</p>
+                  <p>{order.facility.name}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <div className="text-gray-400">
+                  <PiHospitalThin />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <p className="text-gray-400">Scheduled</p>
+                  <p>
+                    {new Date(order.orderedAt).toLocaleDateString()}
+                    {order.completedAt ? " - " : ""}{" "}
+                    {order.completedAt &&
+                      new Date(order?.completedAt).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <hr className="my-3" />
+
+            <div className="flex items-center gap-3">
+              <div className="border boreder-gray-200 flex items-center w-fit px-2 py-1 text-sm rounded-lg gap-1 font-semibold cursor-pointer hover:bg-accent duration-200 ">
+                <span>
+                  <FaRegFileLines />
+                </span>
+                <p> View Requisition</p>
+              </div>
+
+              <div className="border boreder-gray-200 flex items-center w-fit px-2 py-1 text-sm rounded-lg gap-1 font-semibold cursor-pointer hover:bg-accent duration-200 ">
+                <span>
+                  <IoCreateOutline />
+                </span>
+                <p> Create Order</p>
+              </div>
+
+              <label className="bg-white text-sm inline-flex items-center gap-2 cursor-pointer rounded-lg border border-gray-200 px-2 py-1 hover:bg-accent duration-200 transition-colors">
+                <p className="bg-white">Upload PDF</p>
+                <input
+                  type="file"
+                  className="hidden"
+                  onChange={handleFileChange}
+                />
+              </label>
+            </div>
+
+            <hr className="my-3" />
+
+            <div className="flex items-center text-xs gap-2">
+              <p>Created:{new Date(order.createdAt).toLocaleDateString()}</p>
+              <p>•</p>
+              <p>
+                Updated:{" "}
+                {order.updatedAt &&
+                  new Date(order.updatedAt).toLocaleDateString()}
               </p>
             </div>
 
-            <span
-              className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                order.status === "COMPLETED"
-                  ? "bg-green-100 text-green-800"
-                  : "bg-yellow-100 text-yellow-800"
-              }`}
-            >
-              {order.status}
-            </span>
+            {order.status === "COMPLETED" && (
+              <button
+                onClick={() => setSelectedLabResult(order)}
+                className="mt-4 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                View Result
+              </button>
+            )}
           </div>
-
-          {order.status === "ORDERED" && (
-            <button
-              onClick={() => setSelectedOrder(order)}
-              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              Add Result
-            </button>
-          )}
-
-          {order.status === "COMPLETED" && (
-            <button
-              onClick={() => setSelectedLabResult(order)}
-              className="mt-4 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              View Result
-            </button>
-          )}
-        </div>
-      ))}
+        ))}
+      </div>
 
       {selectedOrder && (
         <AddResultModal
