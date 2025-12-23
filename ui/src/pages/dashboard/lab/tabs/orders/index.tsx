@@ -14,6 +14,7 @@ import { CiSearch } from "react-icons/ci";
 import { RxPerson } from "react-icons/rx";
 import { PiHospitalThin } from "react-icons/pi";
 import { FaRegFileLines } from "react-icons/fa6";
+import { IoCreateOutline } from "react-icons/io5";
 
 interface Patient {
   id: string;
@@ -97,7 +98,27 @@ const Order = () => {
   const orders: Order[] = ordersResp?.data || [];
 
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
-  console.log("orders: ", orders);
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.type !== "application/pdf") {
+      alert("Only pdfs are allowed");
+      e.target.value = "";
+      return;
+    }
+
+    const allowedFileSize = 1024 * 1025 * 5;
+    if (file.size > allowedFileSize) {
+      alert("File size must be less than 5 mb");
+      e.target.value = "";
+      return;
+    }
+
+    alert("File yet to be uploaded in the server");
+    e.target.value = "";
+    return;
+  };
   return (
     <div className="bg-card text-card-foreground flex flex-col rounded-xl py-2 border ">
       <div className="px-4 py-2">Order Tracking</div>
@@ -183,11 +204,30 @@ const Order = () => {
               </div>
             </div>
             <hr className="my-3" />
-            <div className="border boreder-gray-200 flex items-center w-fit px-2 py-1 text-sm rounded-lg gap-1 font-semibold cursor-pointer hover:bg-accent duration-200 ">
-              <span>
-                <FaRegFileLines />
-              </span>
-              <p> View Requisition</p>
+
+            <div className="flex items-center gap-3">
+              <div className="border boreder-gray-200 flex items-center w-fit px-2 py-1 text-sm rounded-lg gap-1 font-semibold cursor-pointer hover:bg-accent duration-200 ">
+                <span>
+                  <FaRegFileLines />
+                </span>
+                <p> View Requisition</p>
+              </div>
+
+              <div className="border boreder-gray-200 flex items-center w-fit px-2 py-1 text-sm rounded-lg gap-1 font-semibold cursor-pointer hover:bg-accent duration-200 ">
+                <span>
+                  <IoCreateOutline />
+                </span>
+                <p> Create Order</p>
+              </div>
+
+              <label className="bg-white text-sm inline-flex items-center gap-2 cursor-pointer rounded-lg border border-gray-200 px-2 py-1 hover:bg-accent duration-200 transition-colors">
+                <p className="bg-white">Upload PDF</p>
+                <input
+                  type="file"
+                  className="hidden"
+                  onChange={handleFileChange}
+                />
+              </label>
             </div>
 
             <hr className="my-3" />
