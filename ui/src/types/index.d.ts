@@ -1,77 +1,92 @@
-export interface Patient {
+export interface Insurance {
+  id: string;
+  patientId: string;
+  provider: string;
+  plan: string;
+  memberId: string;
+  type: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Diagnosis {
+  id: string;
+  patientId: string;
+  name: string;
+  icd10: string;
+  onsetDate: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface LabRule {
+  id: string;
+  testName: string;
+  cptCode: string;
+  labId: string;
+  lab: {
+    id: string;
+    name: string;
+  };
+  code: string;
+  message: string;
+  priority: "LOW" | "MEDIUM" | "HIGH";
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface LabRecommendation {
+  id: string;
+  testName: string;
+  cptCode: string;
+  priority: "LOW" | "MEDIUM" | "HIGH";
+  patientId: string;
+  reason: string;
+  status: "PENDING" | "COMPLETED" | "CANCELLED";
+  labRuleId: string;
+  diagnosisId: string;
+  createdAt: string;
+  updatedAt: string;
+  labRule: LabRule;
+}
+
+export interface PatientDetailsType {
   id: string;
   firstName: string;
   lastName: string;
   mrn: string;
   dateOfBirth: string;
-  insurance: {
-    provider: string;
-    plan: string;
-    memberId: string;
-    type: string;
-  };
-  diagnoses: Diagnosis[];
-  gender: string;
+  gender: "MALE" | "FEMALE" | "OTHER";
   phone: string;
   email: string;
-  labRecommendations: LabRecommendations[];
-  labOrder: LabOrder[];
   lastVisit: string;
-  isCandidate: boolean;
-  completedCount: number;
   scheduledCount: number;
   recomendationCount: number;
-}
-
-export interface Diagnosis {
-  icd10: string;
-  name: string;
-  onsetDate: string;
-}
-
-export interface LabRecommendations {
-  id: string;
-  priority: "HIGH" | "MEDIUM" | "LOW";
-  reason: string;
-  payerCoverage: {
-    covered: boolean;
-    notes: string;
-    requiresAuth: boolean;
-  };
-  code: string;
-  title: string;
-  icdCodes: string[];
-  status: string;
+  completedCount: number;
+  facilityId: string;
+  createdAt: string;
+  updatedAt: string;
+  insurance: Insurance;
+  diagnosis: Diagnosis[];
+  labRecommendations: LabRecommendation[];
+  labOrder: LabOrder[];
 }
 
 export interface LabOrder {
   id: string;
-  completedAt: string | null;
-  createdAt: string | null;
-  createdById: string | null;
-  diagnosisId: string;
-  diagnosis: { name: string };
+  testName: string;
+  cptCode: string;
   facilityId: string;
-  testResult: {
-    isNormal: boolean;
-    createdAt: string;
-    result: {
-      unit: string;
-      value: string;
-      status: string;
-      component: string;
-      referenceRange: string;
-    }[];
-    summary: string;
-  };
-  id: string;
   labId: string;
-  orderedAt: string;
   patientId: string;
-  recommendationId: string | null;
-  results: string | null;
-  status: string;
+  status: "ORDERED" | "COLLECTED" | "COMPLETED" | "CANCELLED";
+  results: any | null;
+  orderedAt: string;
+  completedAt: string | null;
+  createdById: string;
+  createdAt: string;
   updatedAt: string;
+  collectedAt: string;
 }
 
 export interface CompletedTest {
@@ -96,6 +111,7 @@ export interface ScheduledTest {
 
 export interface LabResult {
   id: string;
+  testName: string;
   diagnosis: { name: string };
   updatedAt: string;
   reportUrl?: string;
@@ -193,3 +209,20 @@ export interface ApiReponse {
   data: any;
   detail: any;
 }
+
+export type completeOrderProps = {
+  orderId: string;
+  isNormal: boolean;
+  summary: string;
+  result: {
+    component: string;
+    value: number;
+    unit: string;
+    referenceRange: {
+      low: number;
+      high: number;
+    };
+    status: "NORMAL" | "HIGH" | "LOW";
+  }[];
+  recomendations: { action: string }[];
+};

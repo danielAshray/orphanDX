@@ -4,6 +4,7 @@ import type { ApiReponse } from "@/types";
 const ProviderRoutes = Object.freeze({
   patient: (id: number | string) => `/patient/${id}`,
   patients: "/patient",
+  patientDetails: "/patient/details",
 });
 
 const fetchPatientByIdApi = async (
@@ -20,4 +21,10 @@ const fetchPatientsApi = async (): Promise<ApiReponse> => {
   return response.data;
 };
 
-export { fetchPatientByIdApi, fetchPatientsApi };
+const fetchPatientDetailsApi = async (id: string): Promise<ApiReponse> => {
+  const response = await api.get(`${ProviderRoutes.patientDetails}/${id}`);
+
+  return response.data;
+};
+
+export { fetchPatientByIdApi, fetchPatientsApi, fetchPatientDetailsApi };

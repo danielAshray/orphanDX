@@ -1,0 +1,7 @@
+-- AlterTable
+ALTER TABLE "LabRecommendation" ALTER COLUMN "cptCode" DROP DEFAULT,
+ALTER COLUMN "testName" DROP DEFAULT;
+
+-- AlterTable
+ALTER TABLE "LabRule" ALTER COLUMN "cptCode" DROP DEFAULT,
+ALTER COLUMN "testName" DROP DEFAULT;

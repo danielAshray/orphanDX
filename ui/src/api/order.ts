@@ -1,22 +1,53 @@
 import { Notification } from "@/components";
 import api from "@/config/axios.config";
 import { getErrorMessage } from "@/lib/utils";
-import type { ApiReponse } from "@/types";
+import type { ApiReponse, completeOrderProps } from "@/types";
 import { useMutation } from "@tanstack/react-query";
 
 const createOrderApi = async ({
-  recomendationId,
+  recomendationIds,
 }: {
-  recomendationId: string;
+  recomendationIds: string[];
 }): Promise<ApiReponse> => {
-  const { data } = await api.post<ApiReponse>(`/order/${recomendationId}`);
+  const { data } = await api.post<ApiReponse>(`/order/`, {
+    recomendationIds,
+    testName: "my test",
+    cptCode: "TM809",
+  });
 
   return data;
 };
 
+const completeOrderApi = async (
+  payload: completeOrderProps
+): Promise<ApiReponse> => {
+  const { data } = await api.put<ApiReponse>(`/order/complete`, payload);
+
+  return data;
+};
+
+const useCompleteOrder = () => {
+  return useMutation({
+    mutationFn: (props: completeOrderProps) => completeOrderApi(props),
+    onSuccess: () => {
+      Notification({
+        toastMessage: "Operation successfull",
+        toastStatus: "success",
+      });
+    },
+
+    onError: (error: any) =>
+      Notification({
+        toastMessage: getErrorMessage(error),
+        toastStatus: "error",
+      }),
+  });
+};
+
 const useCreateOrder = () => {
   return useMutation({
-    mutationFn: (props: { recomendationId: string }) => createOrderApi(props),
+    mutationFn: (props: { recomendationIds: string[] }) =>
+      createOrderApi(props),
     onSuccess: () => {
       Notification({
         toastMessage: "Operation successfull",
@@ -47,4 +78,10 @@ const fetchOrderTrackingApi = async (): Promise<ApiReponse> => {
   return response.data;
 };
 
-export { fetchDashboardApi, fetchOrderTrackingApi, useCreateOrder };
+export {
+  fetchDashboardApi,
+  fetchOrderTrackingApi,
+  useCreateOrder,
+  completeOrderApi,
+  useCompleteOrder,
+};

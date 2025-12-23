@@ -17,7 +17,6 @@ interface LabResultsViewerProps {
 }
 
 const LabResultsViewer = ({ result }: LabResultsViewerProps) => {
-  console.log({ view: result });
   const handlePrint = () => {
     window.print();
     toast.success("Print dialog opened");
@@ -33,7 +32,6 @@ const LabResultsViewer = ({ result }: LabResultsViewerProps) => {
 
   return (
     <div className="space-y-4">
-      {/* Action Buttons */}
       <div className="flex gap-2 print:hidden">
         <Button onClick={handlePrint} className="gap-2">
           <Printer className="w-4 h-4" />
@@ -45,7 +43,6 @@ const LabResultsViewer = ({ result }: LabResultsViewerProps) => {
         </Button>
       </div>
 
-      {/* Results Report */}
       <Card className="p-8 bg-white">
         {/* Header */}
         <div className="text-center mb-6">
@@ -61,13 +58,12 @@ const LabResultsViewer = ({ result }: LabResultsViewerProps) => {
           <Separator className="my-4" />
         </div>
 
-        {/* Test Information */}
         <div className="mb-6">
           <div className="bg-gray-50 p-4 rounded-lg">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Test Name</p>
-                <p className="text-gray-900">{result?.diagnosis?.name}</p>
+                <p className="text-gray-900">{result?.testName}</p>
               </div>
               <div className="text-right">
                 <p className="text-sm text-gray-600">Order ID</p>
@@ -83,7 +79,6 @@ const LabResultsViewer = ({ result }: LabResultsViewerProps) => {
           </div>
         </div>
 
-        {/* Alert if abnormal */}
         {hasAbnormalResults && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
             <div className="flex items-start gap-3">
@@ -99,7 +94,6 @@ const LabResultsViewer = ({ result }: LabResultsViewerProps) => {
           </div>
         )}
 
-        {/* Results Table */}
         <div className="mb-6">
           <h3 className="text-gray-900 mb-3 pb-2 border-b">Test Results</h3>
           <div className="overflow-x-auto">
@@ -148,22 +142,24 @@ const LabResultsViewer = ({ result }: LabResultsViewerProps) => {
                     <td className="py-3 px-4 text-center">
                       {item.status && (
                         <div className="flex items-center justify-center gap-1">
-                          {item.status === "high" || item.status === "HIGH" && (
-                            <>
-                              <TrendingUp className="w-4 h-4 text-red-600" />
-                              <Badge className="bg-red-100 text-red-700 border-red-200">
-                                High
-                              </Badge>
-                            </>
-                          )}
-                          {item.status === "low" ||  item.status === "LOW" && (
-                            <>
-                              <TrendingDown className="w-4 h-4 text-blue-600" />
-                              <Badge className="bg-blue-100 text-blue-700 border-blue-200">
-                                Low
-                              </Badge>
-                            </>
-                          )}
+                          {item.status === "high" ||
+                            (item.status === "HIGH" && (
+                              <>
+                                <TrendingUp className="w-4 h-4 text-red-600" />
+                                <Badge className="bg-red-100 text-red-700 border-red-200">
+                                  High
+                                </Badge>
+                              </>
+                            ))}
+                          {item.status === "low" ||
+                            (item.status === "LOW" && (
+                              <>
+                                <TrendingDown className="w-4 h-4 text-blue-600" />
+                                <Badge className="bg-blue-100 text-blue-700 border-blue-200">
+                                  Low
+                                </Badge>
+                              </>
+                            ))}
                           {item.status === "critical" && (
                             <>
                               <AlertTriangle className="w-4 h-4 text-red-600" />
@@ -195,7 +191,6 @@ const LabResultsViewer = ({ result }: LabResultsViewerProps) => {
 
         <Separator className="my-6" />
 
-        {/* Clinical Interpretation */}
         <div className="mb-6">
           <h3 className="text-gray-900 mb-3 pb-2 border-b">
             Clinical Interpretation
@@ -205,7 +200,6 @@ const LabResultsViewer = ({ result }: LabResultsViewerProps) => {
           </div>
         </div>
 
-        {/* Recommended Follow-up */}
         {result.recommendedFollowUp &&
           result.recommendedFollowUp.length > 0 && (
             <div className="mb-6">
@@ -228,7 +222,6 @@ const LabResultsViewer = ({ result }: LabResultsViewerProps) => {
             </div>
           )}
 
-        {/* Footer */}
         <div className="mt-8 pt-6 border-t border-gray-300">
           <p className="text-xs text-gray-600">
             These results have been reviewed and released by OrphanDX Laboratory

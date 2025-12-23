@@ -1,7 +1,7 @@
 import { fetchPatientsApi } from "@/api/provider";
 import { Button } from "@/components/button";
 import { Card } from "@/components/card";
-import type { Patient } from "@/types";
+import type { PatientDetailsType } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 import { Calendar, CheckCircle2, Users } from "lucide-react";
 import { useState } from "react";
@@ -18,7 +18,8 @@ const ProviderList: React.FC<ProviderListProps> = ({
   scheduledTestCount,
   completedTestCount,
 }) => {
-  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const [selectedPatient, setSelectedPatient] =
+    useState<PatientDetailsType | null>(null);
   const [patientFilter, setPatientFilter] = useState<PatientFilter>("all");
 
   const { data: patients } = useQuery({
@@ -62,7 +63,6 @@ const ProviderList: React.FC<ProviderListProps> = ({
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Patient List */}
         <div className="lg:col-span-2">
           <PatientList
             patients={allPatients}

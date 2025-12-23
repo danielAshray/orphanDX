@@ -10,14 +10,18 @@ import {
   authorizeByRoleAndOrg,
 } from "../middlewares/auth.middleware";
 import { validateBody } from "../middlewares/requestValidator.middleware";
-import { completeTestResultSchema } from "../validators/bodySchema";
+import {
+  completeTestResultSchema,
+  createOrderSchema,
+} from "../validators/bodySchema";
 
 const orderRoute: Router = Router();
 
 orderRoute.post(
-  "/:recomendationId",
+  "",
   authenticate,
   authorizeByRoleAndOrg(["USER", "ADMIN"], "FACILITY"),
+  validateBody(createOrderSchema),
   createOrder
 );
 

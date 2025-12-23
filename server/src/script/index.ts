@@ -31,7 +31,7 @@ async function main() {
 }
 
 async function seedPatient() {
-  console.log("Seeding 100 patients with insurance and diagnoses...");
+  console.log("Seeding 100 patients with insurance and diagnosis...");
   const organization = await prisma.organization.findFirst({
     where: { role: "FACILITY" },
   });
@@ -59,8 +59,8 @@ async function seedPatient() {
       memberId: "0111",
     };
 
-    const numDiagnoses = faker.number.int({ min: 1, max: 3 });
-    const diagnosesData = Array.from({ length: numDiagnoses }).map(() => ({
+    const numDiagnosis = faker.number.int({ min: 1, max: 3 });
+    const diagnosisData = Array.from({ length: numDiagnosis }).map(() => ({
       name: faker.helpers.arrayElement([
         "Coronary Artery Disease",
         "Hyperlipidemia",
@@ -94,9 +94,9 @@ async function seedPatient() {
             insurance: {
               create: insuranceData,
             },
-            diagnoses: {
+            diagnosis: {
               createMany: {
-                data: diagnosesData.map((d) => ({
+                data: diagnosisData.map((d) => ({
                   name: d.name,
                   icd10: d.icd10,
                   onsetDate: d.onsetDate,
@@ -123,59 +123,303 @@ async function fillLabRule() {
       {
         icd10: "E11.9",
         message: "Type 2 diabetes mellitus without complications",
+        cptCode: "TM210",
+        testName: "Spravato",
       },
-      { icd10: "E11.65", message: "Type 2 diabetes with hyperglycemia" },
-      { icd10: "R73.01", message: "Impaired fasting glucose" },
-      { icd10: "R73.02", message: "Impaired glucose tolerance (oral)" },
-      { icd10: "R73.09", message: "Other abnormal glucose" },
-      { icd10: "E66.01", message: "Morbid obesity (BMI ≥40)" },
-      { icd10: "E66.9", message: "Obesity, unspecified" },
-      { icd10: "Z68.30", message: "BMI 30-30.9" },
-      { icd10: "Z68.31", message: "BMI 31-31.9" },
-      { icd10: "Z68.32", message: "BMI 32-32.9" },
-      { icd10: "Z68.33", message: "BMI 33-33.9" },
-      { icd10: "Z68.34", message: "BMI 34-34.9" },
-      { icd10: "Z68.35", message: "BMI 35-35.9" },
-      { icd10: "Z68.36", message: "BMI 36-36.9" },
-      { icd10: "Z68.37", message: "BMI 37-37.9" },
-      { icd10: "Z68.38", message: "BMI 38-38.9" },
-      { icd10: "Z68.39", message: "BMI 39-39.9" },
-      { icd10: "E78.0", message: "Pure hypercholesterolemia" },
-      { icd10: "E78.1", message: "Pure hyperglyceridemia" },
-      { icd10: "E78.2", message: "Mixed hyperlipidemia" },
-      { icd10: "E78.41", message: "Elevated Lp(a)" },
-      { icd10: "E78.5", message: "Hypertriglyceridemia" },
-      { icd10: "E78.9", message: "Hyperlipidemia, unspecified" },
-      { icd10: "E28.2", message: "Polycystic ovarian syndrome" },
-      { icd10: "E03.9", message: "Hypothyroidism, unspecified" },
-      { icd10: "E03.8", message: "Other hypothyroidism" },
-      { icd10: "E89.0", message: "Post-procedural hypothyroidism" },
-      { icd10: "G47.33", message: "Obstructive sleep apnea" },
-      { icd10: "L40.9", message: "Psoriasis, unspecified" },
-      { icd10: "L40.1", message: "Generalized pustular psoriasis" },
-      { icd10: "L40.0", message: "Psoriasis vulgaris" },
-      { icd10: "L40.2", message: "Psoriasis guttate" },
-      { icd10: "L40.3", message: "Pustular psoriasis" },
-      { icd10: "L40.4", message: "Psoriatic arthropathy" },
-      { icd10: "L40.5", message: "Other psoriasis" },
-      { icd10: "L40.6", message: "Arthropathic psoriasis" },
-      { icd10: "L40.8", message: "Other psoriasis variants" },
-      { icd10: "E23.0", message: "Hypopituitarism" },
-      { icd10: "E29.1", message: "Testicular hypogonadism" },
-      { icd10: "E89.5", message: "Post-procedural hypogonadism" },
-      { icd10: "Z90.411", message: "Acquired absence of pancreas, partial" },
-      { icd10: "Z90.412", message: "Acquired absence of pancreas, total" },
-      { icd10: "K91.89", message: "Other post-procedural GI disorders" },
-      { icd10: "E86.1", message: "Exocrine pancreatic insufficiency" },
-      { icd10: "R74.01", message: "Elevation of liver transaminase levels" },
-      { icd10: "K76.0", message: "Fatty liver, not elsewhere classified" },
-      { icd10: "K74.01", message: "Fibrosis of liver, early (F1)" },
-      { icd10: "K75.81", message: "Non-alcoholic steatohepatitis (NASH)" },
+      {
+        icd10: "E11.65",
+        message: "Type 2 diabetes with hyperglycemia",
+        cptCode: "TM210",
+        testName: "Spravato",
+      },
+      {
+        icd10: "R73.01",
+        message: "Impaired fasting glucose",
+        cptCode: "TM210",
+        testName: "Spravato",
+      },
+      {
+        icd10: "R73.02",
+        message: "Impaired glucose tolerance (oral)",
+        cptCode: "TM210",
+        testName: "Spravato",
+      },
+      {
+        icd10: "R73.09",
+        message: "Other abnormal glucose",
+        cptCode: "TM210",
+        testName: "Spravato",
+      },
+      {
+        icd10: "E66.01",
+        message: "Morbid obesity (BMI ≥40)",
+        cptCode: "TM210",
+        testName: "Spravato",
+      },
+      {
+        icd10: "E66.9",
+        message: "Obesity, unspecified",
+        cptCode: "TM210",
+        testName: "Spravato",
+      },
+      {
+        icd10: "Z68.30",
+        message: "BMI 30-30.9",
+        cptCode: "TM210",
+        testName: "Spravato",
+      },
+      {
+        icd10: "Z68.31",
+        message: "BMI 31-31.9",
+        cptCode: "TM210",
+        testName: "Spravato",
+      },
+      {
+        icd10: "Z68.32",
+        message: "BMI 32-32.9",
+        cptCode: "TM210",
+        testName: "Spravato",
+      },
+      {
+        icd10: "Z68.33",
+        message: "BMI 33-33.9",
+        cptCode: "TM210",
+        testName: "Spravato",
+      },
+      {
+        icd10: "Z68.34",
+        message: "BMI 34-34.9",
+        cptCode: "TM210",
+        testName: "Spravato",
+      },
+      {
+        icd10: "Z68.35",
+        message: "BMI 35-35.9",
+        cptCode: "TM210",
+        testName: "Spravato",
+      },
+      {
+        icd10: "Z68.36",
+        message: "BMI 36-36.9",
+        cptCode: "TM210",
+        testName: "Spravato",
+      },
+      {
+        icd10: "Z68.37",
+        message: "BMI 37-37.9",
+        cptCode: "TM210",
+        testName: "Spravato",
+      },
+      {
+        icd10: "Z68.38",
+        message: "BMI 38-38.9",
+        cptCode: "TM210",
+        testName: "Spravato",
+      },
+      {
+        icd10: "Z68.39",
+        message: "BMI 39-39.9",
+        cptCode: "TM210",
+        testName: "Spravato",
+      },
+      {
+        icd10: "E78.0",
+        message: "Pure hypercholesterolemia",
+        cptCode: "TM210",
+        testName: "Spravato",
+      },
+      {
+        icd10: "E78.1",
+        message: "Pure hyperglyceridemia",
+        cptCode: "TM210",
+        testName: "Spravato",
+      },
+      {
+        icd10: "E78.2",
+        message: "Mixed hyperlipidemia",
+        cptCode: "TM210",
+        testName: "Spravato",
+      },
+      {
+        icd10: "E78.41",
+        message: "Elevated Lp(a)",
+        cptCode: "TM210",
+        testName: "Spravato",
+      },
+      {
+        icd10: "E78.5",
+        message: "Hypertriglyceridemia",
+        cptCode: "TM210",
+        testName: "Spravato",
+      },
+      {
+        icd10: "E78.9",
+        message: "Hyperlipidemia, unspecified",
+        cptCode: "TM210",
+        testName: "Spravato",
+      },
+      {
+        icd10: "E28.2",
+        message: "Polycystic ovarian syndrome",
+        cptCode: "TM210",
+        testName: "Spravato",
+      },
+      {
+        icd10: "E03.9",
+        message: "Hypothyroidism, unspecified",
+        cptCode: "TM210",
+        testName: "Spravato",
+      },
+      {
+        icd10: "E03.8",
+        message: "Other hypothyroidism",
+        cptCode: "TM210",
+        testName: "Spravato",
+      },
+      {
+        icd10: "E89.0",
+        message: "Post-procedural hypothyroidism",
+        cptCode: "TM210",
+        testName: "Spravato",
+      },
+      {
+        icd10: "G47.33",
+        message: "Obstructive sleep apnea",
+        cptCode: "TM210",
+        testName: "Spravato",
+      },
+      {
+        icd10: "L40.9",
+        message: "Psoriasis, unspecified",
+        cptCode: "TM210",
+        testName: "Spravato",
+      },
+      {
+        icd10: "L40.1",
+        message: "Generalized pustular psoriasis",
+        cptCode: "TM210",
+        testName: "Spravato",
+      },
+      {
+        icd10: "L40.0",
+        message: "Psoriasis vulgaris",
+        cptCode: "TM210",
+        testName: "Spravato",
+      },
+      {
+        icd10: "L40.2",
+        message: "Psoriasis guttate",
+        cptCode: "TM210",
+        testName: "Spravato",
+      },
+      {
+        icd10: "L40.3",
+        message: "Pustular psoriasis",
+        cptCode: "TM210",
+        testName: "Spravato",
+      },
+      {
+        icd10: "L40.4",
+        message: "Psoriatic arthropathy",
+        cptCode: "TM210",
+        testName: "Spravato",
+      },
+      {
+        icd10: "L40.5",
+        message: "Other psoriasis",
+        cptCode: "TM210",
+        testName: "Spravato",
+      },
+      {
+        icd10: "L40.6",
+        message: "Arthropathic psoriasis",
+        cptCode: "TM210",
+        testName: "Spravato",
+      },
+      {
+        icd10: "L40.8",
+        message: "Other psoriasis variants",
+        cptCode: "TM210",
+        testName: "Spravato",
+      },
+      {
+        icd10: "E23.0",
+        message: "Hypopituitarism",
+        cptCode: "TM210",
+        testName: "Spravato",
+      },
+      {
+        icd10: "E29.1",
+        message: "Testicular hypogonadism",
+        cptCode: "TM210",
+        testName: "Spravato",
+      },
+      {
+        icd10: "E89.5",
+        message: "Post-procedural hypogonadism",
+        cptCode: "TM210",
+        testName: "Spravato",
+      },
+      {
+        icd10: "Z90.411",
+        message: "Acquired absence of pancreas, partial",
+        cptCode: "TM210",
+        testName: "Spravato",
+      },
+      {
+        icd10: "Z90.412",
+        message: "Acquired absence of pancreas, total",
+        cptCode: "TM210",
+        testName: "Spravato",
+      },
+      {
+        icd10: "K91.89",
+        message: "Other post-procedural GI disorders",
+        cptCode: "TM210",
+        testName: "Spravato",
+      },
+      {
+        icd10: "E86.1",
+        message: "Exocrine pancreatic insufficiency",
+        cptCode: "TM210",
+        testName: "Spravato",
+      },
+      {
+        icd10: "R74.01",
+        message: "Elevation of liver transaminase levels",
+        cptCode: "TM210",
+        testName: "Spravato",
+      },
+      {
+        icd10: "K76.0",
+        message: "Fatty liver, not elsewhere classified",
+        cptCode: "TM210",
+        testName: "Spravato",
+      },
+      {
+        icd10: "K74.01",
+        message: "Fibrosis of liver, early (F1)",
+        cptCode: "TM210",
+        testName: "Spravato",
+      },
+      {
+        icd10: "K75.81",
+        message: "Non-alcoholic steatohepatitis (NASH)",
+        cptCode: "TM210",
+        testName: "Spravato",
+      },
       {
         icd10: "R74.8",
         message: "Abnormal elevation of other serum enzyme levels",
+        cptCode: "TM210",
+        testName: "Spravato",
       },
-      { icd10: "R94.5", message: "Abnormal results of liver function studies" },
+      {
+        icd10: "R94.5",
+        message: "Abnormal results of liver function studies",
+        cptCode: "TM210",
+        testName: "Spravato",
+      },
     ];
 
     const lab = await prisma.organization.findFirst({ where: { role: "LAB" } });
@@ -186,6 +430,8 @@ async function fillLabRule() {
         code: item.icd10,
         message: item.message,
         labId: lab.id,
+        testName: item.testName,
+        cptCode: item.cptCode,
       })),
       skipDuplicates: true,
     });
@@ -198,9 +444,9 @@ async function fillLabRule() {
 
 async function createRecomendation() {
   try {
-    const diagnoses = await prisma.diagnosis.findMany();
+    const diagnosis = await prisma.diagnosis.findMany();
 
-    for (const diagnisis of diagnoses) {
+    for (const diagnisis of diagnosis) {
       const ruleFounds = await prisma.labRule.findMany({
         where: { code: diagnisis.icd10 },
       });
@@ -209,12 +455,12 @@ async function createRecomendation() {
         await prisma.labRecommendation.create({
           data: {
             labRuleId: ruleFound.id,
-            title: "Test Recomendation",
+            testName: ruleFound.testName,
             reason: ruleFound.message,
             patientId: diagnisis.patientId,
             diagnosisId: diagnisis.id,
             priority: ruleFound.priority,
-            code: ruleFound.code,
+            cptCode: ruleFound.cptCode,
           },
         });
         await prisma.patient.update({
@@ -228,44 +474,6 @@ async function createRecomendation() {
     }
   } catch (error) {
     console.log(error);
-  }
-}
-
-async function createLabOrderForRecommendation() {
-  try {
-    const user = await prisma.user.findFirst({
-      where: { organization: { role: "FACILITY" } },
-      select: { id: true, organization: { select: { id: true } } },
-    });
-
-    if (!user) return;
-
-    const recommendation = await prisma.labRecommendation.findFirst({
-      where: { status: "PENDING" },
-      include: { patient: true, diagnosis: true, labRule: true },
-    });
-
-    if (!recommendation) {
-      throw new Error("LabRecommendation not found");
-    }
-
-    const labOrder = await prisma.labOrder.create({
-      data: {
-        facilityId: recommendation.patient.facilityId,
-        labId: recommendation.labRule.labId,
-        patientId: recommendation.patientId,
-        diagnosisId: recommendation.diagnosisId,
-        recommendationId: recommendation.id,
-        status: "PENDING",
-        createdById: user.id,
-      },
-    });
-
-    console.log("LabOrder created:", labOrder.id);
-    return labOrder;
-  } catch (error) {
-    console.error("Error creating LabOrder:", error);
-    throw error;
   }
 }
 
@@ -372,8 +580,7 @@ type tagType =
   | "labUser"
   | "patient"
   | "labRule"
-  | "recommendation"
-  | "order";
+  | "recommendation";
 const callFunc: Record<tagType, Function> = {
   user: main,
   org: createOrganizations,
@@ -381,7 +588,6 @@ const callFunc: Record<tagType, Function> = {
   patient: seedPatient,
   labRule: fillLabRule,
   recommendation: createRecomendation,
-  order: createLabOrderForRecommendation,
 };
 
-callFunc["order"]();
+callFunc["labUser"]();

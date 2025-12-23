@@ -265,17 +265,17 @@ function PatientCard({ patient, isSelected, onClick }: PatientCardProps) {
 
       <div className="flex items-center gap-2 flex-wrap">
         <span className="text-xs text-gray-600">
-          {patient.age}yo • {patient.demographics.gender}
+          {patient.age}yo • {patient.gender}
         </span>
         <Badge variant="outline" className="text-xs">
           {patient.insurance.type}
         </Badge>
       </div>
 
-      {patient.diagnoses.length > 0 && (
+      {patient.diagnosis.length > 0 && (
         <div className="mt-2">
           <p className="text-xs text-gray-500 line-clamp-1">
-            {patient.diagnoses.map((d) => d.icd10).join(", ")}
+            {patient.diagnosis.map((d) => d.icd10).join(", ")}
           </p>
         </div>
       )}

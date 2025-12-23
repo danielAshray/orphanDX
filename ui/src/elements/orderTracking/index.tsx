@@ -75,7 +75,7 @@ const OrderTracking = ({ orders, viewMode }: OrderTrackingProps) => {
           memberId: "INS-12345",
           type: "Commercial" as const,
         },
-        diagnoses: [],
+        diagnosis: [],
       },
       test: {
         name: order.testName,
@@ -260,7 +260,6 @@ const OrderTracking = ({ orders, viewMode }: OrderTrackingProps) => {
         </ScrollArea>
       </Card>
 
-      {/* Lab Requisition Dialog */}
       <Dialog open={showRequisition} onOpenChange={setShowRequisition}>
         <DialogContent className="max-w-6xl max-h-[95vh]">
           <DialogHeader>

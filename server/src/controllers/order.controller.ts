@@ -2,7 +2,6 @@ import { NextFunction, Request, Response } from "express";
 import { sendResponse } from "../utils/responseService";
 import { prisma } from "../lib/prisma";
 import { ApiError } from "../utils/apiService";
-import { mapStatus } from "../utils";
 
 export const createOrder = async (
   req: Request,
@@ -12,7 +11,7 @@ export const createOrder = async (
   try {
     const organizationId = req.user?.organization?.id || "";
     const userId = req.user?.id || "";
-    const { recomendationId } = req.params;
+    const { recomendationIds, cptCode, testName } = req.body;
 
     const user = await prisma.user.findUnique({
       where: {
@@ -23,8 +22,8 @@ export const createOrder = async (
 
     if (!user) return next({ code: 400, message: "user not found" });
 
-    const recomendation = await prisma.labRecommendation.findUnique({
-      where: { id: recomendationId, status: "PENDING" },
+    const recommendations = await prisma.labRecommendation.findMany({
+      where: { id: { in: recomendationIds }, status: "PENDING" },
       include: {
         diagnosis: true,
         labRule: true,
@@ -32,16 +31,48 @@ export const createOrder = async (
       },
     });
 
-    if (!recomendation)
+    if (!recommendations.length)
       return next({ code: 404, message: "Recomendation record not found" });
 
+    const patientId = recommendations[0].patientId;
+    const labId = recommendations[0].labRule.labId;
+    const samePatient = recommendations.every((r) => r.patientId === patientId);
+
+    const sameLab = recommendations.every((r) => r.labRule.labId === labId);
+
+    if (!samePatient) {
+      return next({
+        code: 400,
+        message: "Recommendations must belong to the same patient",
+      });
+    }
+
+    if (!sameLab) {
+      return next({
+        code: 400,
+        message: "Recommendations must belong to the same lab",
+      });
+    }
+
     const { newOrder } = await prisma.$transaction(async (tx) => {
+      const diagnosisIds = Array.from(
+        new Set(recommendations.map((r) => r.diagnosisId))
+      );
+
       const newOrder = await tx.labOrder.create({
         data: {
+          testName,
+          cptCode,
           facilityId: organizationId,
-          labId: recomendation.labRule.labId,
-          patientId: recomendation.patientId,
-          diagnosisId: recomendation.diagnosisId,
+          labId,
+          patientId,
+          diagnosis: {
+            createMany: {
+              data: diagnosisIds.map((diagnosisId) => ({
+                diagnosisId,
+              })),
+            },
+          },
           createdById: userId,
           status: "ORDERED",
         },
@@ -58,9 +89,9 @@ export const createOrder = async (
         },
       });
 
-      await tx.labRecommendation.update({
+      await tx.labRecommendation.updateMany({
         where: {
-          id: recomendation.id,
+          id: { in: recomendationIds },
         },
         data: {
           status: "ORDERED",
@@ -68,11 +99,11 @@ export const createOrder = async (
       });
       await tx.patient.update({
         where: {
-          id: recomendation.patientId,
+          id: patientId,
         },
         data: {
-          scheduledCount: { increment: 1 },
-          recomendationCount: { decrement: 1 },
+          scheduledCount: { increment: recommendations.length },
+          recomendationCount: { decrement: recommendations.length },
         },
       });
 
@@ -83,9 +114,9 @@ export const createOrder = async (
       orderId: newOrder.id,
       patient: newOrder.patient,
       test: {
-        name: recomendation.diagnosisId,
-        code: recomendation.diagnosis.icd10,
-        id: recomendation.diagnosis.id,
+        name: testName,
+        code: cptCode,
+        id: newOrder.id,
       },
       provider: {
         name: user.name,
@@ -126,7 +157,7 @@ export const completeOrder = async (
     const { summary, recomendations, result, orderId, isNormal } = req.body;
 
     const order = await prisma.labOrder.findUnique({
-      where: { id: orderId, labId: organizationId, status: "COLLECTED" },
+      where: { id: orderId, labId: organizationId },
     });
 
     if (!order) return next({ code: 404, message: "order record not found" });
@@ -156,6 +187,7 @@ export const completeOrder = async (
         data: {
           scheduledCount: { decrement: -1 },
           completedCount: { increment: 1 },
+          resultCount: { increment: 1 },
         },
       });
 
@@ -169,6 +201,7 @@ export const completeOrder = async (
       data: newOrder,
     });
   } catch (error: any) {
+    console.log(error);
     next(ApiError.internal("Failed to create order", error));
   }
 };
@@ -218,6 +251,7 @@ const orderTracking = async (
             labId: organizationId,
           },
       include: {
+        testResult: true,
         patient: true,
         diagnosis: true,
         facility: true,
@@ -227,48 +261,11 @@ const orderTracking = async (
       orderBy: { createdAt: "desc" },
     });
 
-    const orders = labOrders.map((order) => {
-      let labResult;
-      if (order.results) {
-        try {
-          const parsedResults = JSON.parse(order.results);
-          labResult = {
-            id: order.id,
-            orderId: order.id,
-            testName: order.diagnosis.name,
-            completedDate: order.completedAt?.toISOString() || "",
-            reportUrl: parsedResults.reportUrl,
-            results: parsedResults.results || [],
-            interpretation: parsedResults.interpretation || "",
-            recommendedFollowUp: parsedResults.recommendedFollowUp || [],
-          };
-        } catch {
-          labResult = undefined;
-        }
-      }
-
-      return {
-        id: order.id,
-        patientId: order.patientId,
-        patientName: `${order.patient.firstName} ${order.patient.lastName}`,
-        providerId: order.createdById,
-        providerName: order.createdBy.name,
-        clinicName: order.facility.name,
-        testName: order.diagnosis.name,
-        testCode: order.diagnosis.icd10,
-        status: mapStatus(order.status),
-        createdAt: order.createdAt.toISOString(),
-        updatedAt: order.updatedAt.toISOString(),
-        scheduledDate: order.orderedAt.toISOString(),
-        labResult,
-      };
-    });
-
     sendResponse(res, {
       success: true,
       code: 200,
       message: "Orders fetched successfully",
-      data: orders,
+      data: labOrders,
     });
   } catch (error: any) {
     next(ApiError.internal(undefined, error.message));

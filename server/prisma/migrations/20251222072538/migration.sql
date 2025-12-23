@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "LabOrder" ADD COLUMN     "cptCode" TEXT NOT NULL DEFAULT 'PT100',
+ADD COLUMN     "testName" TEXT NOT NULL DEFAULT 'test';

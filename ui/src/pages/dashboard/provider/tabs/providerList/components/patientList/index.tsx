@@ -1,22 +1,17 @@
-import type { Patient } from "@/types";
+import type { PatientDetailsType } from "@/types";
 import { Card } from "@/components/card";
 import { Input } from "@/components";
 import { Badge } from "@/components/badge";
 import { ScrollArea } from "@/components/scrollArea";
-import {
-  Search,
-  AlertCircle,
-  CheckCircle,
-  Calendar,
-} from "lucide-react";
+import { Search, AlertCircle, CheckCircle, Calendar } from "lucide-react";
 import { useState } from "react";
 
 type PatientFilter = "all" | "candidates" | "scheduled" | "completed";
 
 interface PatientListProps {
-  patients: Patient[];
-  selectedPatient: Patient | null;
-  onSelectPatient: (patient: Patient | null) => void;
+  patients: PatientDetailsType[];
+  selectedPatient: PatientDetailsType | null;
+  onSelectPatient: (patient: PatientDetailsType | null) => void;
   filter: PatientFilter;
 }
 
@@ -37,7 +32,7 @@ const PatientList = ({
 
     switch (filter) {
       case "candidates":
-        return patient.isCandidate;
+        return patient.recomendationCount;
       case "scheduled":
         return patient.scheduledCount > 0;
       case "completed":
@@ -47,7 +42,7 @@ const PatientList = ({
     }
   });
 
-  const handlePatientClick = (patient: Patient) => {
+  const handlePatientClick = (patient: PatientDetailsType) => {
     if (selectedPatient?.id === patient.id) {
       onSelectPatient(null);
     } else {
@@ -55,20 +50,17 @@ const PatientList = ({
     }
   };
 
-  const candidatePatients = filteredPatients.filter((p) => p.isCandidate);
+  const candidatePatients = filteredPatients.filter(
+    (p) => p.recomendationCount > 0
+  );
   const scheduledPatients = filteredPatients.filter(
-    (p) => p.scheduledCount > 0 && !p.isCandidate
+    (p) => p.scheduledCount > 0
   );
   const completedPatients = filteredPatients.filter(
-    (p) =>
-      p.completedCount > 0 &&
-      !(p.scheduledCount > 0)
+    (p) => p.completedCount > 0
   );
   const otherPatients = filteredPatients.filter(
-    (p) =>
-      !p.isCandidate &&
-      (!p.scheduledCount || p.scheduledCount === 0) &&
-      (!p.completedCount || p.completedCount === 0)
+    (p) => !p.recomendationCount && !p.scheduledCount && !p.completedCount
   );
 
   return (
@@ -187,7 +179,7 @@ const PatientList = ({
 };
 
 interface PatientCardProps {
-  patient: Patient;
+  patient: PatientDetailsType;
   isSelected: boolean;
   onClick: () => void;
 }
@@ -204,7 +196,9 @@ function PatientCard({ patient, isSelected, onClick }: PatientCardProps) {
         isSelected
           ? "border-blue-500 bg-blue-50"
           : "border-gray-200 bg-white hover:bg-gray-50"
-      } ${patient.isCandidate ? "border-l-4 border-l-orange-500" : ""}`}
+      } ${
+        patient.recomendationCount > 0 ? "border-l-4 border-l-orange-500" : ""
+      }`}
     >
       <div className="flex items-start justify-between mb-2">
         <div className="flex-1">
@@ -250,10 +244,10 @@ function PatientCard({ patient, isSelected, onClick }: PatientCardProps) {
         </Badge>
       </div>
 
-      {patient.diagnoses?.length > 0 && (
+      {patient.diagnosis?.length > 0 && (
         <div className="mt-2">
           <p className="text-xs text-gray-500 line-clamp-1">
-            {patient.diagnoses.map((d) => d.icd10).join(", ")}
+            {patient.diagnosis.map((d) => d.icd10).join(", ")}
           </p>
         </div>
       )}

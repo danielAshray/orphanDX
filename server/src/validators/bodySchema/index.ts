@@ -19,12 +19,6 @@ const createPatientSchema = Joi.object({
   providerId: Joi.string().uuid().optional(),
 });
 
-const createOrderSchema = Joi.object({
-  patientId: Joi.number().integer().required(),
-  testId: Joi.number().integer().required(),
-  providerId: Joi.number().integer().required(),
-}).required();
-
 const createPatientRecommendationBodySchema = Joi.object({
   patientId: Joi.number().integer().required(),
   testId: Joi.number().integer().required(),
@@ -89,17 +83,6 @@ const detailsSchema = Joi.object({
   searchBox: Joi.string().required(),
 });
 
-export {
-  userLoginSchema,
-  userRegisterSchema,
-  createOrderSchema,
-  recommendTestBodySchema,
-  createPatientSchema,
-  createPatientRecommendationBodySchema,
-  detailsSchema,
-  createOrganizationSchema,
-};
-
 const resultItemSchema = Joi.object({
   component: Joi.string().required(),
   value: Joi.number().required(),
@@ -126,3 +109,22 @@ export const completeTestResultSchema = Joi.object({
 })
   .unknown(false)
   .required();
+
+const createOrderSchema = Joi.object({
+  recomendationIds: Joi.array().items(Joi.string().required()).required(),
+  testName: Joi.string().required(),
+  cptCode: Joi.string().required(),
+})
+  .unknown(false)
+  .required();
+
+export {
+  userLoginSchema,
+  userRegisterSchema,
+  createOrderSchema,
+  recommendTestBodySchema,
+  createPatientSchema,
+  createPatientRecommendationBodySchema,
+  detailsSchema,
+  createOrganizationSchema,
+};
