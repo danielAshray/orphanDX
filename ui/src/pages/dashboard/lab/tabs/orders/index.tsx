@@ -152,8 +152,8 @@ const Order = () => {
               </div>
               <div className="text-sm text-gray-400">
                 {order.completedAt
-                  ? order.completedAt.toString().split("T")[0]
-                  : order.orderedAt.toString().split("T")[0]}
+                  ? new Date(order.completedAt).toLocaleDateString()
+                  : new Date(order.orderedAt).toLocaleDateString()}
               </div>
             </div>
 
@@ -197,8 +197,10 @@ const Order = () => {
                 <div className="flex flex-col gap-1">
                   <p className="text-gray-400">Scheduled</p>
                   <p>
-                    {order.orderedAt.toString().split("T")[0]}-{" "}
-                    {order.completedAt?.toString().split("T")[0]}
+                    {new Date(order.orderedAt).toLocaleDateString()}
+                    {order.completedAt ? " - " : ""}{" "}
+                    {order.completedAt &&
+                      new Date(order?.completedAt).toLocaleDateString()}
                   </p>
                 </div>
               </div>
@@ -233,9 +235,13 @@ const Order = () => {
             <hr className="my-3" />
 
             <div className="flex items-center text-xs gap-2">
-              <p>Created: {order.createdAt.toString().split("T")[0]}</p>
+              <p>Created:{new Date(order.createdAt).toLocaleDateString()}</p>
               <p>•</p>
-              <p>Updated: {order.createdAt.toString().split("T")[0]}</p>
+              <p>
+                Updated:{" "}
+                {order.updatedAt &&
+                  new Date(order.updatedAt).toLocaleDateString()}
+              </p>
             </div>
 
             {order.status === "COMPLETED" && (
