@@ -15,6 +15,8 @@ import { RxPerson } from "react-icons/rx";
 import { PiHospitalThin } from "react-icons/pi";
 import { FaRegFileLines } from "react-icons/fa6";
 import { IoCreateOutline } from "react-icons/io5";
+import { CiFilter } from "react-icons/ci";
+import { MdOutlineFileDownload } from "react-icons/md";
 
 interface Patient {
   id: string;
@@ -121,7 +123,24 @@ const Order = () => {
   };
   return (
     <div className="bg-card text-card-foreground flex flex-col rounded-xl py-2 border ">
-      <div className="px-4 py-2">Order Tracking</div>
+      <div className="px-4 py-2 flex justify-between items-center">
+        <div>Order Tracking</div>
+        <div className="flex gap-3 items-center">
+          <div className="border boreder-gray-200 flex items-center w-fit px-2 py-1 text-sm rounded-lg gap-1 font-semibold cursor-pointer hover:bg-accent duration-200 ">
+            <span>
+              <CiFilter  />
+            </span>
+            <p> Filter</p>
+          </div>
+
+          <div className="border boreder-gray-200 flex items-center w-fit px-2 py-1 text-sm rounded-lg gap-1 font-semibold cursor-pointer hover:bg-accent duration-200 ">
+            <span>
+              <MdOutlineFileDownload />
+            </span>
+            <p> Export</p>
+          </div>
+        </div>
+      </div>
 
       <div className="px-4 py-2 bg-red-40">
         <div className="relative">
