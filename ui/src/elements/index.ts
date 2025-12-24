@@ -5,10 +5,6 @@ import LabRequisition from "../pages/dashboard/provider/tabs/providerList/compon
 import LabResultsViewer from "./labResultsViewer";
 import OrderTracking from "./orderTracking";
 import OWLiverRequisition from "./owLiverRequisition";
-import PatientList from "./patientList";
-import ProviderOrdersDialog from "./providerOrdersDialog";
-import ProviderPatientsDialog from "./providerPatientsDialog";
-import ViewResultsDialog from "./viewResultsDialog";
 
 export {
   AddProviderDialog,
@@ -18,8 +14,4 @@ export {
   LabResultsViewer,
   OrderTracking,
   OWLiverRequisition,
-  PatientList,
-  ProviderOrdersDialog,
-  ProviderPatientsDialog,
-  ViewResultsDialog,
 };
