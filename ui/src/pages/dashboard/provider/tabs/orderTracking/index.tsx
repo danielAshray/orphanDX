@@ -22,6 +22,7 @@ import {
   User,
 } from "lucide-react";
 import { Badge } from "@/components/badge";
+import { OWLiverRequisition } from "@/elements";
 
 interface Patient {
   id: string;
@@ -45,6 +46,7 @@ interface Patient {
 interface DiagnosisItem {
   diagnosis: {
     name: string;
+    icd10: string;
   };
 }
 
@@ -103,7 +105,9 @@ interface OrderTrackingProps {
 const OrderTracking: React.FC<OrderTrackingProps> = ({ activeTab }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showRequisition, setShowRequisition] = useState(false);
-  const [selectedRequisition, _setSelectedRequisition] = useState<any>(null);
+  const [selectedRequisition, setSelectedRequisition] = useState<Order | null>(
+    null
+  );
 
   const [showLabResults, setShowLabResults] = useState(false);
   const [selectedLabResult, setSelectedLabResult] = useState<any>(null);
@@ -134,6 +138,13 @@ const OrderTracking: React.FC<OrderTrackingProps> = ({ activeTab }) => {
       COMPLETED: "bg-green-100 text-green-700 border-green-200",
     };
     return colors[status] || colors.ORDERED;
+  };
+
+  const handleViewRequisition = (order: Order) => {
+    if (order) {
+      setSelectedRequisition(order);
+      setShowRequisition(true);
+    }
   };
 
   const handleViewResults = (order: Order) => {
@@ -247,7 +258,7 @@ const OrderTracking: React.FC<OrderTrackingProps> = ({ activeTab }) => {
                       <Button
                         variant="outline"
                         size="sm"
-                        // onClick={() => handleViewRequisition(order)}
+                        onClick={() => handleViewRequisition(order)}
                         className="gap-2"
                       >
                         <FileText className="w-4 h-4" />
@@ -301,7 +312,42 @@ const OrderTracking: React.FC<OrderTrackingProps> = ({ activeTab }) => {
 
           {selectedRequisition && (
             <ScrollArea className="h-[calc(100vh-120px)]">
-              {/* <LabRequisition data={selectedRequisition} /> */}
+              <OWLiverRequisition
+                values={{
+                  name: `${selectedRequisition.patient.firstName} ${selectedRequisition.patient.lastName}`,
+                  ssn: "1234567890",
+                  dob: selectedRequisition.patient.dateOfBirth,
+                  sex: String("Male").toLowerCase(),
+                  address: "Boradandi",
+                  city: "Dhangadhi",
+                  state: "Sudurpashchim",
+                  zip: "10900",
+                  phone: selectedRequisition.patient.phone,
+                  email: selectedRequisition.patient.email,
+                  race: String("Other").toLowerCase(),
+                  ethnicity: String("N/A").toLowerCase(),
+                  bmi: "10",
+                  height: "6.9",
+                  weight: "120",
+
+                  collectorName: "Pawan Shahi",
+                  fasting: true,
+                  hrSinceLastMeal: "3h",
+                  dateCollected: "2025/12/24",
+                  timeCollected: "2025/12/24",
+                  am: true,
+
+                  icd10Codes: selectedRequisition.diagnosis.map(
+                    (item) => item.diagnosis.icd10
+                  ),
+
+                  patientSignature: `${selectedRequisition.patient.firstName} ${selectedRequisition.patient.lastName}`,
+                  patientSDate: selectedRequisition.patient.createdAt,
+
+                  providerSignature: selectedRequisition.facility.name,
+                  providerSDate: "2025/12/24",
+                }}
+              />
             </ScrollArea>
           )}
         </DialogContent>

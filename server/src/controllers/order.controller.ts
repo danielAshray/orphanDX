@@ -246,7 +246,9 @@ const orderTracking = async (
       include: {
         tests: true,
         patient: true,
-        diagnosis: { select: { diagnosis: { select: { name: true } } } },
+        diagnosis: {
+          select: { diagnosis: { select: { name: true, icd10: true } } },
+        },
         facility: { select: { name: true } },
         lab: true,
         createdBy: true,

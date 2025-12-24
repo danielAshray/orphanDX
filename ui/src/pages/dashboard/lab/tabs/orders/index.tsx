@@ -36,6 +36,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/alertDialog";
+import { OWLiverRequisition } from "@/elements";
 
 interface Patient {
   id: string;
@@ -59,6 +60,7 @@ interface Patient {
 interface DiagnosisItem {
   diagnosis: {
     name: string;
+    icd10: string;
   };
 }
 
@@ -113,14 +115,16 @@ export interface Order {
 const Order = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showRequisition, setShowRequisition] = useState(false);
-  const [selectedRequisition, _setSelectedRequisition] = useState<any>(null);
+  const [selectedRequisition, setSelectedRequisition] = useState<Order | null>(
+    null
+  );
 
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [isCompleteDialogOpen, setIsCompleteDialogOpen] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
   const [showLabResults, setShowLabResults] = useState(false);
   const [selectedLabResult, setSelectedLabResult] = useState<any>(null);
@@ -220,6 +224,13 @@ const Order = () => {
       COMPLETED: "bg-green-100 text-green-700 border-green-200",
     };
     return colors[status] || colors.ORDERED;
+  };
+
+  const handleViewRequisition = (order: Order) => {
+    if (order) {
+      setSelectedRequisition(order);
+      setShowRequisition(true);
+    }
   };
 
   const handleViewResults = (order: Order) => {
@@ -334,7 +345,7 @@ const Order = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          // onClick={() => handleViewRequisition(order)}
+                          onClick={() => handleViewRequisition(order)}
                           className="gap-2"
                         >
                           <FileText className="w-4 h-4" />
@@ -416,7 +427,43 @@ const Order = () => {
 
           {selectedRequisition && (
             <ScrollArea className="h-[calc(100vh-120px)]">
-              {/* <LabRequisition data={selectedRequisition} /> */}
+              <OWLiverRequisition
+                values={{
+                  name: `${selectedRequisition.patient.firstName} ${selectedRequisition.patient.lastName}`,
+                  ssn: "1234567890",
+                  dob: selectedRequisition.patient.dateOfBirth,
+                  sex: String("Male").toLowerCase(),
+                  address: "Boradandi",
+                  city: "Dhangadhi",
+                  state: "Sudurpashchim",
+                  zip: "10900",
+                  phone: selectedRequisition.patient.phone,
+                  email: selectedRequisition.patient.email,
+                  race: String("Other").toLowerCase(),
+                  ethnicity: String("N/A").toLowerCase(),
+                  bmi: "10",
+                  height: "6.9",
+                  weight: "120",
+
+                  collectorName: "Pawan Shahi",
+                  fasting: true,
+                  hrSinceLastMeal: "3h",
+                  dateCollected: "2025/12/24",
+                  timeCollected: "2025/12/24",
+                  am: true,
+
+                  icd10Codes: selectedRequisition.diagnosis.map(
+                    (item) => item.diagnosis.icd10
+                  ),
+                  // icd10Codes: ["E78.5", "E11.65", "E13.8", "E13.9", "K75.81"],
+
+                  patientSignature: `${selectedRequisition.patient.firstName} ${selectedRequisition.patient.lastName}`,
+                  patientSDate: selectedRequisition.patient.createdAt,
+
+                  providerSignature: selectedRequisition.facility.name,
+                  providerSDate: "2025/12/24",
+                }}
+              />
             </ScrollArea>
           )}
         </DialogContent>
