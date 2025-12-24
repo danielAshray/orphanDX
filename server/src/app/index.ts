@@ -29,7 +29,7 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        frameAncestors: [`${AppConfig.CLIENT_URL}`, `https://app.orphandx.com`],
+        frameAncestors: [`${AppConfig.CLIENT_URL}`],
       },
     },
   })
