@@ -5,7 +5,7 @@ import { Forbidden, NotFound } from "@/pages";
 import { Login } from "@/pages/auth";
 import { Admin, Lab, Provider } from "@/pages/dashboard";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-
+import PdfPage from "@/components/pdf/PdfPage";
 const Router = () => {
   return (
     <BrowserRouter>
@@ -26,6 +26,7 @@ const Router = () => {
 
             <Route element={<RequireRole allowed={["lab"]} />}>
               <Route path={PATH_KEYS.LAB} element={<Lab />} />
+              <Route path="/lab/pdf" element={<PdfPage/>}/>
             </Route>
 
             <Route element={<RequireRole allowed={["facility"]} />}>
