@@ -14,7 +14,7 @@ const App = Object.freeze({
   SET: "trust proxy",
   LIMIT: "50mb",
   TYPE: "text/xml",
-  PATH: "../../ui/dist",
+  PATH: "../../../ui/dist",
   INDEX: "index.html",
 });
 
