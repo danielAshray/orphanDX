@@ -11,7 +11,9 @@ import { useAuthContext } from "@/context/auth";
 import { ImageWithFallback } from "@/components";
 
 const Main = () => {
-  const { user, role, logout } = useAuthContext();
+  const { user, logout } = useAuthContext();
+
+  const { name, role, organization } = user;
 
   const getRoleIcon = () => {
     switch (role?.toLowerCase()) {
@@ -41,7 +43,7 @@ const Main = () => {
                 alt="Logo"
                 className="w-auto h-10 object-cover drop-shadow-lg drop-shadow-blue-400"
               />
-              
+
               <p className="text-xs text-gray-500 text-shadow-lg text-shadow-purple-200">
                 Specialty Test Intelligence Platform
               </p>
@@ -51,10 +53,9 @@ const Main = () => {
               <div className="flex items-center gap-3 px-4 py-2 bg-gray-100 rounded-lg">
                 {getRoleIcon()}
                 <div>
-                  <p className="text-sm text-gray-900">{user.name}</p>
+                  <p className="text-sm text-gray-900">{name}</p>
                   <p className="text-xs text-gray-600">
-                    {user.role.toUpperCase()}
-                    {/* - {user.organizationName} */}
+                    {role.toUpperCase()} - {organization?.role}
                   </p>
                 </div>
               </div>

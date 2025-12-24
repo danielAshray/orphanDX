@@ -12,11 +12,10 @@ interface LabRequisitionProps {
       name: string;
       icd10: string;
     };
-    test: {
-      name: string;
-      code: string;
-      id: string;
-    };
+    tests: {
+      testName: string;
+      cptCode: string;
+    }[];
     provider: {
       name: string;
       npi: string;
@@ -202,11 +201,16 @@ const LabRequisition = ({ data }: LabRequisitionProps) => {
 
         {/* Test Information */}
         <div className="mb-6">
-          <h3 className="text-gray-900 mb-3 pb-2 border-b">Test Ordered</h3>
-          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-            <p className="text-gray-900 mb-1">{data.test.name}</p>
-            <p className="text-sm text-gray-600">Test Code: {data.test.code}</p>
-          </div>
+          <h3 className="text-gray-900 mb-3 pb-2 border-b">Tests Ordered</h3>
+          {data.tests.map((test, index) => (
+            <div
+              key={index}
+              className="bg-blue-50 p-4 rounded-lg border border-blue-200 mb-2"
+            >
+              <p className="text-gray-900 mb-1">{test.testName}</p>
+              <p className="text-sm text-gray-600">Test Code: {test.cptCode}</p>
+            </div>
+          ))}
         </div>
 
         <div className="mb-6">

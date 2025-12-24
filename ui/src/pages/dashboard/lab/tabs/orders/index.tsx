@@ -1,22 +1,41 @@
-import { fetchOrderTrackingApi } from "@/api/order";
+import { fetchOrderListApi, useTestComplete, useUploadPDF } from "@/api/order";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
-import AddResultModal from "./AddResultModal";
+import { useRef, useState } from "react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/dialog";
-import { LabResultsViewer } from "@/elements";
 import { ScrollArea } from "@/components/scrollArea";
-import { CiSearch } from "react-icons/ci";
-import { RxPerson } from "react-icons/rx";
-import { PiHospitalThin } from "react-icons/pi";
-import { FaRegFileLines } from "react-icons/fa6";
-import { IoCreateOutline } from "react-icons/io5";
-import { CiFilter } from "react-icons/ci";
-import { MdOutlineFileDownload } from "react-icons/md";
+import { Input, Label, Notification } from "@/components";
+import { Card } from "@/components/card";
+import { Button } from "@/components/button";
+import {
+  Building2,
+  Calendar,
+  CheckCircle,
+  Download,
+  Eye,
+  FileText,
+  Filter,
+  Search,
+  Upload,
+  User,
+} from "lucide-react";
+import { Badge } from "@/components/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/alertDialog";
 
 interface Patient {
   id: string;
@@ -75,11 +94,12 @@ export interface Order {
   facilityId: string;
   labId: string;
   patientId: string;
-  status: "ORDERED" | "COMPLETED"; // can extend if more statuses
+  status: "ORDERED" | "COLLECTED" | "COMPLETED";
   orderedAt: string;
   completedAt: string | null;
   collectedAt: string | null;
   createdById: string;
+  resultPdfUrl: string | null;
   createdAt: string;
   updatedAt: string;
   testResult: any | null;
@@ -90,228 +110,407 @@ export interface Order {
   createdBy: User;
 }
 
-const colorScheme = {
-  ORDERED: "bg-blue-200 text-blue-600 border-blue-600",
-  COLLECTED: "bg-purple-200 text-purple-600 border-purple-600",
-  COMPLETED: "bg-green-200 text-green-600 border-green-600",
-  CANCELLED: "bg-orange-200 text-orange-300 border-orange-300",
-};
-
 const Order = () => {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showRequisition, setShowRequisition] = useState(false);
+  const [selectedRequisition, _setSelectedRequisition] = useState<any>(null);
+
+  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [isCompleteDialogOpen, setIsCompleteDialogOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+
+  const [showLabResults, setShowLabResults] = useState(false);
   const [selectedLabResult, setSelectedLabResult] = useState<any>(null);
-  const { data: ordersResp } = useQuery({
-    queryKey: ["fetchOrderTrackingApi"],
-    queryFn: fetchOrderTrackingApi,
+
+  const { data: orderList } = useQuery({
+    queryKey: ["fetchOrderListApi"],
+    queryFn: fetchOrderListApi,
   });
 
-  const orders: Order[] = ordersResp?.data || [];
+  const orders = (orderList?.data || []) as Order[];
 
-  const [selectedOrder, setSelectedOrder] = useState<any>(null);
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    e.preventDefault();
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.type !== "application/pdf") {
-      alert("Only pdfs are allowed");
-      e.target.value = "";
-      return;
+  const uploadMutation = useUploadPDF();
+  const testTestMutation = useTestComplete();
+
+  const handleUploadConfirmAlert = (order: Order) => {
+    if (order) {
+      setIsUploadDialogOpen(true);
+      setSelectedOrder(order);
     }
-
-    const allowedFileSize = 1024 * 1025 * 5;
-    if (file.size > allowedFileSize) {
-      alert("File size must be less than 5 mb");
-      e.target.value = "";
-      return;
-    }
-
-    alert("File yet to be uploaded in the server");
-    e.target.value = "";
-    return;
   };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+    }
+  };
+
+  const handleUploadSubmit = (order: Order) => {
+    if (selectedFile) {
+      if (selectedFile.type !== "application/pdf") {
+        Notification({
+          toastMessage: "Only pdfs are allowed",
+          toastStatus: "error",
+        });
+        return;
+      }
+
+      const maxSize = 5 * 1024 * 1024;
+      if (selectedFile.size > maxSize) {
+        Notification({
+          toastMessage: "File size must be less than 5 MB",
+          toastStatus: "error",
+        });
+        return;
+      }
+
+      uploadMutation.mutate({
+        orderId: order.id,
+        file: selectedFile,
+      });
+    }
+
+    setIsUploadDialogOpen(false);
+    setSelectedFile(null);
+    setSelectedOrder(null);
+  };
+
+  const handleUploadCancel = () => {
+    setIsUploadDialogOpen(false);
+    setSelectedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handleMarkAsCompletedAlert = (order: Order) => {
+    if (order) {
+      setIsCompleteDialogOpen(true);
+      setSelectedOrder(order);
+    }
+  };
+
+  const handleMarkAsCompleted = (order: Order) => {
+    testTestMutation.mutate({
+      orderId: order.id,
+    });
+    setIsCompleteDialogOpen(false);
+    setSelectedOrder(null);
+  };
+
+  const filteredOrders = orders.filter(
+    (order) =>
+      `${order.patient.firstName} ${order.patient.lastName}`
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
+      order.diagnosis[0].diagnosis.name
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
+      order.id.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const getStatusColor = (status: Order["status"]) => {
+    const colors = {
+      ORDERED: "bg-purple-100 text-purple-700 border-purple-200",
+      COLLECTED: "bg-yellow-100 text-yellow-700 border-yellow-200",
+      COMPLETED: "bg-green-100 text-green-700 border-green-200",
+    };
+    return colors[status] || colors.ORDERED;
+  };
+
+  const handleViewResults = (order: Order) => {
+    if (order.resultPdfUrl) {
+      setSelectedLabResult(order.resultPdfUrl);
+      setShowLabResults(true);
+    }
+  };
+
   return (
-    <div className="bg-card text-card-foreground flex flex-col rounded-xl py-2 border ">
-      <div className="px-4 py-2 flex justify-between items-center">
-        <div>Order Tracking</div>
-        <div className="flex gap-3 items-center">
-          <div className="border boreder-gray-200 flex items-center w-fit px-2 py-1 text-sm rounded-lg gap-1 font-semibold cursor-pointer hover:bg-accent duration-200 ">
-            <span>
-              <CiFilter />
-            </span>
-            <p> Filter</p>
+    <>
+      <Card>
+        <div className="p-4 border-b border-gray-200">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-gray-900">Order Tracking</h2>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm">
+                <Filter className="w-4 h-4 mr-2" />
+                Filter
+              </Button>
+              <Button variant="outline" size="sm">
+                <Download className="w-4 h-4 mr-2" />
+                Export
+              </Button>
+            </div>
           </div>
 
-          <div className="border boreder-gray-200 flex items-center w-fit px-2 py-1 text-sm rounded-lg gap-1 font-semibold cursor-pointer hover:bg-accent duration-200 ">
-            <span>
-              <MdOutlineFileDownload />
-            </span>
-            <p> Export</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="px-4 py-2 bg-red-40">
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Search Orders..."
-            className=" bg-sidebar-accent py-2  pl-10 rounded-lg w-full focus:ring-0"
-          />
-          <div className="absolute top-3 left-4">
-            <CiSearch />
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Input
+              placeholder="Search orders..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
           </div>
         </div>
-      </div>
-      {/*  */}
-      <div className="h-[calc(100vh-400px)] overflow-y-auto px-4 text-gray-600">
-        {orders.map((order: Order) => (
-          <div
-            key={order.id}
-            className="bg-white rounded-xl p-4 mb-4 space-y-3  transition-shadow border border-gray-200"
-          >
-            <div className="flex justify-between items-center ">
-              <div className="flex flex-col">
-                <div className="flex items-center gap-2">
-                  <p className="text-gray-700">
-                    {order.diagnosis[0].diagnosis.name}
-                  </p>
-                  <p
-                    className={`text-xs border ${
-                      colorScheme[order.status]
-                    } px-1 rounded-xl`}
-                  >
-                    {order.status.toLowerCase()}
-                  </p>
+
+        <ScrollArea className="h-[calc(100vh-400px)]">
+          <div className="p-4">
+            <div className="space-y-3">
+              {filteredOrders.map((order) => (
+                <div
+                  key={order.id}
+                  className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="text-gray-900">
+                          {order.diagnosis[0].diagnosis.name}
+                        </p>
+                        <Badge className={getStatusColor(order.status)}>
+                          {order.status}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-gray-500">
+                        Order ID: {order.id}
+                      </p>
+                    </div>
+                    <p className="text-sm text-gray-500">
+                      {new Date(order.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm mb-3">
+                    <div className="flex items-center gap-2">
+                      <User className="w-4 h-4 text-gray-400" />
+                      <div>
+                        <p className="text-gray-500">Patient</p>
+                        <p className="text-gray-900">
+                          {order.patient?.firstName} {order.patient?.lastName}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <User className="w-4 h-4 text-gray-400" />
+                      <div>
+                        <p className="text-gray-500">Provider</p>
+                        <p className="text-gray-900">{order.createdBy?.name}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Building2 className="w-4 h-4 text-gray-400" />
+                      <div>
+                        <p className="text-gray-500">Clinic</p>
+                        <p className="text-gray-900">{order.facility?.name}</p>
+                      </div>
+                    </div>
+
+                    {order.orderedAt && (
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-gray-400" />
+                        <div>
+                          <p className="text-gray-500">Ordered</p>
+                          <p className="text-gray-900">
+                            {new Date(order.orderedAt).toLocaleString()}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                    <div className="flex gap-2">
+                      {["ORDERED", "COLLECTED", "COMPLETED"].includes(
+                        order.status
+                      ) && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          // onClick={() => handleViewRequisition(order)}
+                          className="gap-2"
+                        >
+                          <FileText className="w-4 h-4" />
+                          View Requisition
+                        </Button>
+                      )}
+                      {order.status === "COMPLETED" && order.resultPdfUrl && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleViewResults(order)}
+                          className="gap-2"
+                        >
+                          <Eye className="w-4 h-4" />
+                          View Results
+                        </Button>
+                      )}
+                    </div>
+
+                    <div className="flex gap-2">
+                      {order.status === "ORDERED" && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleUploadConfirmAlert(order)}
+                          className="gap-2"
+                        >
+                          <Upload className="w-4 h-4" />
+                          Upload Result
+                        </Button>
+                      )}
+
+                      {order.status !== "ORDERED" && (
+                        <Button
+                          variant="default"
+                          size="sm"
+                          disabled={order.status === "COMPLETED"}
+                          onClick={() => handleMarkAsCompletedAlert(order)}
+                          className="gap-2 bg-green-600 hover:bg-green-700"
+                        >
+                          <CheckCircle className="w-4 h-4" />
+                          Mark as Completed
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Status Timeline */}
+                  <div className="mt-3 pt-3 border-t border-gray-100">
+                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                      <span>
+                        Created: {new Date(order.createdAt).toLocaleString()}
+                      </span>
+                      <span>•</span>
+                      <span>
+                        Updated: {new Date(order.updatedAt).toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <p className="text-sm text-gray-400 ">{order.cptCode}</p>
-              </div>
-              <div className="text-sm text-gray-400">
-                {order.completedAt
-                  ? new Date(order.completedAt).toLocaleDateString()
-                  : new Date(order.orderedAt).toLocaleDateString()}
-              </div>
+              ))}
+
+              {filteredOrders.length === 0 && (
+                <div className="text-center py-12 text-gray-500">
+                  <p>No orders found</p>
+                </div>
+              )}
             </div>
+          </div>
+        </ScrollArea>
+      </Card>
 
-            <div className="grid grid-cols-2 gap-y-2">
-              <div className="flex items-center gap-2">
-                <div className="text-gray-400">
-                  <RxPerson />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <p className="text-gray-400">Patient</p>
-                  <p>
-                    {order.patient.firstName} {order.patient.lastName}
-                  </p>
-                </div>
-              </div>
+      {/* Lab Requisition Dialog */}
+      <Dialog open={showRequisition} onOpenChange={setShowRequisition}>
+        <DialogContent className="max-w-6xl max-h-[95vh]">
+          <DialogHeader>
+            <DialogTitle>Lab Test Requisition</DialogTitle>
+          </DialogHeader>
 
-              <div className="flex items-center gap-2">
-                <div className="text-gray-400">
-                  <RxPerson />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <p className="text-gray-400">Provider</p>
-                  <p>Provider name</p>
-                </div>
-              </div>
+          {selectedRequisition && (
+            <ScrollArea className="h-[calc(100vh-120px)]">
+              {/* <LabRequisition data={selectedRequisition} /> */}
+            </ScrollArea>
+          )}
+        </DialogContent>
+      </Dialog>
 
-              <div className="flex items-center gap-2">
-                <div className="text-gray-400">
-                  <PiHospitalThin />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <p className="text-gray-400">Clinic</p>
-                  <p>{order.facility.name}</p>
-                </div>
-              </div>
+      {/* Lab Results Dialog */}
+      <Dialog open={showLabResults} onOpenChange={setShowLabResults}>
+        <DialogContent
+          className="max-w-6xl max-h-[95vh]"
+          aria-describedby="Lab Test Results"
+        >
+          <DialogHeader>
+            <DialogTitle>Lab Test Results</DialogTitle>
+          </DialogHeader>
 
-              <div className="flex items-center gap-2">
-                <div className="text-gray-400">
-                  <PiHospitalThin />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <p className="text-gray-400">Scheduled</p>
-                  <p>
-                    {new Date(order.orderedAt).toLocaleDateString()}
-                    {", "}
-                    {new Date(order.orderedAt).toLocaleTimeString()}
-                  </p>
-                </div>
-              </div>
+          {selectedLabResult && (
+            <ScrollArea className="h-[calc(100vh-120px)]">
+              <iframe
+                src={`http://localhost:2000${selectedLabResult}`}
+                width="100%"
+                height="600px"
+                style={{ border: "none" }}
+              />
+            </ScrollArea>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Upload Result Confirmation Dialog */}
+      <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Upload Result</DialogTitle>
+            <DialogDescription>
+              Select a file to upload for this order
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="file">File</Label>
+              <Input
+                id="file"
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                accept=".pdf"
+              />
+              {selectedFile && (
+                <p className="text-sm text-gray-600">
+                  Selected: {selectedFile.name}
+                </p>
+              )}
             </div>
-            <hr className="my-3" />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={handleUploadCancel}>
+              Cancel
+            </Button>
+            {selectedOrder && (
+              <Button onClick={() => handleUploadSubmit(selectedOrder)}>
+                Submit
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-            <div className="flex items-center gap-3">
-              <div className="border boreder-gray-200 flex items-center w-fit px-2 py-1 text-sm rounded-lg gap-1 font-semibold cursor-pointer hover:bg-accent duration-200 ">
-                <span>
-                  <FaRegFileLines />
-                </span>
-                <p> View Requisition</p>
-              </div>
-
-              <div className="border boreder-gray-200 flex items-center w-fit px-2 py-1 text-sm rounded-lg gap-1 font-semibold cursor-pointer hover:bg-accent duration-200 ">
-                <span>
-                  <IoCreateOutline />
-                </span>
-                <p> View Order</p>
-              </div>
-
-              <label className="bg-white text-sm inline-flex items-center gap-2 cursor-pointer rounded-lg border border-gray-200 px-2 py-1 hover:bg-accent duration-200 transition-colors">
-                <p className="bg-white">Upload PDF</p>
-                <input
-                  type="file"
-                  className="hidden"
-                  onChange={handleFileChange}
-                />
-              </label>
-            </div>
-
-            <hr className="my-3" />
-
-            <div className="flex items-center text-xs gap-2">
-              <p>Created:{new Date(order.createdAt).toLocaleDateString()}</p>
-              <p>•</p>
-              <p>
-                Updated:{" "}
-                {order.updatedAt &&
-                  new Date(order.updatedAt).toLocaleDateString()}
-              </p>
-            </div>
-
-            {order.status === "COMPLETED" && (
-              <button
-                onClick={() => setSelectedLabResult(order)}
-                className="mt-4 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+      {/* Mark as Completed Confirmation Dialog */}
+      <AlertDialog
+        open={isCompleteDialogOpen}
+        onOpenChange={setIsCompleteDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Mark Order as Completed?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to mark this order as completed? This action
+              will update the order status.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>No</AlertDialogCancel>
+            {selectedOrder && (
+              <AlertDialogAction
+                onClick={() => handleMarkAsCompleted(selectedOrder)}
+                className="bg-green-600 hover:bg-green-700"
               >
-                View Result
-              </button>
+                Yes
+              </AlertDialogAction>
             )}
-          </div>
-        ))}
-      </div>
-
-      {selectedOrder && (
-        <AddResultModal
-          order={selectedOrder}
-          onClose={() => setSelectedOrder(null)}
-        />
-      )}
-
-      {!!selectedLabResult && (
-        <Dialog open={true} onOpenChange={() => setSelectedLabResult(null)}>
-          <DialogContent className="max-w-6xl max-h-[95vh]">
-            <DialogHeader>
-              <DialogTitle>Lab Test Results</DialogTitle>
-            </DialogHeader>
-
-            {selectedLabResult && (
-              <ScrollArea className="h-[calc(100vh-120px)]">
-                <LabResultsViewer result={selectedLabResult} />
-              </ScrollArea>
-            )}
-          </DialogContent>
-        </Dialog>
-      )}
-    </div>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 };
 

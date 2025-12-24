@@ -24,7 +24,16 @@ app.set(App.SET, 1);
 app.use(globalLimiter);
 
 app.use(cors({ origin: AppConfig.CLIENT_URL }));
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        frameAncestors: [`${AppConfig.CLIENT_URL}`],
+      },
+    },
+  })
+);
 
 app.use(express.json({ limit: App.LIMIT }));
 app.use(express.urlencoded({ extended: true }));

@@ -10,11 +10,13 @@ import { PatientDetails, PatientList } from "./components";
 type PatientFilter = "all" | "candidates" | "scheduled" | "completed";
 
 interface ProviderListProps {
+  recommendedTestCount: number;
   scheduledTestCount: number;
   completedTestCount: number;
 }
 
 const ProviderList: React.FC<ProviderListProps> = ({
+  recommendedTestCount,
   scheduledTestCount,
   completedTestCount,
 }) => {
@@ -43,6 +45,16 @@ const ProviderList: React.FC<ProviderListProps> = ({
         </Button>
 
         <Button
+          variant={patientFilter === "candidates" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setPatientFilter("candidates")}
+          className="gap-2"
+        >
+          <Calendar className="w-4 h-4" />
+          Test Candidates ({recommendedTestCount})
+        </Button>
+
+        <Button
           variant={patientFilter === "scheduled" ? "default" : "outline"}
           size="sm"
           onClick={() => setPatientFilter("scheduled")}
@@ -51,6 +63,7 @@ const ProviderList: React.FC<ProviderListProps> = ({
           <Calendar className="w-4 h-4" />
           Scheduled ({scheduledTestCount})
         </Button>
+
         <Button
           variant={patientFilter === "completed" ? "default" : "outline"}
           size="sm"

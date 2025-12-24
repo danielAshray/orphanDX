@@ -54,7 +54,7 @@ export const createOrder = async (
       });
     }
 
-    const { newOrder, tests } = await prisma.$transaction(async (tx) => {
+    const { newOrder } = await prisma.$transaction(async (tx) => {
       const diagnosisIds = Array.from(
         new Set(recommendations.map((r) => r.diagnosisId))
       );
@@ -71,10 +71,19 @@ export const createOrder = async (
               })),
             },
           },
+          tests: {
+            createMany: {
+              data: recommendations.map(({ testName, cptCode }) => ({
+                testName,
+                cptCode,
+              })),
+            },
+          },
           createdById: userId,
           status: "ORDERED",
         },
         include: {
+          tests: true,
           facility: true,
           lab: true,
           patient: {
@@ -85,14 +94,6 @@ export const createOrder = async (
           diagnosis: true,
           createdBy: true,
         },
-      });
-
-      const tests = await tx.labTest.createMany({
-        data: recommendations.map(({ testName, cptCode }) => ({
-          testName,
-          cptCode,
-          labOrderId: labId,
-        })),
       });
 
       await tx.labRecommendation.updateMany({
@@ -113,13 +114,13 @@ export const createOrder = async (
         },
       });
 
-      return { newOrder, tests };
+      return { newOrder };
     });
 
     const orderData = {
       orderId: newOrder.id,
       patient: newOrder.patient,
-      tests,
+      tests: newOrder.tests,
       provider: {
         name: user.name,
         npi: "NPI-123456789",

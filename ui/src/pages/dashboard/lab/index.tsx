@@ -2,7 +2,10 @@ import type { ReactNode } from "react";
 import { Card } from "@/components/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/tabs";
 import { TrendingUp, Building2, ClipboardList } from "lucide-react";
-import { Analytics, Orders } from "./tabs";
+import {
+  //  Analytics,
+  Orders,
+} from "./tabs";
 import { fetchDashboardApi } from "@/api/order";
 import { useQuery } from "@tanstack/react-query";
 
@@ -72,20 +75,19 @@ const Lab = () => {
         ))}
       </div>
 
-      {/* Main Content */}
       <Tabs defaultValue="orders" className="space-y-4">
         <TabsList>
           <TabsTrigger value="orders">All Orders</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          {/* <TabsTrigger value="analytics">Analytics</TabsTrigger> */}
         </TabsList>
 
         <TabsContent value="orders">
           <Orders />
         </TabsContent>
 
-        <TabsContent value="analytics" className="space-y-6">
+        {/* <TabsContent value="analytics" className="space-y-6">
           <Analytics />
-        </TabsContent>
+        </TabsContent> */}
       </Tabs>
     </div>
   );

@@ -25,14 +25,16 @@ const PatientList = ({
 
   const filteredPatients = patients.filter((patient) => {
     const matchesSearch =
-      patient.firstName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      `{${patient.firstName} ${patient.lastName}}`
+        ?.toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
       patient.mrn.toLowerCase().includes(searchQuery.toLowerCase());
 
     if (!matchesSearch) return false;
 
     switch (filter) {
       case "candidates":
-        return patient.recomendationCount;
+        return patient.recomendationCount > 0;
       case "scheduled":
         return patient.scheduledCount > 0;
       case "completed":
