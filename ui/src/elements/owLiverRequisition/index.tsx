@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
-import templatePdf from "@/templates/OW_Liver_Requisition.pdf";
+import templatePdf from "./OW_Liver_Requisition.pdf";
 import { Loader } from "lucide-react";
 
 type FormValues = {
