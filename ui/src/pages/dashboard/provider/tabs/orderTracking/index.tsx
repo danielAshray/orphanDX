@@ -366,7 +366,7 @@ const OrderTracking: React.FC<OrderTrackingProps> = ({ activeTab }) => {
           {selectedLabResult && (
             <ScrollArea className="h-[calc(100vh-120px)]">
               <iframe
-                src={`http://localhost:2000${selectedLabResult}`}
+                src={`https://app.orphandx.com${selectedLabResult}`}
                 width="100%"
                 height="600px"
                 style={{ border: "none" }}
