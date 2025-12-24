@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import { Loader } from "lucide-react";
 
-const templatePdf = "./HART_TRF_Requisition.pdf";
+const templatePdf = "/HART_TRF_Requisition.pdf";
 
 type FormValues = {
   name: string;
@@ -236,8 +236,14 @@ const HartTrfRequisition: React.FC<HartTrfRequisitionProps> = ({ values }) => {
           color: rgb(0, 0, 0),
         });
 
-      const pdfDataUri = await pdfDoc.saveAsBase64({ dataUri: true });
-      setPdfUrl(pdfDataUri);
+      const pdfBytes = await pdfDoc.save();
+
+      const blob = new Blob([new Uint8Array(pdfBytes)], {
+        type: "application/pdf",
+      });
+
+      const url = URL.createObjectURL(blob);
+      setPdfUrl(url);
     };
 
     generatePdf();
