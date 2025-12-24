@@ -26,12 +26,7 @@ app.use(globalLimiter);
 app.use(cors({ origin: AppConfig.CLIENT_URL }));
 app.use(
   helmet({
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        frameAncestors: [`${AppConfig.CLIENT_URL}`, `https://app.orphandx.com`],
-      },
-    },
+    frameguard: false,
   })
 );
 
