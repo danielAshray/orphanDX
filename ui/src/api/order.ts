@@ -64,6 +64,7 @@ const useCreateOrder = () => {
 const OrderRoutes = Object.freeze({
   dashboard: "/order",
   track: "/order/track",
+  orderTracking: "/order/order-tracking",
   upload: (id: number | string) => `/order/upload/${id}`,
   markComplete: (id: number | string) => `/order/complete/${id}`,
 });
@@ -75,6 +76,11 @@ const fetchDashboardApi = async (): Promise<ApiReponse> => {
 
 const fetchOrderListApi = async (): Promise<ApiReponse> => {
   const response = await api.get(OrderRoutes.track);
+  return response.data;
+};
+
+const fetchOrderTrackingListApi = async (): Promise<ApiReponse> => {
+  const response = await api.get(OrderRoutes.orderTracking);
   return response.data;
 };
 
@@ -165,6 +171,7 @@ const useTestComplete = () => {
 export {
   fetchDashboardApi,
   fetchOrderListApi,
+  fetchOrderTrackingListApi,
   useCreateOrder,
   completeOrderApi,
   useCompleteOrder,

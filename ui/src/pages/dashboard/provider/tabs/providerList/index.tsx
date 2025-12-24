@@ -13,12 +13,14 @@ interface ProviderListProps {
   recommendedTestCount: number;
   scheduledTestCount: number;
   completedTestCount: number;
+  activeTab: string;
 }
 
 const ProviderList: React.FC<ProviderListProps> = ({
   recommendedTestCount,
   scheduledTestCount,
   completedTestCount,
+  activeTab,
 }) => {
   const [selectedPatient, setSelectedPatient] =
     useState<PatientDetailsType | null>(null);
@@ -27,8 +29,7 @@ const ProviderList: React.FC<ProviderListProps> = ({
   const { data: patients } = useQuery({
     queryKey: ["fetchPatientsApi"],
     queryFn: fetchPatientsApi,
-    refetchOnReconnect: false,
-    refetchOnWindowFocus: false,
+    enabled: activeTab === "patients",
   });
 
   const allPatients = patients?.data || [];

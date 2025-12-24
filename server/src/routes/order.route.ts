@@ -38,6 +38,13 @@ orderRoute.get(
   orderTracking
 );
 
+orderRoute.get(
+  "/order-tracking",
+  authenticate,
+  authorizeByRoleAndOrg(["ADMIN", "USER"], "FACILITY"),
+  orderTracking
+);
+
 orderRoute.put(
   "/complete/:id",
   authenticate,

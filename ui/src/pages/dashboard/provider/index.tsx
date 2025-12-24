@@ -96,11 +96,12 @@ const Provider = () => {
             recommendedTestCount={recomendedTestCount}
             scheduledTestCount={scheduledTestCount}
             completedTestCount={completedTestCount}
+            activeTab={activeTab}
           />
         </TabsContent>
 
         <TabsContent value="orders">
-          <OrderTracking />
+          <OrderTracking activeTab={activeTab} />
         </TabsContent>
       </Tabs>
     </div>

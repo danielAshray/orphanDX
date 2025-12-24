@@ -106,8 +106,9 @@ const PatientDetails = ({ patient }: { patient: PatientDetailsType }) => {
                           {diagnosis.name}
                         </p>
                         <p className="text-xs text-gray-500 mt-1">
-                          ICD-10: {diagnosis.icd10} • Onset:{" "}
-                          {new Date(diagnosis.onsetDate).toLocaleDateString()}
+                          {`ICD-10: ${diagnosis.icd10} • Onset: ${new Date(
+                            diagnosis.onsetDate
+                          ).toLocaleDateString()}`}
                         </p>
                       </div>
                     </div>
