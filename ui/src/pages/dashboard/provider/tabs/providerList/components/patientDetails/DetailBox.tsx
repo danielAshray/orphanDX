@@ -1,0 +1,359 @@
+import { useCreateOrder } from "@/api/order";
+import { fetchPatientDetailsApi } from "@/api/provider";
+import { Separator } from "@/components";
+import { Badge } from "@/components/badge";
+import { Button } from "@/components/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/dialog";
+import { ScrollArea } from "@/components/scrollArea";
+import LabResultsViewer from "@/elements/labResultsViewer";
+import type { LabRecommendation, PatientDetailsType } from "@/types";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  AlertCircle,
+  AlertTriangle,
+  Check,
+  CheckCheck,
+  ClipboardList,
+  Eye,
+  Send,
+} from "lucide-react";
+import { useState } from "react";
+import LabRequisition from "./labRequisition";
+
+type DetailBoxProps = {
+  patientId: string;
+  insurancePlan: string;
+};
+
+const DetailBox = ({ patientId, insurancePlan }: DetailBoxProps) => {
+  const [selectedLabResult, setSelectedLabResult] = useState<any>(null);
+  const [selectedRequisitionData, setSelectedRequisitionData] =
+    useState<any>(null);
+  const { data: patientDetailsResp } = useQuery({
+    queryKey: ["patientDetails", patientId],
+    queryFn: () => fetchPatientDetailsApi(patientId),
+    refetchOnReconnect: false,
+    refetchOnWindowFocus: false,
+  });
+
+  const patientDetails = (patientDetailsResp?.data || []) as PatientDetailsType;
+
+  const groupedRecomendations = Object.values(
+    (patientDetails.labRecommendations || []).reduce((acc: any, rec) => {
+      const key = `${rec.status}_${rec.labRule.labId}`;
+      if (!acc[key]) {
+        acc[key] = {
+          status: rec.status,
+          labId: rec.labRule.labId,
+          labName: rec.labRule.lab.name,
+          recommendations: [],
+        };
+      }
+      acc[key].recommendations.push(rec);
+      return acc;
+    }, {})
+  ) as {
+    status: string;
+    labId: string;
+    labName: string;
+    recommendations: LabRecommendation[];
+  }[];
+
+  const labOrder = patientDetails.labOrder || [];
+
+  const scheduledTest = labOrder.filter((f) => f.status === "ORDERED");
+  const completedTest = labOrder.filter((f) => f.status === "COMPLETED");
+  const collectedTest = labOrder.filter((f) => f.status === "COLLECTED");
+  const handleViewResults = (completedTest: any) => {
+    setSelectedLabResult(completedTest);
+  };
+  const { mutate } = useCreateOrder();
+
+  const queryClient = useQueryClient();
+
+  const handleCreateOrder = async (testIds: string[]) => {
+    mutate(
+      { recomendationIds: testIds },
+      {
+        onSuccess: (res) => {
+          setSelectedRequisitionData(res.data);
+          queryClient.invalidateQueries({ queryKey: ["patientDetails"] });
+          queryClient.invalidateQueries({ queryKey: ["fetchPatientsApi"] });
+          queryClient.invalidateQueries({ queryKey: ["fetchFacilityStatApi"] });
+        },
+      }
+    );
+  };
+  return (
+    <>
+      {!!selectedLabResult && (
+        <Dialog open={true} onOpenChange={() => setSelectedLabResult(null)}>
+          <DialogContent className="max-w-6xl max-h-[95vh]">
+            <DialogHeader>
+              <DialogTitle>Lab Test Results</DialogTitle>
+            </DialogHeader>
+
+            {selectedLabResult && (
+              <ScrollArea className="h-[calc(100vh-120px)]">
+                <LabResultsViewer result={selectedLabResult} />
+              </ScrollArea>
+            )}
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {!!selectedRequisitionData && (
+        <Dialog
+          open={!!selectedRequisitionData}
+          onOpenChange={() => setSelectedRequisitionData(null)}
+        >
+          <DialogContent className="max-w-6xl max-h-[95vh]">
+            <DialogHeader>
+              <DialogTitle>Lab Test Requisition</DialogTitle>
+            </DialogHeader>
+
+            <ScrollArea className="h-[calc(100vh-120px)]">
+              <LabRequisition data={selectedRequisitionData} />
+            </ScrollArea>
+          </DialogContent>
+        </Dialog>
+      )}
+      {!!completedTest.length && (
+        <>
+          <Separator />
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <ClipboardList className="w-4 h-4 text-green-600" />
+              <h3 className="text-sm text-gray-700">Completed Tests</h3>
+            </div>
+            <div className="space-y-3">
+              {completedTest.map((test) => (
+                <div
+                  key={test.id}
+                  className={`p-4 rounded-lg border ${
+                    test.results?.isNormal === false
+                      ? "bg-red-50 border-red-200"
+                      : "bg-green-50 border-green-200"
+                  }`}
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="text-gray-900">{test.testName}</p>
+                        {test.results?.isNormal === false && (
+                          <AlertTriangle className="w-4 h-4 text-red-600" />
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-600 mt-1">
+                        Completed:{" "}
+                        {new Date(test.updatedAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className="flex flex-col gap-1 items-end">
+                      {test.results?.isNormal === false && (
+                        <Badge className="bg-red-100 text-red-700 border-red-200">
+                          Abnormal
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+
+                  <Button
+                    onClick={() => handleViewResults(test)}
+                    variant="outline"
+                    size="sm"
+                    className="w-full mt-2"
+                  >
+                    <Eye className="w-4 h-4 mr-2" />
+                    View Results
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+
+      {!!scheduledTest.length && (
+        <>
+          <Separator />
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <ClipboardList className="w-4 h-4 text-green-600" />
+              <h3 className="text-sm text-gray-700">Scheduled Tests</h3>
+            </div>
+            <div className="space-y-3">
+              {scheduledTest.map((test) => (
+                <div
+                  key={test.id}
+                  className={`p-4 rounded-lg border ${
+                    test.results?.isNormal === false
+                      ? "bg-red-50 border-red-200"
+                      : "bg-green-50 border-green-200"
+                  }`}
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="text-gray-900">{test.testName}</p>
+                      </div>
+                      <p className="text-xs text-gray-600 mt-1">
+                        Scheduled:{" "}
+                        {new Date(test.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+
+      {!!collectedTest.length && (
+        <>
+          <Separator />
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <ClipboardList className="w-4 h-4 text-green-600" />
+              <h3 className="text-sm text-gray-700">Collected Tests</h3>
+            </div>
+            <div className="space-y-3">
+              {collectedTest.map((test) => (
+                <div
+                  key={test.id}
+                  className={`p-4 rounded-lg border ${
+                    test.results?.isNormal === false
+                      ? "bg-red-50 border-red-200"
+                      : "bg-green-50 border-green-200"
+                  }`}
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="text-gray-900">{test.testName}</p>
+                        {test.results?.isNormal === false && (
+                          <AlertTriangle className="w-4 h-4 text-red-600" />
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-600 mt-1">
+                        CollectedAt:{" "}
+                        {new Date(test.collectedAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className="flex flex-col gap-1 items-end"></div>
+                  </div>
+
+                  <Button
+                    onClick={() => handleViewResults(test)}
+                    variant="outline"
+                    size="sm"
+                    className="w-full mt-2"
+                  >
+                    <Eye className="w-4 h-4 mr-2" />
+                    View Results
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+      {groupedRecomendations.length > 0 && (
+        <>
+          <Separator />
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <AlertCircle className="w-4 h-4 text-orange-600" />
+              <h3 className="text-sm text-gray-700">Recommended Tests</h3>
+            </div>
+
+            <div className="space-y-6">
+              {groupedRecomendations.map((group, groupIndex) => (
+                <div
+                  key={groupIndex}
+                  className="p-4 bg-orange-50 border border-orange-200 rounded-lg"
+                >
+                  <p className="text-sm text-gray-500 mb-3">
+                    Lab: <span className="font-medium">{group.labName}</span>
+                  </p>
+
+                  <div className="space-y-4">
+                    {group.recommendations.map((test) => (
+                      <div
+                        key={test.id}
+                        className="p-3 bg-white rounded border border-orange-100"
+                      >
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex-1">
+                            <p className="text-gray-900">{test.testName}</p>
+                            <p className="text-xs text-gray-600 mt-1">
+                              CPT: {test.cptCode}
+                            </p>
+                          </div>
+                          <Badge
+                            className={`${
+                              test.priority === "HIGH"
+                                ? "bg-red-100 text-red-700 border-red-200"
+                                : "bg-yellow-100 text-yellow-700 border-yellow-200"
+                            } capitalize`}
+                          >
+                            {test.priority} priority
+                          </Badge>
+                        </div>
+
+                        <div className="mt-2 p-2 bg-green-50 rounded border border-green-200">
+                          <div className="flex items-start gap-2">
+                            <Check className="w-4 h-4 text-green-600 mt-0.5 shrink-0" />
+                            <div className="flex-1">
+                              <p className="text-sm text-green-900">
+                                {insurancePlan}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="mt-2 p-2 bg-white rounded border border-orange-100">
+                          <p className="text-sm text-gray-700 mb-1">Reason</p>
+                          <p className="text-sm text-gray-900">{test.reason}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-4">
+                    {group.status === "PENDING" ? (
+                      <Button
+                        onClick={() =>
+                          handleCreateOrder(
+                            group.recommendations.map((item) => item.id)
+                          )
+                        }
+                        className="w-full"
+                      >
+                        <Send className="w-4 h-4 mr-2" />
+                        Create Order & Generate Requisition
+                      </Button>
+                    ) : (
+                      <Button className="w-full bg-green-200 text-green-500 hover:bg-green-200">
+                        <CheckCheck className="w-4 h-4 mr-2" />
+                        Ordered
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+    </>
+  );
+};
+
+export default DetailBox;

@@ -31,7 +31,7 @@ const PatientList = ({
 
   const filteredPatients = patients.filter((patient) => {
     const matchesSearch =
-      patient.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      patient.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       patient.mrn.toLowerCase().includes(searchQuery.toLowerCase());
 
     if (!matchesSearch) return false;
@@ -49,7 +49,6 @@ const PatientList = ({
   });
 
   const handlePatientClick = (patient: Patient) => {
-    // If clicking the same patient, deselect it
     if (selectedPatient?.id === patient.id) {
       onSelectPatient(null);
     } else {
@@ -92,7 +91,6 @@ const PatientList = ({
 
       <ScrollArea className="h-[calc(100vh-320px)]">
         <div className="p-4 space-y-4">
-          {/* Candidate Patients */}
           {(filter === "all" || filter === "candidates") &&
             candidatePatients.length > 0 && (
               <div>
@@ -115,7 +113,6 @@ const PatientList = ({
               </div>
             )}
 
-          {/* Scheduled Tests */}
           {(filter === "all" || filter === "scheduled") &&
             scheduledPatients.length > 0 && (
               <div>
@@ -138,7 +135,6 @@ const PatientList = ({
               </div>
             )}
 
-          {/* Completed Tests */}
           {(filter === "all" || filter === "completed") &&
             completedPatients.length > 0 && (
               <div>
@@ -161,7 +157,6 @@ const PatientList = ({
               </div>
             )}
 
-          {/* Other Patients */}
           {filter === "all" && otherPatients.length > 0 && (
             <div>
               <div className="flex items-center gap-2 mb-2">
@@ -224,7 +219,7 @@ function PatientCard({ patient, isSelected, onClick }: PatientCardProps) {
       <div className="flex items-start justify-between mb-2">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
-            <p className="text-gray-900">{patient.name}</p>
+            <p className="text-gray-900">{patient.firstName}</p>
             {hasAbnormalResults && (
               <AlertTriangle className="w-4 h-4 text-red-600" />
             )}
@@ -270,17 +265,17 @@ function PatientCard({ patient, isSelected, onClick }: PatientCardProps) {
 
       <div className="flex items-center gap-2 flex-wrap">
         <span className="text-xs text-gray-600">
-          {patient.age}yo • {patient.demographics.gender}
+          {patient.age}yo • {patient.gender}
         </span>
         <Badge variant="outline" className="text-xs">
           {patient.insurance.type}
         </Badge>
       </div>
 
-      {patient.diagnoses.length > 0 && (
+      {patient.diagnosis.length > 0 && (
         <div className="mt-2">
           <p className="text-xs text-gray-500 line-clamp-1">
-            {patient.diagnoses.map((d) => d.code).join(", ")}
+            {patient.diagnosis.map((d) => d.icd10).join(", ")}
           </p>
         </div>
       )}

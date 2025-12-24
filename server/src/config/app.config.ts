@@ -1,10 +1,17 @@
-export const PORT = Number(process.env.PORT);
-export const IS_PRODUCTION_ENV = process.env.ENV_NAME === "PRODUCTION";
-export const CLIENT_URL = process.env.CLIENT_URL;
-export const BASE_API_PATH = process.env.BASE_API_PATH;
-export const SALT_ROUNDS = Number(process.env.SALT_ROUNDS);
-export const TOKEN_SECRET_KEY = process.env.TOKEN_SECRET_KEY || "";
-export const TOKEN_EXPIRE_AT = process.env.TOKEN_EXPIRE_AT;
-export const CREDENTIAL_ENCRYPTION_KEY = process.env.CREDENTIAL_ENCRYPTION_KEY;
-export const DATABASE_URL = process.env.DATABASE_URL;
-export const PF_JWT_SECRET = process.env.PF_JWT_SECRET || "";
+import "dotenv/config";
+
+const AppConfig = Object.freeze({
+  PORT: Number(process.env.PORT),
+  IS_PRODUCTION_ENV: String(process.env.ENV_NAME) === "PRODUCTION",
+  CLIENT_URL: String(process.env.CLIENT_URL),
+  BASE_API_PATH: String(process.env.BASE_API_PATH),
+  BASE_SERVE_PATH: String(process.env.BASE_SERVE_PATH),
+  SALT_ROUNDS: Number(process.env.SALT_ROUNDS),
+  TOKEN_SECRET_KEY: String(process.env.TOKEN_SECRET_KEY),
+  TOKEN_EXPIRE_AT: String(process.env.TOKEN_EXPIRE_AT),
+  CREDENTIAL_ENCRYPTION_KEY: String(process.env.CREDENTIAL_ENCRYPTION_KEY),
+  DATABASE_URL: String(process.env.DATABASE_URL),
+  PF_JWT_SECRET: String(process.env.PF_JWT_SECRET),
+});
+
+export default AppConfig;

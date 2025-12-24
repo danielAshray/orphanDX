@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "LabOrder" ALTER COLUMN "cptCode" DROP DEFAULT,
+ALTER COLUMN "testName" DROP DEFAULT;

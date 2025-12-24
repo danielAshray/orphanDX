@@ -13,4 +13,8 @@ const pfCallbackQuery = Joi.object({
   practiceId: Joi.string().required(),
 });
 
-export { querySchema, pfCallbackQuery };
+const uploadParamsSchema = Joi.object({
+  id: Joi.string().uuid().required(),
+});
+
+export { querySchema, pfCallbackQuery, uploadParamsSchema };

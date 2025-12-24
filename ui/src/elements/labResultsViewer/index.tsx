@@ -26,11 +26,12 @@ const LabResultsViewer = ({ result }: LabResultsViewerProps) => {
     toast.success("Lab results downloaded as PDF");
   };
 
-  const hasAbnormalResults = result.results.some((r) => r.flag);
+  const hasAbnormalResults = result?.testResult?.result.some(
+    (r) => r.status === "high" || r.status === "low" || r.status === "critical"
+  );
 
   return (
     <div className="space-y-4">
-      {/* Action Buttons */}
       <div className="flex gap-2 print:hidden">
         <Button onClick={handlePrint} className="gap-2">
           <Printer className="w-4 h-4" />
@@ -42,7 +43,6 @@ const LabResultsViewer = ({ result }: LabResultsViewerProps) => {
         </Button>
       </div>
 
-      {/* Results Report */}
       <Card className="p-8 bg-white">
         {/* Header */}
         <div className="text-center mb-6">
@@ -58,29 +58,27 @@ const LabResultsViewer = ({ result }: LabResultsViewerProps) => {
           <Separator className="my-4" />
         </div>
 
-        {/* Test Information */}
         <div className="mb-6">
           <div className="bg-gray-50 p-4 rounded-lg">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Test Name</p>
-                <p className="text-gray-900">{result.testName}</p>
+                <p className="text-gray-900">{result?.testName}</p>
               </div>
               <div className="text-right">
                 <p className="text-sm text-gray-600">Order ID</p>
-                <p className="text-gray-900">{result.orderId}</p>
+                <p className="text-gray-900">{result?.id}</p>
               </div>
             </div>
             <div className="mt-3">
               <p className="text-sm text-gray-600">Completed Date</p>
               <p className="text-gray-900">
-                {new Date(result.completedDate).toLocaleString()}
+                {new Date(result?.updatedAt).toLocaleString()}
               </p>
             </div>
           </div>
         </div>
 
-        {/* Alert if abnormal */}
         {hasAbnormalResults && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
             <div className="flex items-start gap-3">
@@ -96,7 +94,6 @@ const LabResultsViewer = ({ result }: LabResultsViewerProps) => {
           </div>
         )}
 
-        {/* Results Table */}
         <div className="mb-6">
           <h3 className="text-gray-900 mb-3 pb-2 border-b">Test Results</h3>
           <div className="overflow-x-auto">
@@ -121,43 +118,49 @@ const LabResultsViewer = ({ result }: LabResultsViewerProps) => {
                 </tr>
               </thead>
               <tbody>
-                {result.results.map((item, idx) => (
+                {result.testResult.result.map((item, idx) => (
                   <tr
                     key={idx}
                     className={`border-b border-gray-100 ${
-                      item.flag ? "bg-red-50" : ""
+                      item.status === "high" ||
+                      item.status === "critical" ||
+                      item.status === "low"
+                        ? "bg-red-50"
+                        : ""
                     }`}
                   >
                     <td className="py-3 px-4 text-sm text-gray-900">
-                      {item.name}
+                      {item.component}
                     </td>
                     <td className="py-3 px-4 text-gray-900">{item.value}</td>
                     <td className="py-3 px-4 text-sm text-gray-700">
                       {item.unit}
                     </td>
                     <td className="py-3 px-4 text-sm text-gray-700">
-                      {item.referenceRange}
+                      {item.referenceRange?.low} - {item.referenceRange?.high}
                     </td>
                     <td className="py-3 px-4 text-center">
-                      {item.flag ? (
+                      {item.status && (
                         <div className="flex items-center justify-center gap-1">
-                          {item.flag === "high" && (
-                            <>
-                              <TrendingUp className="w-4 h-4 text-red-600" />
-                              <Badge className="bg-red-100 text-red-700 border-red-200">
-                                High
-                              </Badge>
-                            </>
-                          )}
-                          {item.flag === "low" && (
-                            <>
-                              <TrendingDown className="w-4 h-4 text-blue-600" />
-                              <Badge className="bg-blue-100 text-blue-700 border-blue-200">
-                                Low
-                              </Badge>
-                            </>
-                          )}
-                          {item.flag === "critical" && (
+                          {item.status === "high" ||
+                            (item.status === "HIGH" && (
+                              <>
+                                <TrendingUp className="w-4 h-4 text-red-600" />
+                                <Badge className="bg-red-100 text-red-700 border-red-200">
+                                  High
+                                </Badge>
+                              </>
+                            ))}
+                          {item.status === "low" ||
+                            (item.status === "LOW" && (
+                              <>
+                                <TrendingDown className="w-4 h-4 text-blue-600" />
+                                <Badge className="bg-blue-100 text-blue-700 border-blue-200">
+                                  Low
+                                </Badge>
+                              </>
+                            ))}
+                          {item.status === "critical" && (
                             <>
                               <AlertTriangle className="w-4 h-4 text-red-600" />
                               <Badge className="bg-red-200 text-red-900 border-red-300">
@@ -165,14 +168,18 @@ const LabResultsViewer = ({ result }: LabResultsViewerProps) => {
                               </Badge>
                             </>
                           )}
+                          {(item.status === "NORMAL" ||
+                            item.status === "Normal") && (
+                            <>
+                              <Badge
+                                variant="outline"
+                                className="bg-green-50 text-green-700 border-green-200"
+                              >
+                                Normal
+                              </Badge>
+                            </>
+                          )}
                         </div>
-                      ) : (
-                        <Badge
-                          variant="outline"
-                          className="bg-green-50 text-green-700 border-green-200"
-                        >
-                          Normal
-                        </Badge>
                       )}
                     </td>
                   </tr>
@@ -184,17 +191,15 @@ const LabResultsViewer = ({ result }: LabResultsViewerProps) => {
 
         <Separator className="my-6" />
 
-        {/* Clinical Interpretation */}
         <div className="mb-6">
           <h3 className="text-gray-900 mb-3 pb-2 border-b">
             Clinical Interpretation
           </h3>
           <div className="bg-gray-50 p-4 rounded-lg">
-            <p className="text-gray-900">{result.interpretation}</p>
+            <p className="text-gray-900">{result.testResult?.summary}</p>
           </div>
         </div>
 
-        {/* Recommended Follow-up */}
         {result.recommendedFollowUp &&
           result.recommendedFollowUp.length > 0 && (
             <div className="mb-6">
@@ -217,7 +222,6 @@ const LabResultsViewer = ({ result }: LabResultsViewerProps) => {
             </div>
           )}
 
-        {/* Footer */}
         <div className="mt-8 pt-6 border-t border-gray-300">
           <p className="text-xs text-gray-600">
             These results have been reviewed and released by OrphanDX Laboratory

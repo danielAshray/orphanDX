@@ -1,34 +1,70 @@
 import { Button } from "@/components/button";
-import { localStorageUtil } from "@/lib/storage/localStorage";
-import type { AuthUserProps } from "@/types";
-import { LogOut } from "lucide-react";
+import {
+  Building2,
+  FlaskConical,
+  LogOut,
+  ShieldCheck,
+  Stethoscope,
+} from "lucide-react";
 import { Outlet } from "react-router-dom";
+import { useAuthContext } from "@/context/auth";
+import { ImageWithFallback } from "@/components";
 
-const Main = ({ user }: { user: AuthUserProps }) => {
+const Main = () => {
+  const { user, logout } = useAuthContext();
+
+  const { name, role, organization } = user;
+
+  const getRoleIcon = () => {
+    switch (role?.toLowerCase()) {
+      case "admin":
+        return <ShieldCheck className="w-4 h-4" />;
+      case "lab":
+        return <FlaskConical className="w-4 h-4" />;
+      case "facility":
+        return <Building2 className="w-4 h-4" />;
+      case "provider":
+        return <Stethoscope className="w-4 h-4" />;
+    }
+  };
+
+  const handleLogout = () => {
+    logout();
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-[1600px] mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-linear-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <span className="text-white">O</span>
-              </div>
-              <div>
-                <h1 className="text-gray-900">OrphanDX</h1>
-                <p className="text-xs text-gray-500">
-                  Specialty Test Intelligence Platform
-                </p>
-              </div>
+            <div className="flex flex-col items-center justify-center">
+              <ImageWithFallback
+                src="/logo.png"
+                alt="Logo"
+                className="w-auto h-10 object-cover drop-shadow-lg drop-shadow-blue-400"
+              />
+
+              <p className="text-xs text-gray-500 text-shadow-lg text-shadow-purple-200">
+                Specialty Test Intelligence Platform
+              </p>
             </div>
 
             <div className="flex items-center gap-4">
-              <p>{user.role}</p>
+              <div className="flex items-center gap-3 px-4 py-2 bg-gray-100 rounded-lg">
+                {getRoleIcon()}
+                <div>
+                  <p className="text-sm text-gray-900">{name}</p>
+                  <p className="text-xs text-gray-600">
+                    {role.toUpperCase()} - {organization?.role}
+                  </p>
+                </div>
+              </div>
+
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => localStorageUtil.remove("token")}
-                className="gap-2"
+                onClick={handleLogout}
+                className="gap-2 cursor-pointer"
               >
                 <LogOut className="w-4 h-4" />
                 Logout

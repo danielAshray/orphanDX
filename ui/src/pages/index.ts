@@ -1,7 +1,6 @@
 import Error from "./error";
+import Forbidden from "./forbidden";
 import Home from "./home";
-import Lab from "./dashboard/lab";
-import Login from "./login";
-import Provider from "./dashboard/provider";
+import NotFound from "./notFound";
 
-export { Error, Home, Lab, Login, Provider };
+export { Error, Forbidden, Home, NotFound };

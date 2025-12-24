@@ -1,5 +1,6 @@
 export const STORAGE_KEYS = Object.freeze({
-  CURRENT_USER: "currentUser",
-  TOKEN: "authToken",
-  SETTINGS: "appSettings",
+  TOKEN: "Token",
+  ROLE: "Role",
+  ORG_ROLE: "Org_Role",
+  USER: "User",
 });

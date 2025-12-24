@@ -1,26 +1,22 @@
+import { OrganizationRole } from "@prisma/client";
 import Joi from "joi";
 
-const createPatientBodySchema = Joi.object({
-  name: Joi.string().min(2).max(100).required(),
-  practiceId: Joi.number().integer().required(),
-  ehrPatientId: Joi.string().max(50).required(),
-  dob: Joi.date().required(),
-  gender: Joi.string()
-    .regex(/^(MALE|FEMALE|OTHER)$/)
-    .required()
-    .messages({
-      "any.required": "Gender is required",
-      "string.pattern.base": "Gender must be MALE, FEMALE or OTHER",
-    }),
-  lastVisit: Joi.date().optional().allow(null, ""),
-  phone: Joi.string().max(15).required(),
-  email: Joi.string().email().max(100).required(),
-});
+const createPatientSchema = Joi.object({
+  firstName: Joi.string().min(2).max(100).required(),
+  lastName: Joi.string().min(2).max(100).required(),
+  mrn: Joi.string().max(50).required(),
+  dateOfBirth: Joi.date().required(),
+  gender: Joi.string().valid("MALE", "FEMALE", "OTHER").required(),
+  phone: Joi.string().optional(),
+  email: Joi.string().email().optional(),
 
-const createOrderBodySchema = Joi.object({
-  patientId: Joi.number().integer().required(),
-  testId: Joi.number().integer().required(),
-  providerId: Joi.number().integer().required(),
+  insurance: Joi.object({
+    provider: Joi.string().required(),
+    plan: Joi.string().required(),
+  }).optional(),
+
+  facilityId: Joi.string().uuid().optional(),
+  providerId: Joi.string().uuid().optional(),
 });
 
 const createPatientRecommendationBodySchema = Joi.object({
@@ -45,31 +41,61 @@ const recommendTestBodySchema = Joi.object({
   reasonText: Joi.array().items(Joi.string()).required(),
 });
 
-const userLoginBodySchema = Joi.object({
+const userLoginSchema = Joi.object({
   email: Joi.string().email().required(),
-  password: Joi.string().min(8).required(),
+  password: Joi.string().required(),
 }).required();
 
-const userRrefreshTokenBodySchema = Joi.object({
-  refreshToken: Joi.string().required(),
-});
-
-const userRegisterBodySchema = Joi.object({
+const userRegisterSchema = Joi.object({
+  name: Joi.string().required(),
   email: Joi.string().email().required(),
-  name: Joi.string().min(2).max(70).required(),
-  password: Joi.string().min(8).required(),
+  password: Joi.string().min(6).required(),
   role: Joi.string()
-    .valid("ADMIN", "PROVIDER", "LAB")
+    .valid("ADMIN", "LAB", "FACILITY", "PROVIDER")
     .default("PROVIDER")
     .optional(),
 }).required();
 
+const createOrganizationSchema = Joi.object({
+  organization: Joi.object({
+    name: Joi.string().required().lowercase(),
+    role: Joi.string()
+      .valid(...Object.values(OrganizationRole))
+      .required(),
+    phone: Joi.string().required(),
+    street: Joi.string().required(),
+    suite: Joi.string().required(),
+    city: Joi.string().required(),
+    state: Joi.string().required(),
+    zipCode: Joi.string().required(),
+  }).required(),
+
+  user: Joi.object({
+    name: Joi.string().required().lowercase(),
+    email: Joi.string()
+      .email({ tlds: { allow: false } })
+      .required(),
+    password: Joi.string().min(6).required(),
+  }).required(),
+}).required();
+
+const detailsSchema = Joi.object({
+  searchBox: Joi.string().required(),
+});
+
+const createOrderSchema = Joi.object({
+  recomendationIds: Joi.array().items(Joi.string().required()).required(),
+})
+  .unknown(false)
+  .required();
+
 export {
-  userLoginBodySchema,
-  userRegisterBodySchema,
-  userRrefreshTokenBodySchema,
+  userLoginSchema,
+  userRegisterSchema,
+  createOrderSchema,
   recommendTestBodySchema,
-  createOrderBodySchema,
-  createPatientBodySchema,
+  createPatientSchema,
   createPatientRecommendationBodySchema,
+  detailsSchema,
+  createOrganizationSchema,
 };

@@ -1,47 +1,92 @@
-export interface Patient {
+export interface Insurance {
   id: string;
-  name: string;
-  age: number;
-  mrn: string;
-  dob: string;
-  insurance: {
-    provider: string;
-    planName: string;
-    memberId: string;
-    type: "Commercial" | "Medicare" | "Medicaid";
-  };
-  diagnoses: Diagnosis[];
-  demographics: {
-    gender: string;
-    phone: string;
-    email: string;
-  };
-  recommendedTests: RecommendedTest[];
-  lastVisit: string;
-  isCandidate: boolean;
-  completedTests?: CompletedTest[];
-  scheduledTests?: ScheduledTest[];
+  patientId: string;
+  provider: string;
+  plan: string;
+  memberId: string;
+  type: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Diagnosis {
-  code: string;
-  description: string;
+  id: string;
+  patientId: string;
+  name: string;
+  icd10: string;
   onsetDate: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export interface RecommendedTest {
+export interface LabRule {
   id: string;
   testName: string;
-  testCode: string;
-  priority: "high" | "medium" | "low";
-  reason: string;
-  payerCoverage: {
-    covered: boolean;
-    notes: string;
-    requiresAuth: boolean;
-  };
   cptCode: string;
-  icdCodes: string[];
+  labId: string;
+  lab: {
+    id: string;
+    name: string;
+  };
+  code: string;
+  message: string;
+  priority: "LOW" | "MEDIUM" | "HIGH";
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface LabRecommendation {
+  id: string;
+  testName: string;
+  cptCode: string;
+  priority: "LOW" | "MEDIUM" | "HIGH";
+  patientId: string;
+  reason: string;
+  status: "PENDING" | "COMPLETED" | "CANCELLED";
+  labRuleId: string;
+  diagnosisId: string;
+  createdAt: string;
+  updatedAt: string;
+  labRule: LabRule;
+}
+
+export interface PatientDetailsType {
+  id: string;
+  firstName: string;
+  lastName: string;
+  mrn: string;
+  dateOfBirth: string;
+  gender: "MALE" | "FEMALE" | "OTHER";
+  phone: string;
+  email: string;
+  lastVisit: string;
+  scheduledCount: number;
+  recomendationCount: number;
+  completedCount: number;
+  facilityId: string;
+  createdAt: string;
+  updatedAt: string;
+  insurance: Insurance;
+  diagnosis: Diagnosis[];
+  labRecommendations: LabRecommendation[];
+  labOrder: LabOrder[];
+}
+
+export interface LabOrder {
+  id: string;
+  testName: string;
+  cptCode: string;
+  facilityId: string;
+  labId: string;
+  patientId: string;
+  status: "ORDERED" | "COLLECTED" | "COMPLETED" | "CANCELLED";
+  results: any | null;
+  orderedAt: string;
+  completedAt: string | null;
+  createdById: string;
+  createdAt: string;
+  updatedAt: string;
+  collectedAt: string;
 }
 
 export interface CompletedTest {
@@ -66,21 +111,26 @@ export interface ScheduledTest {
 
 export interface LabResult {
   id: string;
-  orderId: string;
   testName: string;
-  completedDate: string;
+  diagnosis: { name: string };
+  updatedAt: string;
   reportUrl?: string;
-  results: TestResultItem[];
-  interpretation: string;
+  testResult: {
+    result: TestResultItem[];
+    summary: string;
+  };
   recommendedFollowUp?: string[];
 }
 
 export interface TestResultItem {
-  name: string;
+  component: string;
   value: string;
   unit: string;
-  referenceRange: string;
-  flag?: "high" | "low" | "critical";
+  referenceRange?: {
+    low: string;
+    high: string;
+  };
+  status?: "high" | "HIGH" | "low" | "LOW" | "critical" | "Normal" | "NORMAL";
 }
 
 export interface Order {
@@ -90,6 +140,8 @@ export interface Order {
   providerId: string;
   providerName: string;
   clinicName: string;
+  facilityId?: string;
+  labId?: string;
   testName: string;
   testCode: string;
   status:
@@ -113,11 +165,64 @@ export interface EventLog {
   metadata: Record<string, any>;
 }
 
-export type UserRole = "ADMIN" | "PROVIDER" | "LAB";
-export interface AuthUserProps {
-  id: number;
-  name: string;
+export type UserRole = "admin" | "lab" | "facility" | "provider";
+
+export interface User {
+  id: string;
   email: string;
+  name: string;
   role: UserRole;
-  status: string;
+  organizationId?: string; // facilityId or labId
+  organizationName?: string;
 }
+
+export interface Facility {
+  id: string;
+  name: string;
+  address: string;
+  phone: string;
+  labPartnerId: string; // Which lab they send orders to
+}
+
+export interface Lab {
+  id: string;
+  name: string;
+  address: string;
+  phone: string;
+  testingCapabilities: string[];
+}
+
+export interface Provider {
+  id: string;
+  name: string;
+  npi: string;
+  specialty: string;
+  facilityId: string;
+  email: string;
+  phone: string;
+}
+
+export interface ApiReponse {
+  status: string;
+  code: number;
+  message: string;
+  data: any;
+  detail: any;
+}
+
+export type completeOrderProps = {
+  orderId: string;
+  isNormal: boolean;
+  summary: string;
+  result: {
+    component: string;
+    value: number;
+    unit: string;
+    referenceRange: {
+      low: number;
+      high: number;
+    };
+    status: "NORMAL" | "HIGH" | "LOW";
+  }[];
+  recomendations: { action: string }[];
+};

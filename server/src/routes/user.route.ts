@@ -1,37 +1,33 @@
 import { Router } from "express";
 import {
   validateQuery,
-  validateReqBody,
-} from "../middleware/requestValidator.middleware";
-import {
-  userLoginBodySchema,
-  userRegisterBodySchema,
-} from "../validators/bodySchema";
+  validateBody,
+} from "../middlewares/requestValidator.middleware";
+import { userLoginSchema } from "../validators/bodySchema";
 import {
   getProfile,
-  loginUser,
   practiceFusionCallback,
   practiceFusionLogin,
-  registerUser,
 } from "../controllers/user.controller";
-import { authenticate, authRoute } from "../middleware/auth.middleware";
+import { authenticate } from "../middlewares/auth.middleware";
 import { pfCallbackQuery } from "../validators/querySchema";
-import { loginLimiter } from "../middleware/limit.middleware";
+import { loginLimiter } from "../middlewares/limit.middleware";
+import { loginUser } from "../controllers/auth.controller";
 
 const userRoute = Router();
 
-userRoute.post("/login", validateReqBody(userLoginBodySchema), loginUser);
-userRoute.get("/profile", authenticate, authRoute(getProfile));
-userRoute.post(
-  "/register",
-  validateReqBody(userRegisterBodySchema),
-  registerUser
-);
+const UserRoutes = Object.freeze({
+  Profile: "/profile",
+});
+
+userRoute.get(UserRoutes.Profile, authenticate, getProfile);
+
+userRoute.post("/login", validateBody(userLoginSchema), loginUser);
 
 userRoute.post(
   "/auth",
   loginLimiter,
-  validateReqBody(userLoginBodySchema),
+  validateBody(userLoginSchema),
   practiceFusionLogin
 );
 userRoute.get(
