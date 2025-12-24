@@ -339,21 +339,11 @@ const OWLiverRequisition: React.FC<OWLiverRequisitionProps> = ({ values }) => {
           color: rgb(0, 0, 0),
         });
 
-      // Save PDF and create Blob URL
-      const pdfBytes = await pdfDoc.save();
-      const blob = new Blob([new Uint8Array(pdfBytes)], {
-        type: "application/pdf",
-      });
-      const url = URL.createObjectURL(blob);
-      setPdfUrl(url);
+      const pdfDataUri = await pdfDoc.saveAsBase64({ dataUri: true });
+      setPdfUrl(pdfDataUri);
     };
 
     generatePdf();
-
-    // Cleanup blob URL on unmount
-    return () => {
-      if (pdfUrl) URL.revokeObjectURL(pdfUrl);
-    };
   }, [values]);
 
   if (!pdfUrl)
