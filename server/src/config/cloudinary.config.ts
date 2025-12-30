@@ -6,8 +6,17 @@ cloudinary.config({
   api_secret: AppConfig.CLOUDINARY_API_SECRET,
 });
 const uploadToCLoudinary = async (filePath: string) => {
-  const { secure_url } = await cloudinary.uploader.upload(filePath);
-  return secure_url;
+  const { secure_url, public_id } = await cloudinary.uploader.upload(filePath, {
+    resource_type: "raw",
+    folder: "pdfs",
+  });
+  return { secure_url, public_id };
+};
+
+export const deleteFileFromCloudinary = async (publicId: string) => {
+  await cloudinary.uploader.destroy(publicId, {
+    resource_type: "raw",
+  });
 };
 
 export default uploadToCLoudinary;

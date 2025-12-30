@@ -2,7 +2,10 @@ import { NextFunction, Request, Response } from "express";
 import { sendResponse } from "../utils/responseService";
 import { prisma } from "../lib/prisma";
 import { ApiError } from "../utils/apiService";
-import uploadToCLoudinary from "../config/cloudinary.config";
+import uploadToCLoudinary, {
+  deleteFileFromCloudinary,
+} from "../config/cloudinary.config";
+import fs from "fs";
 export const createOrder = async (
   req: Request,
   res: Response,
@@ -267,37 +270,47 @@ const orderTracking = async (
   }
 };
 
+const deleteLocalFile = (filePath: string = "") => {
+  if (!filePath) return;
+  fs.unlink(filePath, (error) => {
+    if (error) {
+      console.log("Error deleting file: ", error);
+    }
+  });
+};
+
 const uploadResultPDF = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
+  let cloudPublicId: string;
   try {
-    console.log("in here")
     const id = req.params.id;
     if (!req.file) {
       return res.status(500).json(ApiError.internal("Error uploading file"));
     }
-    const updatedResponse = await prisma.$transaction(async (tx) => {
-      const cloudinaryUrl = await uploadToCLoudinary(req.file?.path!);
-      console.log("url: " ,cloudinaryUrl)
-      const updatedOrder = await tx.labOrder.update({
-        where: { id },
-        data: {
-          resultPdfUrl: cloudinaryUrl,
-        },
-      });
-      return updatedOrder;
+    const { secure_url, public_id } = await uploadToCLoudinary(req.file?.path!);
+    cloudPublicId = public_id;
+    const updatedOrder = await prisma.labOrder.update({
+      where: { id },
+      data: {
+        resultPdfUrl: secure_url,
+      },
     });
+    console.log("updated order: ", updatedOrder);
     sendResponse(res, {
       success: true,
       code: 201,
       message: "PDF successfully uploaded",
-      data: updatedResponse,
+      data: updatedOrder,
     });
   } catch (exception: any) {
-    console.log("exception: ", exception)
+    deleteFileFromCloudinary(cloudPublicId!);
+    console.log("exception: ", exception);
     next(ApiError.internal(undefined, exception.message));
+  } finally {
+    deleteLocalFile(req.file?.path!);
   }
 };
 
