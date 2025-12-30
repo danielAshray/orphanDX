@@ -273,13 +273,14 @@ const uploadResultPDF = async (
   next: NextFunction
 ) => {
   try {
+    console.log("in here")
     const id = req.params.id;
     if (!req.file) {
       return res.status(500).json(ApiError.internal("Error uploading file"));
     }
     const updatedResponse = await prisma.$transaction(async (tx) => {
       const cloudinaryUrl = await uploadToCLoudinary(req.file?.path!);
-      console.log("url: ", cloudinaryUrl);
+      console.log("url: " ,cloudinaryUrl)
       const updatedOrder = await tx.labOrder.update({
         where: { id },
         data: {
@@ -295,6 +296,7 @@ const uploadResultPDF = async (
       data: updatedResponse,
     });
   } catch (exception: any) {
+    console.log("exception: ", exception)
     next(ApiError.internal(undefined, exception.message));
   }
 };
