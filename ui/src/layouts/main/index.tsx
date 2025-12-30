@@ -54,7 +54,6 @@ const Main = () => {
   const handleSubmitPdf = async () => {
     const file = pdfInputRef.current?.files?.[0];
     if (!file) return;
-    console.log("file: ", file.name);
     if (file?.type !== "application/pdf") {
       Notification({
         toastMessage: "Only PDFs are allowed",

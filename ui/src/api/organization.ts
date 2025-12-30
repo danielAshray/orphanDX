@@ -5,17 +5,21 @@ import type { ApiReponse } from "@/types";
 import { useMutation } from "@tanstack/react-query";
 
 const organizationRoutes = Object.freeze({
-  uploadPdf: "/",
+  uploadPdf: "/organization/upload-pdf",
 });
 
 const uploadOrganizationPdf = async (file: File): Promise<ApiReponse> => {
   const formData = new FormData();
   formData.append("pdf", file);
-  const { data } = await api.post<ApiReponse>("/", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
+  const { data } = await api.put<ApiReponse>(
+    organizationRoutes.uploadPdf,
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }
+  );
   return data;
 };
 
@@ -33,5 +37,3 @@ export const useUploadOrganizationPdf = () =>
         toastStatus: "error",
       }),
   });
-
-  

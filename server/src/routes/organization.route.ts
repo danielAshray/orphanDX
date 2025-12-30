@@ -9,6 +9,7 @@ import {
   registerOrganization,
   uploadPdf,
 } from "../controllers/organization.controller";
+import { uploadFile } from "../config/multer.config";
 
 const organizationRoute = Router();
 
@@ -20,10 +21,11 @@ organizationRoute.post(
   registerOrganization
 );
 
-organizationRoute.post(
+organizationRoute.put(
   "/upload-pdf",
   authenticate,
-  authorizeByRoleAndOrg(["SERVICE_ACCOUNT"], "LAB"),
+  authorizeByRoleAndOrg(["ADMIN"], "LAB"),
+  uploadFile,
   uploadPdf
 );
 

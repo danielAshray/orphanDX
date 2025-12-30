@@ -45,13 +45,18 @@ const uploadPdf = async (req: Request, res: Response, next: NextFunction) => {
     if (!req.file) {
       next(ApiError.internal("Error uploading file"));
     }
-    const fileName = "uploads/results/" + req.file?.filename;
+    const fileName = "/uploads/results/" + req.file?.filename;
     const organization = await prisma.user.findFirst({
       where: { id: req.user!.id },
     });
     await prisma.organization.update({
       where: { id: organization!.organizationId! },
       data: { organizationPdf: fileName },
+    });
+    sendResponse(res, {
+      success: true,
+      code: 200,
+      message: "Organization PDF successfully updated",
     });
   } catch (exception: any) {
     next(ApiError.internal(undefined, exception.message));
