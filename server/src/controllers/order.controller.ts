@@ -298,7 +298,6 @@ const uploadResultPDF = async (
         resultPdfUrl: secure_url,
       },
     });
-    console.log("updated order: ", updatedOrder);
     sendResponse(res, {
       success: true,
       code: 201,
@@ -307,7 +306,6 @@ const uploadResultPDF = async (
     });
   } catch (exception: any) {
     deleteFileFromCloudinary(cloudPublicId!);
-    console.log("exception: ", exception);
     next(ApiError.internal(undefined, exception.message));
   } finally {
     deleteLocalFile(req.file?.path!);

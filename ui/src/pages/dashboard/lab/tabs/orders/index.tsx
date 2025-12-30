@@ -153,7 +153,7 @@ const Order = () => {
     }
   };
 
-  const handleUploadSubmit = (order: Order) => {
+  const handleUploadSubmit = async (order: Order) => {
     if (selectedFile) {
       if (selectedFile.type !== "application/pdf") {
         Notification({
@@ -172,7 +172,7 @@ const Order = () => {
         return;
       }
 
-      uploadMutation.mutate({
+      await uploadMutation.mutateAsync({
         orderId: order.id,
         file: selectedFile,
       });
@@ -523,7 +523,10 @@ const Order = () => {
               Cancel
             </Button>
             {selectedOrder && (
-              <Button onClick={() => handleUploadSubmit(selectedOrder)}>
+              <Button
+                disabled={!selectedFile || uploadMutation.isPending}
+                onClick={() => handleUploadSubmit(selectedOrder)}
+              >
                 Submit
               </Button>
             )}
