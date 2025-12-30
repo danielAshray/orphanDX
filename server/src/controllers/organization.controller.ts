@@ -40,4 +40,22 @@ const registerOrganization = async (
   }
 };
 
-export { registerOrganization };
+const uploadPdf = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    if (!req.file) {
+      next(ApiError.internal("Error uploading file"));
+    }
+    const fileName = "uploads/results/" + req.file?.filename;
+    const organization = await prisma.user.findFirst({
+      where: { id: req.user!.id },
+    });
+    await prisma.organization.update({
+      where: { id: organization!.organizationId! },
+      data: { organizationPdf: fileName },
+    });
+  } catch (exception: any) {
+    next(ApiError.internal(undefined, exception.message));
+  }
+};
+
+export { registerOrganization, uploadPdf };
