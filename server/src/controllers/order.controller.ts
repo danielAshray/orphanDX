@@ -267,50 +267,6 @@ const orderTracking = async (
   }
 };
 
-const uploadResultPDF = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const orderId = req.params.id;
 
-    if (!req.file) {
-      return next(ApiError.notFound("PDF file is required"));
-    }
 
-    const pdfPath = `/uploads/results/${req.file.filename}`;
-
-    const { orderTest } = await prisma.$transaction(async (tx) => {
-      const orderTest = await tx.labOrder.update({
-        where: {
-          id: orderId,
-        },
-        data: { resultPdfUrl: pdfPath, status: "COLLECTED" },
-      });
-
-      await tx.patient.update({
-        where: {
-          id: orderTest.patientId,
-        },
-        data: {
-          scheduledCount: { decrement: -1 },
-          resultCount: { increment: 1 },
-        },
-      });
-
-      return { orderTest };
-    });
-
-    sendResponse(res, {
-      success: true,
-      code: 200,
-      message: "Result pdf uploaded successfully",
-      data: orderTest,
-    });
-  } catch (error: any) {
-    next(ApiError.internal(undefined, error.message));
-  }
-};
-
-export { getDashboard, orderTracking, uploadResultPDF };
+export { getDashboard, orderTracking,  };

@@ -32,6 +32,18 @@ const Main = () => {
     logout();
   };
 
+  const uploadPdf = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files![0];
+    console.log("type: ", file.type);
+    if (file.type !== " application/pdf") {
+      alert("can only upload pdf");
+    }
+    if (file.size > 10 * 1024 * 1024) alert("file too big!");
+    
+    
+
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
@@ -50,6 +62,12 @@ const Main = () => {
             </div>
 
             <div className="flex items-center gap-4">
+              {organization?.role === "LAB" && (
+                <div>
+                  <input type="file" onChange={uploadPdf} className="border" />
+                </div>
+              )}
+
               <div className="flex items-center gap-3 px-4 py-2 bg-gray-100 rounded-lg">
                 {getRoleIcon()}
                 <div>
