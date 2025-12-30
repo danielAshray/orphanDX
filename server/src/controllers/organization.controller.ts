@@ -3,6 +3,8 @@ import { ApiError } from "../utils/apiService";
 import { sendResponse } from "../utils/responseService";
 import { prisma } from "../lib/prisma";
 import { hashPassword } from "../utils/bcryptService";
+import fs from "fs";
+import path from "path";
 
 const registerOrganization = async (
   req: Request,
@@ -46,13 +48,27 @@ const uploadPdf = async (req: Request, res: Response, next: NextFunction) => {
       next(ApiError.internal("Error uploading file"));
     }
     const fileName = "/uploads/results/" + req.file?.filename;
-    const organization = await prisma.user.findFirst({
+    const user = await prisma.user.findFirst({
       where: { id: req.user!.id },
+      include: { organization: { select: { organizationPdf: true } } },
     });
+    const prevPdf = user?.organization?.organizationPdf;
     await prisma.organization.update({
-      where: { id: organization!.organizationId! },
+      where: { id: user!.organizationId! },
       data: { organizationPdf: fileName },
     });
+
+    if (prevPdf) {
+      const filePath = path.join(__dirname, path.join("../", prevPdf));
+      fs.unlink(filePath, (err) => {
+        if (err) {
+          console.log("Error deleting file");
+        } else {
+          console.log("File successfully deleted");
+        }
+      });
+    }
+
     sendResponse(res, {
       success: true,
       code: 200,
