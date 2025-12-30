@@ -7,7 +7,6 @@ cloudinary.config({
 });
 const uploadToCLoudinary = async (filePath: string) => {
   const { secure_url, public_id } = await cloudinary.uploader.upload(filePath, {
-    resource_type: "raw",
     folder: "pdfs",
   });
   return { secure_url, public_id };

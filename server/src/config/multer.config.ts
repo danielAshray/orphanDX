@@ -6,7 +6,7 @@ import path from "path";
 type CbDestination = (error: Error | null, destination: string) => void;
 type File = Express.Multer.File;
 
-const uploadDir = path.join(__dirname, "../uploads/results");
+const uploadDir = path.join(__dirname, "../../../uploads/results");
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }

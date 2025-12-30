@@ -4,7 +4,7 @@ export type ApiErrorType = {
   detail?: any;
 };
 
-const createApiError = (
+const createApiError  = (
   code: number,
   message: string,
   detail?: any

@@ -352,7 +352,7 @@ const Order = () => {
                           View Requisition
                         </Button>
                       )}
-                      {order.status === "COMPLETED" && order.resultPdfUrl && (
+                      {order.resultPdfUrl && (
                         <Button
                           variant="outline"
                           size="sm"
@@ -476,13 +476,14 @@ const Order = () => {
           aria-describedby="Lab Test Results"
         >
           <DialogHeader>
-            <DialogTitle>Lab Test Results</DialogTitle>
+            <DialogTitle className="">Lab Test Results</DialogTitle>
+            {selectedLabResult}
           </DialogHeader>
 
           {selectedLabResult && (
             <ScrollArea className="h-[calc(100vh-120px)]">
               <iframe
-                src={`https://app.orphandx.com${selectedLabResult}`}
+                src={selectedLabResult}
                 width="100%"
                 height="600px"
                 style={{ border: "none" }}

@@ -2,10 +2,10 @@ import { NextFunction, Request, Response } from "express";
 import { sendResponse } from "../utils/responseService";
 import { prisma } from "../lib/prisma";
 import { ApiError } from "../utils/apiService";
-import uploadToCLoudinary, {
-  deleteFileFromCloudinary,
-} from "../config/cloudinary.config";
-import fs from "fs";
+// import uploadToCLoudinary, {
+//   deleteFileFromCloudinary,
+// } from "../config/cloudinary.config";
+// import fs from "fs";
 export const createOrder = async (
   req: Request,
   res: Response,
@@ -270,32 +270,31 @@ const orderTracking = async (
   }
 };
 
-const deleteLocalFile = (filePath: string = "") => {
-  if (!filePath) return;
-  fs.unlink(filePath, (error) => {
-    if (error) {
-      console.log("Error deleting file: ", error);
-    }
-  });
-};
+// const deleteLocalFile = (filePath: string = "") => {
+//   if (!filePath) return;
+//   fs.unlink(filePath, (error) => {
+//     if (error) {
+//       console.log("Error deleting file: ", error);
+//     }
+//   });
+// };
 
 const uploadResultPDF = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  let cloudPublicId: string;
   try {
     const id = req.params.id;
     if (!req.file) {
       return res.status(500).json(ApiError.internal("Error uploading file"));
     }
-    const { secure_url, public_id } = await uploadToCLoudinary(req.file?.path!);
-    cloudPublicId = public_id;
+    // const { secure_url, public_id } = await uploadToCLoudinary(req.file?.path!);
+    // cloudPublicId = public_id;
     const updatedOrder = await prisma.labOrder.update({
       where: { id },
       data: {
-        resultPdfUrl: secure_url,
+        resultPdfUrl: req.file.path,
       },
     });
     sendResponse(res, {
@@ -305,10 +304,10 @@ const uploadResultPDF = async (
       data: updatedOrder,
     });
   } catch (exception: any) {
-    deleteFileFromCloudinary(cloudPublicId!);
+    // deleteFileFromCloudinary(cloudPublicId!);
     next(ApiError.internal(undefined, exception.message));
   } finally {
-    deleteLocalFile(req.file?.path!);
+    // deleteLocalFile(req.file?.path!);
   }
 };
 
