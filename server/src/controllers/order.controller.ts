@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { sendResponse } from "../utils/responseService";
 import { prisma } from "../lib/prisma";
 import { ApiError } from "../utils/apiService";
-
+import uploadToCLoudinary from "../config/cloudinary.config";
 export const createOrder = async (
   req: Request,
   res: Response,
@@ -267,6 +267,36 @@ const orderTracking = async (
   }
 };
 
+const uploadResultPDF = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const id = req.params.id;
+    if (!req.file) {
+      return res.status(500).json(ApiError.internal("Error uploading file"));
+    }
+    const updatedResponse = await prisma.$transaction(async (tx) => {
+      const cloudinaryUrl = await uploadToCLoudinary(req.file?.path!);
+      console.log("url: ", cloudinaryUrl);
+      const updatedOrder = await tx.labOrder.update({
+        where: { id },
+        data: {
+          resultPdfUrl: cloudinaryUrl,
+        },
+      });
+      return updatedOrder;
+    });
+    sendResponse(res, {
+      success: true,
+      code: 201,
+      message: "PDF successfully uploaded",
+      data: updatedResponse,
+    });
+  } catch (exception: any) {
+    next(ApiError.internal(undefined, exception.message));
+  }
+};
 
-
-export { getDashboard, orderTracking,  };
+export { getDashboard, orderTracking, uploadResultPDF };

@@ -12,6 +12,9 @@ const AppConfig = Object.freeze({
   CREDENTIAL_ENCRYPTION_KEY: String(process.env.CREDENTIAL_ENCRYPTION_KEY),
   DATABASE_URL: String(process.env.DATABASE_URL),
   PF_JWT_SECRET: String(process.env.PF_JWT_SECRET),
+  CLOUDINARY_CLOUD_NAME: String(process.env.CLOUDINARY_CLOUD_NAME),
+  CLOUDINARY_API_KEY: String(process.env.CLOUDINARY_API_KEY),
+  CLOUDINARY_API_SECRET: String(process.env.CLOUDINARY_API_SECRET)
 });
 
 export default AppConfig;
