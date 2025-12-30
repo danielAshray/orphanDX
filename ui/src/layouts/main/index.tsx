@@ -39,9 +39,6 @@ const Main = () => {
       alert("can only upload pdf");
     }
     if (file.size > 10 * 1024 * 1024) alert("file too big!");
-    
-    
-
   };
 
   return (
@@ -62,12 +59,6 @@ const Main = () => {
             </div>
 
             <div className="flex items-center gap-4">
-              {organization?.role === "LAB" && (
-                <div>
-                  <input type="file" onChange={uploadPdf} className="border" />
-                </div>
-              )}
-
               <div className="flex items-center gap-3 px-4 py-2 bg-gray-100 rounded-lg">
                 {getRoleIcon()}
                 <div>
