@@ -5,16 +5,32 @@ import {
   LogOut,
   ShieldCheck,
   Stethoscope,
+  Upload,
 } from "lucide-react";
 import { Outlet } from "react-router-dom";
 import { useAuthContext } from "@/context/auth";
-import { ImageWithFallback } from "@/components";
+import { ImageWithFallback, Input, Notification } from "@/components";
+import { useRef, useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogDescription,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/dialog";
+import { useUploadOrganizationPdf } from "@/api/organization";
 
 const Main = () => {
   const { user, logout } = useAuthContext();
 
   const { name, role, organization } = user;
 
+  const pdfInputRef = useRef<HTMLInputElement>(null);
+  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState<boolean>(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  const uploadPdfMutation = useUploadOrganizationPdf();
   const getRoleIcon = () => {
     switch (role?.toLowerCase()) {
       case "admin":
@@ -28,6 +44,35 @@ const Main = () => {
     }
   };
 
+  const handleOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target?.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+    }
+  };
+
+  const handleSubmitPdf = async () => {
+    const file = pdfInputRef.current?.files?.[0];
+    if (!file) return;
+    console.log("file: ", file.name);
+    if (file?.type !== "application/pdf") {
+      Notification({
+        toastMessage: "Only PDFs are allowed",
+        toastStatus: "error",
+      });
+    }
+    if (file?.size! > 5 * 1024 * 1024) {
+      Notification({
+        toastMessage: "File size must be less than 5 MB",
+        toastStatus: "error",
+      });
+    }
+    uploadPdfMutation.mutate(file);
+
+    setSelectedFile(null);
+    pdfInputRef.current = null;
+    setIsUploadDialogOpen(false);
+  };
   const handleLogout = () => {
     logout();
   };
@@ -50,6 +95,17 @@ const Main = () => {
             </div>
 
             <div className="flex items-center gap-4">
+              {organization.role === "LAB" && (
+                <Button
+                  onClick={() => setIsUploadDialogOpen(true)}
+                  variant="outline"
+                  className="cursor-pointer"
+                  size="sm"
+                >
+                  <Upload />
+                  Upload PDF
+                </Button>
+              )}
               <div className="flex items-center gap-3 px-4 py-2 bg-gray-100 rounded-lg">
                 {getRoleIcon()}
                 <div>
@@ -73,6 +129,40 @@ const Main = () => {
           </div>
         </div>
       </header>
+      <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Upload PDF</DialogTitle>
+            <DialogDescription>Select a file to upload</DialogDescription>
+          </DialogHeader>
+          <div className="">
+            <Input
+              id="pdf"
+              type="file"
+              ref={pdfInputRef}
+              onChange={handleOnChange}
+              accept=".pdf"
+            />
+            {selectedFile && (
+              <div className="text-sm text-gray-600">{selectedFile.name}</div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button
+              className="cursor-pointer"
+              variant={"outline"}
+              onClick={() => setIsUploadDialogOpen(false)}
+            >
+              {" "}
+              Cancel
+            </Button>
+            <Button onClick={handleSubmitPdf} className="cursor-pointer">
+              Upload
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <main className="container mx-auto p-4">
         <Outlet />
