@@ -63,8 +63,6 @@ const uploadPdf = async (req: Request, res: Response, next: NextFunction) => {
       fs.unlink(filePath, (err) => {
         if (err) {
           console.log("Error deleting file");
-        } else {
-          console.log("File successfully deleted");
         }
       });
     }
