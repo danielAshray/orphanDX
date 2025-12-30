@@ -2,6 +2,8 @@ import { NextFunction, Request, Response } from "express";
 import { sendResponse } from "../utils/responseService";
 import { prisma } from "../lib/prisma";
 import { ApiError } from "../utils/apiService";
+import AppConfig from "../config/app.config";
+// import { error } from "console";
 // import uploadToCLoudinary, {
 //   deleteFileFromCloudinary,
 // } from "../config/cloudinary.config";
@@ -311,4 +313,24 @@ const uploadResultPDF = async (
   }
 };
 
-export { getDashboard, orderTracking, uploadResultPDF };
+const serveFile = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const order = await prisma.labOrder.findFirst({ where: { id } });
+    if (!order) {
+      next(ApiError.badRequest("Order not found"));
+    }
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Security-Policy",
+      `frame-ancestors ${AppConfig.CLIENT_URL}` // allow your frontend
+    );
+    res.setHeader("Content-Disposition", "inline");
+
+    res.sendFile(order?.resultPdfUrl!);
+  } catch (exception: any) {
+    next(ApiError.internal(undefined, exception.message));
+  }
+};
+
+export { getDashboard, orderTracking, uploadResultPDF, serveFile };

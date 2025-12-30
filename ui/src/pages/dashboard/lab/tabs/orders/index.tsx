@@ -37,7 +37,7 @@ import {
   AlertDialogTitle,
 } from "@/components/alertDialog";
 import { OWLiverRequisition } from "@/elements";
-
+import { config } from "@/config/env";
 interface Patient {
   id: string;
   firstName: string;
@@ -235,7 +235,7 @@ const Order = () => {
 
   const handleViewResults = (order: Order) => {
     if (order.resultPdfUrl) {
-      setSelectedLabResult(order.resultPdfUrl);
+      setSelectedLabResult(order.id);
       setShowLabResults(true);
     }
   };
@@ -468,7 +468,12 @@ const Order = () => {
           )}
         </DialogContent>
       </Dialog>
-
+      <embed
+        src={selectedLabResult}
+        type="application/pdf"
+        width="100%"
+        height={"100%"}
+      />
       {/* Lab Results Dialog */}
       <Dialog open={showLabResults} onOpenChange={setShowLabResults}>
         <DialogContent
@@ -477,15 +482,14 @@ const Order = () => {
         >
           <DialogHeader>
             <DialogTitle className="">Lab Test Results</DialogTitle>
-            {selectedLabResult}
           </DialogHeader>
-
           {selectedLabResult && (
             <ScrollArea className="h-[calc(100vh-120px)]">
               <iframe
-                src={selectedLabResult}
+                // className="h-fit"
+                src={`${config.BASE_URL}/order/file/${selectedLabResult}`}
                 width="100%"
-                height="600px"
+                height="800px"
                 style={{ border: "none" }}
               />
             </ScrollArea>

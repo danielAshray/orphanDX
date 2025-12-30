@@ -5,6 +5,7 @@ import {
   getDashboard,
   orderTracking,
   uploadResultPDF,
+  serveFile
 } from "../controllers/order.controller";
 import {
   authenticate,
@@ -58,6 +59,13 @@ orderRoute.put(
   authorizeByRoleAndOrg(["ADMIN"], "LAB"),
   upload.single("pdf"),
   uploadResultPDF
+);
+
+orderRoute.get(
+  "/file/:id",
+  // authenticate,
+  // authorizeByRoleAndOrg(["ADMIN"], "LAB"),
+  serveFile
 );
 
 export default orderRoute;
