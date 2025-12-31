@@ -77,4 +77,24 @@ const uploadPdf = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-export { registerOrganization, uploadPdf };
+const fetchOrganizationData = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const organization = await prisma.organization.findFirst({
+      where: { id: req.user!.organization?.id },
+    });
+    sendResponse(res, {
+      success: true,
+      code: 200,
+      data: organization,
+      message: "Organization data successfully fetched",
+    });
+  } catch (exception: any) {
+    next(ApiError.internal(undefined, exception.message));
+  }
+};
+
+export { registerOrganization, uploadPdf, fetchOrganizationData };

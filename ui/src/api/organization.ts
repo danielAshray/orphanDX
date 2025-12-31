@@ -2,8 +2,19 @@ import { Notification } from "@/components";
 import api from "@/config/axios.config";
 import { getErrorMessage } from "@/lib/utils";
 import type { ApiReponse } from "@/types";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 
+type OrganizationData = {
+  id: string;
+  name: string;
+  phone: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  suite: string;
+  street: string;
+  organizationPdf?: String;
+};
 const organizationRoutes = Object.freeze({
   uploadPdf: "/organization/upload-pdf",
 });
@@ -36,4 +47,15 @@ export const useUploadOrganizationPdf = () =>
         toastMessage: getErrorMessage(error),
         toastStatus: "error",
       }),
+  });
+
+const fetchOrganizationData = async () => {
+  const { data } = await api.get("/organization");
+  return data.data;
+};
+
+export const useFetchOrganizationData = () =>
+  useQuery<OrganizationData>({
+    queryKey: ["organizationData"],
+    queryFn: fetchOrganizationData,
   });

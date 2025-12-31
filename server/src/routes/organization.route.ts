@@ -8,6 +8,7 @@ import { createOrganizationSchema } from "../validators/bodySchema";
 import {
   registerOrganization,
   uploadPdf,
+  fetchOrganizationData
 } from "../controllers/organization.controller";
 import { uploadFile } from "../config/multer.config";
 
@@ -28,5 +29,7 @@ organizationRoute.put(
   uploadFile,
   uploadPdf
 );
+
+organizationRoute.get("/",authenticate, fetchOrganizationData)
 
 export default organizationRoute;

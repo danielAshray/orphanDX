@@ -19,7 +19,11 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/dialog";
-import { useUploadOrganizationPdf } from "@/api/organization";
+import {
+  useFetchOrganizationData,
+  useUploadOrganizationPdf,
+} from "@/api/organization";
+import { useQuery } from "@tanstack/react-query";
 
 const Main = () => {
   const { user, logout } = useAuthContext();
@@ -75,6 +79,15 @@ const Main = () => {
   const handleLogout = () => {
     logout();
   };
+  const { data: organizationData } = useFetchOrganizationData();
+  console.log("organization data: ", organizationData);
+
+  const [isViewPdfOpen, setIsViewPdfOpen] = useState<boolean>(false);
+  const handleOpenPdf = () => {
+    if (organizationData?.organizationPdf) {
+      setIsViewPdfOpen(true);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -94,6 +107,19 @@ const Main = () => {
             </div>
 
             <div className="flex items-center gap-4">
+              {organization.role === "LAB" &&
+              organizationData?.organizationPdf ? (
+                <Button
+                  onClick={() => handleOpenPdf}
+                  variant="outline"
+                  className="cursor-pointer"
+                  size="sm"
+                >
+                  View PDF
+                </Button>
+              ) : (
+                <></>
+              )}
               {organization.role === "LAB" && (
                 <Button
                   onClick={() => setIsUploadDialogOpen(true)}
