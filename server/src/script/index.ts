@@ -531,8 +531,8 @@ async function createLabAndFacilityUsers() {
 
       const labUser = await prisma.user.create({
         data: {
-          email: "labuser@example.com",
-          password: await bcrypt.hash("LabUser@123", 10),
+          email: "pawan@ashrayconsulting.com",
+          password: await bcrypt.hash("Rememberme@123", 10),
           name: "Lab User",
           role: "ADMIN",
           organizationId: labOrg.id,
@@ -557,8 +557,8 @@ async function createLabAndFacilityUsers() {
 
       const facilityUser = await prisma.user.create({
         data: {
-          email: "facilityuser@example.com",
-          password: await bcrypt.hash("FacilityUser@123", 10),
+          email: "ashmit@ashrayconsulting.com",
+          password: await bcrypt.hash("Rememberme@123", 10),
           name: "Facility User",
           role: "ADMIN",
           organizationId: facilityOrg.id,

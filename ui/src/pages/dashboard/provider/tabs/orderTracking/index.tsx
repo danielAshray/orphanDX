@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/badge";
 import { OWLiverRequisition } from "@/elements";
+import { config } from "@/config/env";
 
 interface Patient {
   id: string;
@@ -305,7 +306,10 @@ const OrderTracking: React.FC<OrderTrackingProps> = ({ activeTab }) => {
 
       {/* Lab Requisition Dialog */}
       <Dialog open={showRequisition} onOpenChange={setShowRequisition}>
-        <DialogContent className="max-w-6xl max-h-[95vh]">
+        <DialogContent
+          className="max-w-6xl max-h-[95vh]"
+          aria-describedby="Lab Test Requisition"
+        >
           <DialogHeader>
             <DialogTitle>Lab Test Requisition</DialogTitle>
           </DialogHeader>
@@ -366,7 +370,7 @@ const OrderTracking: React.FC<OrderTrackingProps> = ({ activeTab }) => {
           {selectedLabResult && (
             <ScrollArea className="h-[calc(100vh-120px)]">
               <iframe
-                src={`https://app.orphandx.com${selectedLabResult}`}
+                src={`${config.BASE_UPLOAD_PATH}${selectedLabResult}`}
                 width="100%"
                 height="600px"
                 style={{ border: "none" }}

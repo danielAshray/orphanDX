@@ -91,7 +91,9 @@ export const createOrder = async (
               insurance: true,
             },
           },
-          diagnosis: true,
+          diagnosis: {
+            select: { diagnosis: { select: { name: true, icd10: true } } },
+          },
           createdBy: true,
         },
       });
@@ -104,6 +106,7 @@ export const createOrder = async (
           status: "ORDERED",
         },
       });
+
       await tx.patient.update({
         where: {
           id: patientId,
@@ -135,6 +138,7 @@ export const createOrder = async (
         phone: newOrder.facility.phone,
       },
       diagnosis: newOrder.diagnosis,
+      facility: newOrder.facility,
     };
 
     sendResponse(res, {
@@ -194,7 +198,6 @@ export const completeOrder = async (
       data: newOrder,
     });
   } catch (error: any) {
-    console.log(error);
     next(ApiError.internal("Failed to create order", error));
   }
 };
@@ -279,7 +282,7 @@ const uploadResultPDF = async (
       return next(ApiError.notFound("PDF file is required"));
     }
 
-    const pdfPath = `/uploads/results/${req.file.filename}`;
+    const pdfPath = `/uploads/${req.file.filename}`;
 
     const { orderTest } = await prisma.$transaction(async (tx) => {
       const orderTest = await tx.labOrder.update({
