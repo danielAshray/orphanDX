@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import { Loader } from "lucide-react";
 
-const templatePdf = "/HART_TRF_Requisition.pdf";
+const templatePdf = "/templates/HART_TRF_Requisition.pdf";
 
 type FormValues = {
   name: string;

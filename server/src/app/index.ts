@@ -9,6 +9,7 @@ import {
   notFoundHandler,
 } from "../middlewares/error.middleware";
 import { globalLimiter } from "../middlewares/limit.middleware";
+import { BASE_UPLOAD_PATH } from "../constants";
 
 const App = Object.freeze({
   SET: "trust proxy",
@@ -23,21 +24,34 @@ const app: Application = express();
 app.set(App.SET, 1);
 app.use(globalLimiter);
 
-app.use(cors({ origin: AppConfig.CLIENT_URL }));
+app.use(
+  cors({
+    origin: AppConfig.CLIENT_URL,
+    methods: AppConfig.ALLOWED_METHODS,
+    allowedHeaders: AppConfig.ALLOWED_HEADERS,
+  })
+);
 app.use(
   helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'"],
+        frameSrc: ["'self'", "blob:"],
+      },
+    },
     frameguard: false,
   })
 );
 
 app.use(express.json({ limit: App.LIMIT }));
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ limit: App.LIMIT, extended: true }));
 app.use(express.text({ type: App.TYPE }));
 
 app.use(AppConfig.BASE_API_PATH, mainRoute);
 app.use(
   AppConfig.BASE_SERVE_PATH,
-  express.static(path.join(__dirname, "../uploads/results"))
+  express.static(path.resolve(BASE_UPLOAD_PATH))
 );
 
 const frontendPath = path.join(__dirname, App.PATH);

@@ -23,7 +23,7 @@ import {
   Send,
 } from "lucide-react";
 import { useState } from "react";
-import LabRequisition from "./labRequisition";
+import { OWLiverRequisition } from "@/elements";
 
 type DetailBoxProps = {
   patientId: string;
@@ -112,13 +112,52 @@ const DetailBox = ({ patientId, insurancePlan }: DetailBoxProps) => {
           open={!!selectedRequisitionData}
           onOpenChange={() => setSelectedRequisitionData(null)}
         >
-          <DialogContent className="max-w-6xl max-h-[95vh]">
+          <DialogContent
+            className="max-w-6xl max-h-[95vh]"
+            aria-describedby="Lab Test Requisition"
+          >
             <DialogHeader>
               <DialogTitle>Lab Test Requisition</DialogTitle>
             </DialogHeader>
 
             <ScrollArea className="h-[calc(100vh-120px)]">
-              <LabRequisition data={selectedRequisitionData} />
+              <OWLiverRequisition
+                values={{
+                  name: `${selectedRequisitionData.patient.firstName} ${selectedRequisitionData.patient.lastName}`,
+                  ssn: "1234567890",
+                  dob: selectedRequisitionData.patient.dateOfBirth,
+                  sex: String("Male").toLowerCase(),
+                  address: "Boradandi",
+                  city: "Dhangadhi",
+                  state: "Sudurpashchim",
+                  zip: "10900",
+                  phone: selectedRequisitionData.patient.phone,
+                  email: selectedRequisitionData.patient.email,
+                  race: String("Other").toLowerCase(),
+                  ethnicity: String("N/A").toLowerCase(),
+                  bmi: "10",
+                  height: "6.9",
+                  weight: "120",
+
+                  collectorName: "Pawan Shahi",
+                  fasting: true,
+                  hrSinceLastMeal: "3h",
+                  dateCollected: "2025/12/24",
+                  timeCollected: "2025/12/24",
+                  am: true,
+
+                  icd10Codes: selectedRequisitionData.diagnosis.map(
+                    (item: any) => item.diagnosis.icd10
+                  ),
+                  // icd10Codes: ["E78.5", "E11.65", "E13.8", "E13.9", "K75.81"],
+
+                  patientSignature: `${selectedRequisitionData.patient.firstName} ${selectedRequisitionData.patient.lastName}`,
+                  patientSDate: selectedRequisitionData.patient.createdAt,
+
+                  providerSignature: selectedRequisitionData.facility.name,
+                  providerSDate: "2025/12/24",
+                }}
+              />
             </ScrollArea>
           </DialogContent>
         </Dialog>

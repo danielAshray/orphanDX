@@ -4,6 +4,8 @@ const AppConfig = Object.freeze({
   PORT: Number(process.env.PORT),
   IS_PRODUCTION_ENV: String(process.env.ENV_NAME) === "PRODUCTION",
   CLIENT_URL: String(process.env.CLIENT_URL),
+  ALLOWED_METHODS: String(process.env.ALLOWED_METHODS?.split(",")),
+  ALLOWED_HEADERS: String(process.env.ALLOWED_HEADERS?.split(",")),
   BASE_API_PATH: String(process.env.BASE_API_PATH),
   BASE_SERVE_PATH: String(process.env.BASE_SERVE_PATH),
   SALT_ROUNDS: Number(process.env.SALT_ROUNDS),
