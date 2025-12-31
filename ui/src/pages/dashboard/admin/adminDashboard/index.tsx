@@ -17,7 +17,7 @@ interface AdminDashboardProps {
 }
 
 // Mock data based on entity
-const getEntityName = (type: string, entityId: string) => {
+const getEntityName = (_type: string, entityId: string) => {
   const names: Record<string, string> = {
     "lab-1": "Central Diagnostics Lab",
     "lab-2": "Advanced Research Lab",
