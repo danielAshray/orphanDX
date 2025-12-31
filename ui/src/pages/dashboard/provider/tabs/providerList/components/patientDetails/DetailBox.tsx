@@ -10,7 +10,6 @@ import {
   DialogTitle,
 } from "@/components/dialog";
 import { ScrollArea } from "@/components/scrollArea";
-import LabResultsViewer from "@/elements/labResultsViewer";
 import type { LabRecommendation, PatientDetailsType } from "@/types";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -24,6 +23,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { OWLiverRequisition } from "@/elements";
+import { config } from "@/config/env";
 
 type DetailBoxProps = {
   patientId: string;
@@ -70,7 +70,7 @@ const DetailBox = ({ patientId, insurancePlan }: DetailBoxProps) => {
   const completedTest = labOrder.filter((f) => f.status === "COMPLETED");
   const collectedTest = labOrder.filter((f) => f.status === "COLLECTED");
   const handleViewResults = (completedTest: any) => {
-    setSelectedLabResult(completedTest);
+    setSelectedLabResult(completedTest.resultPdfUrl);
   };
   const { mutate } = useCreateOrder();
 
@@ -100,7 +100,12 @@ const DetailBox = ({ patientId, insurancePlan }: DetailBoxProps) => {
 
             {selectedLabResult && (
               <ScrollArea className="h-[calc(100vh-120px)]">
-                <LabResultsViewer result={selectedLabResult} />
+                <iframe
+                  src={`${config.BASE_UPLOAD_PATH}${selectedLabResult}`}
+                  width="100%"
+                  height="600px"
+                  style={{ border: "none" }}
+                />
               </ScrollArea>
             )}
           </DialogContent>
