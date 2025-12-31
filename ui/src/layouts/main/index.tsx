@@ -58,7 +58,9 @@ const Main = () => {
                 <div>
                   <p className="text-sm text-gray-900">{name}</p>
                   <p className="text-xs text-gray-600">
-                    {role?.toUpperCase()} - {organization?.role}
+                    {role?.toLowerCase() === "service_account"
+                      ? "SUPER ADMIN"
+                      : `${role?.toUpperCase()} - ${organization?.role}`}
                   </p>
                 </div>
               </div>
