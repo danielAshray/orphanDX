@@ -1,9 +1,14 @@
-import { PublicRoute, RequireAuth, RequireRole } from "@/context/auth";
+import {
+  PublicRoute,
+  RequireAuth,
+  RequireOrgRole,
+  RequireRole,
+} from "@/context/auth";
 import { Main } from "@/layouts";
 import { PATH_KEYS } from "@/lib/constants/pathKeys";
 import { Forbidden, NotFound } from "@/pages";
 import { Login } from "@/pages/auth";
-import { Admin, Lab, Provider } from "@/pages/dashboard";
+import { Admin, Facility, Lab, Provider } from "@/pages/dashboard";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 const Router = () => {
@@ -18,22 +23,22 @@ const Router = () => {
 
         <Route element={<RequireAuth />}>
           <Route element={<Main />}>
-            <Route
-              element={<RequireRole allowed={["service_account", "admin"]} />}
-            >
+            <Route element={<RequireOrgRole allowed={["service_account"]} />}>
               <Route path={PATH_KEYS.ADMIN} element={<Admin />} />
             </Route>
 
-            <Route element={<RequireRole allowed={["lab"]} />}>
+            <Route element={<RequireOrgRole allowed={["lab"]} />}>
               <Route path={PATH_KEYS.LAB} element={<Lab />} />
             </Route>
 
-            <Route element={<RequireRole allowed={["facility"]} />}>
-              <Route path={PATH_KEYS.FACILITY} element={<Provider />} />
-            </Route>
+            <Route element={<RequireOrgRole allowed={["facility"]} />}>
+              <Route element={<RequireRole allowed={["admin"]} />}>
+                <Route path={PATH_KEYS.FACILITY} element={<Facility />} />
+              </Route>
 
-            <Route element={<RequireRole allowed={["provider"]} />}>
-              <Route path={PATH_KEYS.PROVIDER} element={<Provider />} />
+              <Route element={<RequireRole allowed={["user"]} />}>
+                <Route path={PATH_KEYS.PROVIDER} element={<Provider />} />
+              </Route>
             </Route>
 
             <Route index element={<Navigate to={PATH_KEYS.LOGIN} replace />} />

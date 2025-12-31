@@ -51,7 +51,9 @@ const loginUser = async (req: Request, res: Response, next: NextFunction) => {
           name: userExists.name,
           role: userExists.role,
           id: userExists.id,
-          organization: tokenPayload.organization,
+          ...(userExists.organization
+            ? { organization: tokenPayload.organization }
+            : {}),
         },
       },
     });

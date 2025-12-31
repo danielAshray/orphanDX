@@ -11,20 +11,23 @@ import { useAuthContext } from "@/context/auth";
 import { ImageWithFallback } from "@/components";
 
 const Main = () => {
-  const { user, logout } = useAuthContext();
+  const { orgRole, role, user, logout } = useAuthContext();
 
-  const { name, role, organization } = user;
+  const { name, organization } = user;
 
   const getRoleIcon = () => {
-    switch (role?.toLowerCase()) {
-      case "admin":
+    switch (orgRole?.toLowerCase()) {
+      case "service_account":
         return <ShieldCheck className="w-4 h-4" />;
       case "lab":
         return <FlaskConical className="w-4 h-4" />;
       case "facility":
-        return <Building2 className="w-4 h-4" />;
-      case "provider":
-        return <Stethoscope className="w-4 h-4" />;
+        switch (role?.toLowerCase()) {
+          case "user":
+            return <Stethoscope className="w-4 h-4" />;
+          default:
+            return <Building2 className="w-4 h-4" />;
+        }
     }
   };
 
@@ -55,7 +58,7 @@ const Main = () => {
                 <div>
                   <p className="text-sm text-gray-900">{name}</p>
                   <p className="text-xs text-gray-600">
-                    {role.toUpperCase()} - {organization?.role}
+                    {role?.toUpperCase()} - {organization?.role}
                   </p>
                 </div>
               </div>
