@@ -34,6 +34,7 @@ const Main = () => {
   const pdfInputRef = useRef<HTMLInputElement>(null);
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState<boolean>(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isViewPdfOpen, setIsViewPdfOpen] = useState<boolean>(false);
 
   const uploadPdfMutation = useUploadOrganizationPdf();
   const getRoleIcon = () => {
@@ -82,7 +83,6 @@ const Main = () => {
   };
   const { data: organizationData } = useFetchOrganizationData();
 
-  const [isViewPdfOpen, setIsViewPdfOpen] = useState<boolean>(false);
   const handleOpenPdf = () => {
     if (organizationData?.organizationPdf) {
       setIsViewPdfOpen(true);
@@ -156,11 +156,12 @@ const Main = () => {
       </header>
       <Dialog open={isViewPdfOpen} onOpenChange={setIsViewPdfOpen}>
         <DialogContent>
-          <DialogHeader>Organization PDF</DialogHeader>
-          <ScrollArea className="h-[600px]">
+          <DialogTitle>Organization PDF</DialogTitle>
+          <DialogDescription>Your Organization PDF</DialogDescription>
+          <ScrollArea className="h-[calc(100vh-120px)]">
             <iframe
-            width={"100%"}
-              height={"600px"}
+              width={"100%"}
+              height={"750px"}
               src={`http://localhost:2000/${organizationData?.organizationPdf}`}
             />
           </ScrollArea>
