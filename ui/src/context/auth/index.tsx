@@ -13,8 +13,11 @@ import { Navigate, Outlet } from "react-router-dom";
 type AuthContextType = {
   token: string | null;
   orgRole: string | null;
+  role: string | null;
   user: any | null;
   setToken: (T: string | null) => void;
+  setOrgRole: (T: string | null) => void;
+  setRole: (T: string | null) => void;
   setUser: (U: any | null) => void;
   login: (L: any) => void;
   logout: () => void;
@@ -30,11 +33,11 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
   const [token, setToken] = useState<string | null>(
     localStorageUtil.get(STORAGE_KEYS.TOKEN)
   );
-  const [role, setRole] = useState<string | null>(
-    localStorageUtil.get(STORAGE_KEYS.ROLE)
-  );
   const [orgRole, setOrgRole] = useState<string | null>(
     localStorageUtil.get(STORAGE_KEYS.ORG_ROLE)
+  );
+  const [role, setRole] = useState<string | null>(
+    localStorageUtil.get(STORAGE_KEYS.ROLE)
   );
   const [user, setUser] = useState<any | null>(
     localStorageUtil.get(STORAGE_KEYS.USER)
@@ -46,14 +49,14 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
   }, [token]);
 
   useEffect(() => {
+    if (orgRole) localStorageUtil.set(STORAGE_KEYS.ORG_ROLE, orgRole);
+    else localStorageUtil.remove(STORAGE_KEYS.ORG_ROLE);
+  }, [orgRole]);
+
+  useEffect(() => {
     if (role) localStorageUtil.set(STORAGE_KEYS.ROLE, role);
     else localStorageUtil.remove(STORAGE_KEYS.ROLE);
   }, [role]);
-
-  useEffect(() => {
-    if (orgRole) localStorageUtil.set(STORAGE_KEYS.ORG_ROLE, role);
-    else localStorageUtil.remove(STORAGE_KEYS.ORG_ROLE);
-  }, [orgRole]);
 
   useEffect(() => {
     if (user) localStorageUtil.set(STORAGE_KEYS.USER, user);
@@ -62,20 +65,21 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const login = (L: any) => {
     setToken(L.token);
-    if (L.user?.organization?.role) {
-      setOrgRole(L.user?.organization?.role);
-    }
+
+    setOrgRole(L.orgRole);
+
     if (L.user?.role) {
       setRole(L.user?.role);
     }
+
     setUser(L.user);
   };
 
   const logout = () => {
     localStorageUtil.clear();
     setToken(null);
-    setRole(null);
     setOrgRole(null);
+    setRole(null);
     setUser(null);
   };
 
@@ -84,8 +88,11 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
       value={{
         token,
         orgRole,
+        role,
         user,
         setToken,
+        setOrgRole,
+        setRole,
         setUser,
         login,
         logout,
@@ -97,11 +104,16 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
 };
 
 const PublicRoute = () => {
-  const { token, user } = useAuthContext();
+  const { token, orgRole, role } = useAuthContext();
   if (token) {
-    switch (user.organization?.role?.toLowerCase()) {
+    switch (orgRole?.toLowerCase()) {
       case "facility":
-        return <Navigate to={PATH_KEYS.FACILITY} replace />;
+        switch (role?.toLowerCase()) {
+          case "user":
+            return <Navigate to={PATH_KEYS.PROVIDER} replace />;
+          default:
+            return <Navigate to={PATH_KEYS.FACILITY} replace />;
+        }
       case "lab":
         return <Navigate to={PATH_KEYS.LAB} replace />;
       default:
@@ -121,13 +133,24 @@ interface RequireRoleProps {
   allowed: string[];
 }
 
-const RequireRole = ({ allowed }: RequireRoleProps) => {
-  const { user } = useAuthContext();
+const RequireOrgRole = ({ allowed }: RequireRoleProps) => {
+  const { orgRole } = useAuthContext();
 
-  if (!user) return <Navigate to={PATH_KEYS.LOGIN} replace />;
+  if (!orgRole) return <Navigate to={PATH_KEYS.LOGIN} replace />;
   return allowed
     .map((r) => r.toLowerCase())
-    .includes(user.organization?.role?.toLowerCase()) ? (
+    .includes(orgRole?.toLowerCase()) ? (
+    <Outlet />
+  ) : (
+    <Navigate to={PATH_KEYS.FORBIDDEN} replace />
+  );
+};
+
+const RequireRole = ({ allowed }: RequireRoleProps) => {
+  const { role } = useAuthContext();
+
+  if (!role) return <Navigate to={PATH_KEYS.LOGIN} replace />;
+  return allowed.map((r) => r.toLowerCase()).includes(role?.toLowerCase()) ? (
     <Outlet />
   ) : (
     <Navigate to={PATH_KEYS.FORBIDDEN} replace />
@@ -146,6 +169,7 @@ export {
   AuthProvider,
   PublicRoute,
   RequireAuth,
+  RequireOrgRole,
   RequireRole,
   useAuthContext,
 };
