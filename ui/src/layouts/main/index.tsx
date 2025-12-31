@@ -24,6 +24,7 @@ import {
   useUploadOrganizationPdf,
 } from "@/api/organization";
 import { useQuery } from "@tanstack/react-query";
+import { ScrollArea } from "@/components/scrollArea";
 
 const Main = () => {
   const { user, logout } = useAuthContext();
@@ -80,7 +81,6 @@ const Main = () => {
     logout();
   };
   const { data: organizationData } = useFetchOrganizationData();
-  console.log("organization data: ", organizationData);
 
   const [isViewPdfOpen, setIsViewPdfOpen] = useState<boolean>(false);
   const handleOpenPdf = () => {
@@ -110,7 +110,7 @@ const Main = () => {
               {organization.role === "LAB" &&
               organizationData?.organizationPdf ? (
                 <Button
-                  onClick={() => handleOpenPdf}
+                  onClick={handleOpenPdf}
                   variant="outline"
                   className="cursor-pointer"
                   size="sm"
@@ -154,6 +154,18 @@ const Main = () => {
           </div>
         </div>
       </header>
+      <Dialog open={isViewPdfOpen} onOpenChange={setIsViewPdfOpen}>
+        <DialogContent>
+          <DialogHeader>Organization PDF</DialogHeader>
+          <ScrollArea className="h-[600px]">
+            <iframe
+            width={"100%"}
+              height={"600px"}
+              src={`http://localhost:2000/${organizationData?.organizationPdf}`}
+            />
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
       <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
         <DialogContent>
           <DialogHeader>
