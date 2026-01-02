@@ -4,6 +4,7 @@ import { useState } from "react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/dialog";
@@ -306,12 +307,10 @@ const OrderTracking: React.FC<OrderTrackingProps> = ({ activeTab }) => {
 
       {/* Lab Requisition Dialog */}
       <Dialog open={showRequisition} onOpenChange={setShowRequisition}>
-        <DialogContent
-          className="max-w-6xl max-h-[95vh]"
-          aria-describedby="Lab Test Requisition"
-        >
+        <DialogContent className="max-w-6xl sm:max-w-4xl max-h-[95vh]">
           <DialogHeader>
             <DialogTitle>Lab Test Requisition</DialogTitle>
+            <DialogDescription />
           </DialogHeader>
 
           {selectedRequisition && (
@@ -360,19 +359,18 @@ const OrderTracking: React.FC<OrderTrackingProps> = ({ activeTab }) => {
       {/* Lab Results Dialog */}
       <Dialog open={showLabResults} onOpenChange={setShowLabResults}>
         <DialogContent
-          className="max-w-6xl max-h-[95vh]"
-          aria-describedby="Lab Test Results"
+          className="max-w-6xl sm:max-w-4xl max-h-[95vh]"
         >
           <DialogHeader>
             <DialogTitle>Lab Test Results</DialogTitle>
+            <DialogDescription />
           </DialogHeader>
 
           {selectedLabResult && (
             <ScrollArea className="h-[calc(100vh-120px)]">
               <iframe
                 src={`${config.BASE_UPLOAD_PATH}${selectedLabResult}`}
-                width="100%"
-                height="600px"
+                className="w-full h-[calc(100vh-140px)]"
                 style={{ border: "none" }}
               />
             </ScrollArea>
