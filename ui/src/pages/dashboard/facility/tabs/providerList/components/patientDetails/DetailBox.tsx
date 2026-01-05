@@ -6,6 +6,7 @@ import { Button } from "@/components/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/dialog";
@@ -41,7 +42,7 @@ const DetailBox = ({ patientId, insurancePlan }: DetailBoxProps) => {
     refetchOnWindowFocus: false,
   });
 
-  const patientDetails = (patientDetailsResp?.data || []) as PatientDetailsType;
+  const patientDetails = (patientDetailsResp?.data || {}) as PatientDetailsType;
 
   const groupedRecomendations = Object.values(
     (patientDetails.labRecommendations || []).reduce((acc: any, rec) => {
@@ -89,21 +90,22 @@ const DetailBox = ({ patientId, insurancePlan }: DetailBoxProps) => {
       }
     );
   };
+
   return (
     <>
       {!!selectedLabResult && (
         <Dialog open={true} onOpenChange={() => setSelectedLabResult(null)}>
-          <DialogContent className="max-w-6xl max-h-[95vh]">
+          <DialogContent className="max-w-6xl sm:max-w-4xl max-h-[95vh]">
             <DialogHeader>
               <DialogTitle>Lab Test Results</DialogTitle>
+              <DialogDescription />
             </DialogHeader>
 
             {selectedLabResult && (
               <ScrollArea className="h-[calc(100vh-120px)]">
                 <iframe
                   src={`${config.BASE_UPLOAD_PATH}${selectedLabResult}`}
-                  width="100%"
-                  height="600px"
+                  className="w-full h-[calc(100vh-140px)]"
                   style={{ border: "none" }}
                 />
               </ScrollArea>
@@ -117,12 +119,10 @@ const DetailBox = ({ patientId, insurancePlan }: DetailBoxProps) => {
           open={!!selectedRequisitionData}
           onOpenChange={() => setSelectedRequisitionData(null)}
         >
-          <DialogContent
-            className="max-w-6xl max-h-[95vh]"
-            aria-describedby="Lab Test Requisition"
-          >
+          <DialogContent className="max-w-6xl sm:max-w-4xl max-h-[95vh]">
             <DialogHeader>
               <DialogTitle>Lab Test Requisition</DialogTitle>
+              <DialogDescription />
             </DialogHeader>
 
             <ScrollArea className="h-[calc(100vh-120px)]">

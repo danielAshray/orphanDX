@@ -355,7 +355,7 @@ const OWLiverRequisition: React.FC<OWLiverRequisitionProps> = ({ values }) => {
 
   if (!pdfUrl)
     return (
-      <div className="flex items-center justify-center w-full h-[600px]">
+      <div className="flex items-center justify-center w-full h-[calc(100vh-140px)]">
         <Loader className="animate-spin" />
       </div>
     );
@@ -363,8 +363,7 @@ const OWLiverRequisition: React.FC<OWLiverRequisitionProps> = ({ values }) => {
   return (
     <iframe
       src={pdfUrl}
-      width="100%"
-      height="600px"
+      className="w-full h-[calc(100vh-140px)]"
       style={{ border: "none" }}
     />
   );

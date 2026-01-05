@@ -153,6 +153,76 @@ export const createOrder = async (
   }
 };
 
+export const createManualOrder = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const organizationId = req.user?.organization?.id || "";
+    const userId = req.user?.id || "";
+    const { patientId, labId, diagnosis, tests } = req.body;
+
+    const user = await prisma.user.findUnique({
+      where: {
+        organizationId,
+        id: userId,
+      },
+    });
+
+    if (!user) return next({ code: 400, message: "user not found" });
+
+    const { newOrder } = await prisma.$transaction(async (tx) => {
+      const newOrder = await tx.labOrder.create({
+        data: {
+          facilityId: organizationId,
+          labId,
+          patientId,
+          diagnosis: {
+            createMany: {
+              data: diagnosis.map((diagnosisId: string) => ({ diagnosisId })),
+            },
+          },
+          tests: {
+            createMany: {
+              data: tests.map(
+                (test: { testName: string; cptCode: string }) => ({
+                  testName: test.testName,
+                  cptCode: test.cptCode,
+                })
+              ),
+            },
+          },
+          createdById: userId,
+          status: "ORDERED",
+        },
+        include: { tests: true },
+      });
+
+      await tx.patient.update({
+        where: {
+          id: patientId,
+        },
+        data: {
+          scheduledCount: { increment: tests.length },
+        },
+      });
+
+      return { newOrder };
+    });
+
+    sendResponse(res, {
+      success: true,
+      code: 200,
+      message: "Order created successfully",
+      data: newOrder,
+    });
+  } catch (error: any) {
+    console.error(error);
+    next(ApiError.internal("Failed to create order", error));
+  }
+};
+
 export const completeOrder = async (
   req: Request,
   res: Response,

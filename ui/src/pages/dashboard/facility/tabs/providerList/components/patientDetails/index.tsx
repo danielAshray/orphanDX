@@ -3,16 +3,30 @@ import { Card } from "@/components/card";
 import { Badge } from "@/components/badge";
 import { ScrollArea } from "@/components/scrollArea";
 import { Separator } from "@/components";
-import { User, CreditCard, FileText, Phone, Mail } from "lucide-react";
+import { User, CreditCard, FileText, Phone, Mail, Plus } from "lucide-react";
 
 import DetailBox from "./DetailBox";
+import { Button } from "@/components/button";
+import ManualOrderDialog from "./ManualOrderDialog";
+import { useState } from "react";
 
 const PatientDetails = ({ patient }: { patient: PatientDetailsType }) => {
+  const [showManualOrderModal, setShowManualOrderModal] =
+    useState<boolean>(false);
+
   return (
     <>
+      {showManualOrderModal && (
+        <ManualOrderDialog
+          open={showManualOrderModal}
+          onOpenChange={setShowManualOrderModal}
+          preselectedPatient={patient}
+        />
+      )}
+
       <Card className="flex flex-col">
         <div className="p-4 border-b border-gray-200">
-          <div className="flex items-start justify-between">
+          <div className="flex items-start justify-between mb-3">
             <div>
               <h2 className="text-gray-900">
                 {patient.firstName} {patient.lastName}
@@ -25,6 +39,14 @@ const PatientDetails = ({ patient }: { patient: PatientDetailsType }) => {
               </Badge>
             )}
           </div>
+
+          <Button
+            onClick={() => setShowManualOrderModal(true)}
+            className="w-full"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Create Manual Order
+          </Button>
         </div>
 
         <ScrollArea className="h-[calc(100vh-320px)]">

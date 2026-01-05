@@ -226,3 +226,10 @@ export type completeOrderProps = {
   }[];
   recomendations: { action: string }[];
 };
+
+export type ManualOrderType = {
+  patientId: string;
+  labId: string;
+  diagnosis: string[];
+  tests: { testName: string; cptCode: string }[];
+};

@@ -89,6 +89,22 @@ const createOrderSchema = Joi.object({
   .unknown(false)
   .required();
 
+const createManualOrderSchema = Joi.object({
+  patientId: Joi.string().required(),
+  labId: Joi.string().required(),
+  diagnosis: Joi.array().items(Joi.string().required()).min(1),
+  tests: Joi.array()
+    .items(
+      Joi.object({
+        testName: Joi.string().required(),
+        cptCode: Joi.string().required(),
+      })
+    )
+    .min(1),
+})
+  .unknown(false)
+  .required();
+
 export {
   userLoginSchema,
   userRegisterSchema,
@@ -98,4 +114,5 @@ export {
   createPatientRecommendationBodySchema,
   detailsSchema,
   createOrganizationSchema,
+  createManualOrderSchema,
 };
