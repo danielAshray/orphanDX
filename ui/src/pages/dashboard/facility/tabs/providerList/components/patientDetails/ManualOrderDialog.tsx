@@ -13,11 +13,7 @@ import {
   DialogTitle,
 } from "@/components/dialog";
 import { Button } from "@/components/button";
-import {
-  Input,
-  Label,
-  // , Textarea
-} from "@/components";
+import { Input, Label } from "@/components";
 import {
   Select,
   SelectContent,
@@ -26,27 +22,19 @@ import {
   SelectValue,
 } from "@/components/select";
 import { ClipboardList, Send, Plus, X } from "lucide-react";
-import type { PatientDetailsType } from "@/types";
+import type { ManualOrderType, PatientDetailsType } from "@/types";
 import { ScrollArea } from "@/components/scrollArea";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchLabsApi } from "@/api/organization";
 import { MultiSelect } from "@/components";
 import type { Option } from "@/components/multiSelect";
 import { useEffect } from "react";
+import { useCreateOrderManually } from "@/api/order";
 
 interface ManualOrderDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   preselectedPatient: PatientDetailsType;
-}
-
-interface ManualOrderFormValues {
-  patientId: string;
-  labId: string;
-  diagnosis: string[];
-  tests: { value: string }[];
-  cptCodes: { value: string }[];
-  // reason: string;
 }
 
 const ManualOrderDialog: React.FC<ManualOrderDialogProps> = ({
@@ -60,79 +48,136 @@ const ManualOrderDialog: React.FC<ManualOrderDialogProps> = ({
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<ManualOrderFormValues>({
+  } = useForm<ManualOrderType>({
     defaultValues: {
       patientId: preselectedPatient?.id,
       labId: "",
       diagnosis: [],
-      tests: [{ value: "" }],
-      cptCodes: [{ value: "" }],
+      tests: [{ testName: "", cptCode: "" }],
     },
   });
 
-  const {
-    fields: testFields,
-    append: addTest,
-    remove: removeTest,
-    replace: replaceTests,
-  } = useFieldArray({ control, name: "tests" });
-
-  const {
-    fields: cptFields,
-    append: addCpt,
-    remove: removeCpt,
-    replace: replaceCpt,
-  } = useFieldArray({ control, name: "cptCodes" });
+  const { fields, append, remove, replace } = useFieldArray({
+    control,
+    name: "tests",
+  });
 
   const { data: labs } = useQuery({
     queryKey: ["fetchLabsApi"],
     queryFn: fetchLabsApi,
   });
 
-  const labOptions = (labs?.data || []) as {
-    id: string;
-    name: string;
-  }[];
+  const labOptions = (labs?.data as { id: string; name: string }[]) ?? [];
 
-  const diagnosisOptions: Option[] = preselectedPatient.diagnosis.map(
-    (diagnosis) => ({
-      label: `${diagnosis.icd10} - ${diagnosis.name}`,
-      value: diagnosis.id,
-    })
-  );
+  const diagnosisOptions: Option[] =
+    preselectedPatient?.diagnosis?.map((d) => ({
+      label: `${d.icd10} - ${d.name}`,
+      value: d.id,
+    })) ?? [];
 
   const selectedDiagnoses = useWatch({
     control,
     name: "diagnosis",
   });
 
+  const { mutate } = useCreateOrderManually();
+
   useEffect(() => {
-    const count = selectedDiagnoses?.length || 0;
+    const count = selectedDiagnoses?.length || 1;
 
-    if (count > testFields.length) {
-      replaceTests([...Array(count).fill({ value: "" })]);
-    } else if (count < testFields.length) {
-      replaceTests(testFields.slice(0, count));
+    if (count > fields.length) {
+      replace(
+        Array.from({ length: count }, (_, i) => ({
+          testName: fields[i]?.testName ?? "",
+          cptCode: fields[i]?.cptCode ?? "",
+        }))
+      );
+    } else if (count < fields.length) {
+      replace(fields.slice(0, count));
     }
+  }, [selectedDiagnoses]);
 
-    if (count > cptFields.length) {
-      replaceCpt([...Array(count).fill({ value: "" })]);
-    } else if (count < cptFields.length) {
-      replaceCpt(cptFields.slice(0, count));
-    }
-  }, [selectedDiagnoses, replaceTests, replaceCpt, testFields, cptFields]);
+  const clientQuery = useQueryClient();
+  const onSubmit: SubmitHandler<ManualOrderType> = (values) => {
+    mutate(values, {
+      onSuccess: (res) => {
+        clientQuery.setQueryData<{
+          data: PatientDetailsType[];
+        }>(["fetchPatientsApi"], (oldData) => {
+          if (!oldData) return { data: [] };
 
-  const onSubmit: SubmitHandler<ManualOrderFormValues> = (values) => {
-    const payload = {
-      ...values,
-      tests: values.tests.map((t) => t.value),
-      cptCodes: values.cptCodes.map((c) => c.value),
-    };
+          const index = oldData.data.findIndex(
+            (f) => f.id === preselectedPatient.id
+          );
+          if (index === -1) return oldData;
 
-    console.log("Manual Order Payload:", payload);
+          const prevLabOrders = oldData.data[index].labOrder ?? [];
+          const newLabOrdersArray = Array.isArray(res.data)
+            ? res.data
+            : [res.data];
+          const updatedLabOrders = [...prevLabOrders, ...newLabOrdersArray];
 
-    reset();
-    onOpenChange(false);
+          const updatedData = [...oldData.data];
+          updatedData[index] = {
+            ...updatedData[index],
+            labOrder: updatedLabOrders,
+            scheduledCount: updatedData[index].scheduledCount + 1,
+          };
+
+          return {
+            ...oldData,
+            data: updatedData,
+          };
+        });
+
+        clientQuery.setQueryData<{ data: PatientDetailsType }>(
+          ["patientDetails", preselectedPatient.id],
+          (oldData) => {
+            if (!oldData) return { data: {} as PatientDetailsType };
+
+            const updatedLabOrders = [
+              ...(oldData.data.labOrder ?? []),
+              ...(Array.isArray(res.data) ? res.data : [res.data]),
+            ];
+
+            return {
+              data: {
+                ...oldData.data,
+                labOrder: updatedLabOrders,
+              },
+            };
+          }
+        );
+
+        clientQuery.setQueryData<{
+          data: {
+            patientCount: number;
+            recomendedTestCount: number;
+            scheduledTestCount: number;
+            completedTestCount: number;
+          };
+        }>(["fetchFacilityStatApi"], (oldData) => {
+          if (!oldData)
+            return {
+              data: {
+                patientCount: 0,
+                recomendedTestCount: 0,
+                scheduledTestCount: 1,
+                completedTestCount: 0,
+              },
+            };
+          return {
+            data: {
+              ...oldData.data,
+              scheduledTestCount: oldData.data.scheduledTestCount + 1,
+            },
+          };
+        });
+
+        reset();
+        onOpenChange(false);
+      },
+    });
   };
 
   return (
@@ -150,7 +195,6 @@ const ManualOrderDialog: React.FC<ManualOrderDialogProps> = ({
 
         <ScrollArea className="h-[calc(100vh-140px)] pr-2">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-4">
-            {/* Patient */}
             <div className="space-y-2">
               <Label>Patient *</Label>
               <Input
@@ -159,9 +203,9 @@ const ManualOrderDialog: React.FC<ManualOrderDialogProps> = ({
               />
             </div>
 
-            {/* Lab */}
             <div className="space-y-2">
               <Label>Select Lab *</Label>
+
               <Controller
                 name="labId"
                 control={control}
@@ -185,18 +229,15 @@ const ManualOrderDialog: React.FC<ManualOrderDialogProps> = ({
                 <p className="text-sm text-red-500">{errors.labId.message}</p>
               )}
             </div>
-
-            {/* Diagnosis */}
             <div className="space-y-2">
               <Label>Diagnosis *</Label>
+
               <Controller
                 name="diagnosis"
                 control={control}
                 rules={{
                   validate: (value) =>
-                    value && value.length > 0
-                      ? true
-                      : "At least one diagnosis is required",
+                    value?.length ? true : "At least one diagnosis is required",
                 }}
                 render={({ field }) => (
                   <MultiSelect
@@ -207,6 +248,7 @@ const ManualOrderDialog: React.FC<ManualOrderDialogProps> = ({
                   />
                 )}
               />
+
               {errors.diagnosis && (
                 <p className="text-sm text-red-500">
                   {errors.diagnosis.message}
@@ -214,23 +256,30 @@ const ManualOrderDialog: React.FC<ManualOrderDialogProps> = ({
               )}
             </div>
 
-            {/* Tests */}
             <div className="space-y-2">
               <Label>Tests *</Label>
 
-              {testFields.map((field, index) => (
+              {fields.map((field, index) => (
                 <div key={field.id} className="flex gap-2">
                   <Input
-                    placeholder="Enter test name"
-                    {...register(`tests.${index}.value`, {
-                      required: "Test is required",
+                    placeholder="Test name"
+                    {...register(`tests.${index}.testName`, {
+                      required: "Test name is required",
                     })}
                   />
+
+                  <Input
+                    placeholder="CPT code"
+                    {...register(`tests.${index}.cptCode`, {
+                      required: "CPT code is required",
+                    })}
+                  />
+
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => removeTest(index)}
-                    disabled={testFields.length === 1}
+                    onClick={() => remove(index)}
+                    disabled={fields.length === 1}
                   >
                     <X className="w-4 h-4" />
                   </Button>
@@ -240,59 +289,18 @@ const ManualOrderDialog: React.FC<ManualOrderDialogProps> = ({
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => addTest({ value: "" })}
+                onClick={() => append({ testName: "", cptCode: "" })}
               >
                 <Plus className="w-4 h-4 mr-1" />
                 Add Test
               </Button>
-            </div>
 
-            {/* CPT Codes */}
-            <div className="space-y-2">
-              <Label>CPT Codes *</Label>
-
-              {cptFields.map((field, index) => (
-                <div key={field.id} className="flex gap-2">
-                  <Input
-                    placeholder="Enter CPT code"
-                    {...register(`cptCodes.${index}.value`, {
-                      required: "CPT code is required",
-                    })}
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => removeCpt(index)}
-                    disabled={cptFields.length === 1}
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-              ))}
-
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => addCpt({ value: "" })}
-              >
-                <Plus className="w-4 h-4 mr-1" />
-                Add CPT Code
-              </Button>
-            </div>
-
-            {/* Reason */}
-            {/* <div className="space-y-2">
-              <Label>Clinical Reason *</Label>
-              <Textarea
-                rows={4}
-                {...register("reason", {
-                  required: "Clinical reason is required",
-                })}
-              />
-              {errors.reason && (
-                <p className="text-sm text-red-500">{errors.reason.message}</p>
+              {(errors.tests as any)?.message && (
+                <p className="text-sm text-red-500">
+                  {(errors.tests as any)?.message}
+                </p>
               )}
-            </div> */}
+            </div>
 
             <div className="flex justify-end gap-3 pt-4 border-t">
               <Button
@@ -305,6 +313,7 @@ const ManualOrderDialog: React.FC<ManualOrderDialogProps> = ({
               >
                 Cancel
               </Button>
+
               <Button type="submit">
                 <Send className="w-4 h-4 mr-2" />
                 Create Order

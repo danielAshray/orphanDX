@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   completeOrder,
+  createManualOrder,
   createOrder,
   getDashboard,
   orderTracking,
@@ -11,7 +12,10 @@ import {
   authorizeByRoleAndOrg,
 } from "../middlewares/auth.middleware";
 import { validateBody } from "../middlewares/requestValidator.middleware";
-import { createOrderSchema } from "../validators/bodySchema";
+import {
+  createManualOrderSchema,
+  createOrderSchema,
+} from "../validators/bodySchema";
 import { uploadFile } from "../config/multer.config";
 
 const orderRoute: Router = Router();
@@ -22,6 +26,14 @@ orderRoute.post(
   authorizeByRoleAndOrg(["USER", "ADMIN"], "FACILITY"),
   validateBody(createOrderSchema),
   createOrder
+);
+
+orderRoute.post(
+  "/manual",
+  authenticate,
+  authorizeByRoleAndOrg(["USER", "ADMIN"], "FACILITY"),
+  validateBody(createManualOrderSchema),
+  createManualOrder
 );
 
 orderRoute.get(

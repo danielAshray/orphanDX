@@ -20,7 +20,6 @@ const PatientDetails = ({ patient }: { patient: PatientDetailsType }) => {
         <ManualOrderDialog
           open={showManualOrderModal}
           onOpenChange={setShowManualOrderModal}
-          // user={user}
           preselectedPatient={patient}
         />
       )}

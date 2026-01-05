@@ -42,7 +42,7 @@ const DetailBox = ({ patientId, insurancePlan }: DetailBoxProps) => {
     refetchOnWindowFocus: false,
   });
 
-  const patientDetails = (patientDetailsResp?.data || []) as PatientDetailsType;
+  const patientDetails = (patientDetailsResp?.data || {}) as PatientDetailsType;
 
   const groupedRecomendations = Object.values(
     (patientDetails.labRecommendations || []).reduce((acc: any, rec) => {

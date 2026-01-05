@@ -161,7 +161,7 @@ export const createManualOrder = async (
   try {
     const organizationId = req.user?.organization?.id || "";
     const userId = req.user?.id || "";
-    const { patientId, labId, diagnosis, tests, cptCodes } = req.body;
+    const { patientId, labId, diagnosis, tests } = req.body;
 
     const user = await prisma.user.findUnique({
       where: {
@@ -171,36 +171,6 @@ export const createManualOrder = async (
     });
 
     if (!user) return next({ code: 400, message: "user not found" });
-
-    // const recommendations = await prisma.labRecommendation.findMany({
-    //   where: { id: { in: recomendationIds }, status: "PENDING" },
-    //   include: {
-    //     diagnosis: true,
-    //     labRule: true,
-    //     patient: { select: { facilityId: true } },
-    //   },
-    // });
-
-    // if (!recommendations.length)
-    //   return next({ code: 404, message: "Recomendation record not found" });
-
-    // const samePatient = recommendations.every((r) => r.patientId === patientId);
-
-    // const sameLab = recommendations.every((r) => r.labRule.labId === labId);
-
-    // if (!samePatient) {
-    //   return next({
-    //     code: 400,
-    //     message: "Recommendations must belong to the same patient",
-    //   });
-    // }
-
-    // if (!sameLab) {
-    //   return next({
-    //     code: 400,
-    //     message: "Recommendations must belong to the same lab",
-    //   });
-    // }
 
     const { newOrder } = await prisma.$transaction(async (tx) => {
       const newOrder = await tx.labOrder.create({
@@ -215,39 +185,19 @@ export const createManualOrder = async (
           },
           tests: {
             createMany: {
-              data: tests.map((testName: string, index: number) => ({
-                testName,
-                cptCode: cptCodes?.[index] || null,
-              })),
+              data: tests.map(
+                (test: { testName: string; cptCode: string }) => ({
+                  testName: test.testName,
+                  cptCode: test.cptCode,
+                })
+              ),
             },
           },
           createdById: userId,
           status: "ORDERED",
         },
-        include: {
-          tests: true,
-          facility: true,
-          lab: true,
-          patient: {
-            include: {
-              insurance: true,
-            },
-          },
-          diagnosis: {
-            select: { diagnosis: { select: { name: true, icd10: true } } },
-          },
-          createdBy: true,
-        },
+        include: { tests: true },
       });
-
-      // await tx.labRecommendation.updateMany({
-      //   where: {
-      //     id: { in: recomendationIds },
-      //   },
-      //   data: {
-      //     status: "ORDERED",
-      //   },
-      // });
 
       await tx.patient.update({
         where: {
@@ -255,39 +205,17 @@ export const createManualOrder = async (
         },
         data: {
           scheduledCount: { increment: tests.length },
-          // recomendationCount: { decrement: recommendations.length },
         },
       });
 
       return { newOrder };
     });
 
-    const orderData = {
-      orderId: newOrder.id,
-      patient: newOrder.patient,
-      tests: newOrder.tests,
-      provider: {
-        name: user.name,
-        npi: "NPI-123456789",
-        phone: "(555) 100-2000",
-      },
-      clinic: {
-        name: newOrder.facility.name,
-        address: newOrder.facility.street,
-        city: newOrder.facility.city,
-        state: newOrder.facility.state,
-        zip: newOrder.facility.zipCode,
-        phone: newOrder.facility.phone,
-      },
-      diagnosis: newOrder.diagnosis,
-      facility: newOrder.facility,
-    };
-
     sendResponse(res, {
       success: true,
       code: 200,
       message: "Order created successfully",
-      data: orderData,
+      data: newOrder,
     });
   } catch (error: any) {
     console.error(error);
