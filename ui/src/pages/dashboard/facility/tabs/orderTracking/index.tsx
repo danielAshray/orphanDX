@@ -197,7 +197,9 @@ const OrderTracking: React.FC<OrderTrackingProps> = ({ activeTab }) => {
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <p className="text-gray-900">
-                          {order.diagnosis[0].diagnosis.name}
+                          {order.diagnosis
+                            .map((item) => item.diagnosis.name)
+                            .join(",")}
                         </p>
                         <Badge className={getStatusColor(order.status)}>
                           {order.status}
@@ -358,9 +360,7 @@ const OrderTracking: React.FC<OrderTrackingProps> = ({ activeTab }) => {
 
       {/* Lab Results Dialog */}
       <Dialog open={showLabResults} onOpenChange={setShowLabResults}>
-        <DialogContent
-          className="max-w-6xl sm:max-w-4xl max-h-[95vh]"
-        >
+        <DialogContent className="max-w-6xl sm:max-w-4xl max-h-[95vh]">
           <DialogHeader>
             <DialogTitle>Lab Test Results</DialogTitle>
             <DialogDescription />
