@@ -90,6 +90,7 @@ const DetailBox = ({ patientId, insurancePlan }: DetailBoxProps) => {
       }
     );
   };
+
   return (
     <>
       {!!selectedLabResult && (
@@ -104,7 +105,6 @@ const DetailBox = ({ patientId, insurancePlan }: DetailBoxProps) => {
               <ScrollArea className="h-[calc(100vh-120px)]">
                 <iframe
                   src={`${config.BASE_UPLOAD_PATH}${selectedLabResult}`}
-                  width="100%"
                   className="w-full h-[calc(100vh-140px)]"
                   style={{ border: "none" }}
                 />

@@ -40,4 +40,23 @@ const registerOrganization = async (
   }
 };
 
-export { registerOrganization };
+const getLabs = async (_req: Request, res: Response, next: NextFunction) => {
+  try {
+    const labs = await prisma.organization.findMany({
+      where: {
+        role: "LAB",
+      },
+    });
+
+    sendResponse(res, {
+      success: true,
+      code: 200,
+      message: "Labs fetched successfully",
+      data: labs,
+    });
+  } catch (error: any) {
+    next(ApiError.internal(undefined, error.message));
+  }
+};
+
+export { registerOrganization, getLabs };

@@ -16,6 +16,18 @@ const createOrderApi = async ({
   return data;
 };
 
+const createOrderManuallyApi = async ({
+  recomendationIds,
+}: {
+  recomendationIds: string[];
+}): Promise<ApiReponse> => {
+  const { data } = await api.post<ApiReponse>(`/order/`, {
+    recomendationIds,
+  });
+
+  return data;
+};
+
 const completeOrderApi = async (
   payload: completeOrderProps
 ): Promise<ApiReponse> => {
@@ -48,7 +60,26 @@ const useCreateOrder = () => {
       createOrderApi(props),
     onSuccess: () => {
       Notification({
-        toastMessage: "Operation successfull",
+        toastMessage: "Operation successful",
+        toastStatus: "success",
+      });
+    },
+
+    onError: (error: any) =>
+      Notification({
+        toastMessage: getErrorMessage(error),
+        toastStatus: "error",
+      }),
+  });
+};
+
+const useCreateOrderManually = () => {
+  return useMutation({
+    mutationFn: (props: { recomendationIds: string[] }) =>
+      createOrderManuallyApi(props),
+    onSuccess: () => {
+      Notification({
+        toastMessage: "Order created successfully",
         toastStatus: "success",
       });
     },

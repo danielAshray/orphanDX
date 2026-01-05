@@ -25,10 +25,6 @@ const fetchFacilitiesApi = async (): Promise<ApiReponse> => {
   return response.data;
 };
 
-const fetchLabsApi = async (): Promise<ApiReponse> => {
-  const response = await api.get(AdminRoutes.labs);
-  return response.data;
-};
 
 const fetchProvidersApi = async (): Promise<ApiReponse> => {
   const response = await api.get(AdminRoutes.providers);
@@ -44,7 +40,6 @@ export {
   fetchDetailsApi,
   fetchOverviewApi,
   fetchFacilitiesApi,
-  fetchLabsApi,
   fetchProvidersApi,
   fetchOrdersApi,
 };
