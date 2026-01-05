@@ -95,6 +95,7 @@ const DetailBox = ({ patientId, insurancePlan }: DetailBoxProps) => {
       { recomendationIds: testIds },
       {
         onSuccess: () => {
+          setSelectedRequisitionData(null);
           queryClient.invalidateQueries({ queryKey: ["patientDetails"] });
           queryClient.invalidateQueries({ queryKey: ["fetchPatientsApi"] });
           queryClient.invalidateQueries({ queryKey: ["fetchFacilityStatApi"] });
