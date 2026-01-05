@@ -363,7 +363,7 @@ const OWLiverRequisition: React.FC<OWLiverRequisitionProps> = ({ values }) => {
   return (
     <iframe
       src={pdfUrl}
-      className="w-full h-[calc(100vh-140px)]"
+      className="w-full h-[calc(100vh-180px)]"
       style={{ border: "none" }}
     />
   );

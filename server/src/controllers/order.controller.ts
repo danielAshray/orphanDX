@@ -3,6 +3,109 @@ import { sendResponse } from "../utils/responseService";
 import { prisma } from "../lib/prisma";
 import { ApiError } from "../utils/apiService";
 
+export const simulateOrder = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const organizationId = req.user?.organization?.id || "";
+    const userId = req.user?.id || "";
+    const { recomendationIds } = req.body;
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) return next({ code: 400, message: "User not found" });
+
+    const recommendations = await prisma.labRecommendation.findMany({
+      where: { id: { in: recomendationIds }, status: "PENDING" },
+      include: {
+        diagnosis: true,
+        labRule: true,
+        patient: { select: { facilityId: true } },
+      },
+    });
+
+    if (!recommendations.length)
+      return next({ code: 404, message: "Recommendation record not found" });
+
+    const patientId = recommendations[0].patientId;
+    const labId = recommendations[0].labRule.labId;
+
+    const samePatient = recommendations.every((r) => r.patientId === patientId);
+    const sameLab = recommendations.every((r) => r.labRule.labId === labId);
+
+    if (!samePatient) {
+      return next({
+        code: 400,
+        message: "Recommendations must belong to the same patient",
+      });
+    }
+
+    if (!sameLab) {
+      return next({
+        code: 400,
+        message: "Recommendations must belong to the same lab",
+      });
+    }
+
+    const patient = await prisma.patient.findUnique({
+      where: { id: patientId },
+    });
+
+    const facility = await prisma.organization.findUnique({
+      where: { id: organizationId },
+    });
+
+    const lab = await prisma.organization.findUnique({
+      where: { id: labId },
+    });
+
+    const simulatedOrder = {
+      id: "SIM-" + Date.now(), // fake order id
+      patient: patient,
+      tests: recommendations.map(({ testName, cptCode }) => ({
+        testName,
+        cptCode,
+      })),
+      facility,
+      lab: lab,
+      diagnosis: recommendations.map((r) => ({
+        diagnosis: { name: r.diagnosis.name, icd10: r.diagnosis.icd10 },
+      })),
+      createdBy: { id: userId, name: user.name },
+      status: "ORDERED",
+    };
+
+    const orderData = {
+      orderId: simulatedOrder.id,
+      patient: simulatedOrder.patient,
+      tests: simulatedOrder.tests,
+      provider: {
+        name: user.name,
+        npi: "NPI-123456789",
+        phone: "(555) 100-2000",
+      },
+      clinic: simulatedOrder.facility,
+      diagnosis: simulatedOrder.diagnosis,
+      facility: simulatedOrder.facility,
+      recomendationIds,
+    };
+
+    sendResponse(res, {
+      success: true,
+      code: 200,
+      message: "Order simulated successfully",
+      data: orderData,
+    });
+  } catch (error: any) {
+    console.error(error);
+    next(ApiError.internal("Failed to simulate order", error));
+  }
+};
+
 export const createOrder = async (
   req: Request,
   res: Response,
