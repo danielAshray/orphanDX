@@ -1,4 +1,4 @@
-import { useCreateOrder } from "@/api/order";
+import { useCreateOrder, useSimulateOrder } from "@/api/order";
 import { fetchPatientDetailsApi } from "@/api/provider";
 import { Separator } from "@/components";
 import { Badge } from "@/components/badge";
@@ -7,6 +7,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/dialog";
@@ -73,16 +74,27 @@ const DetailBox = ({ patientId, insurancePlan }: DetailBoxProps) => {
   const handleViewResults = (completedTest: any) => {
     setSelectedLabResult(completedTest.resultPdfUrl);
   };
+  const { mutate: mutateSimulateOrder } = useSimulateOrder();
   const { mutate } = useCreateOrder();
 
   const queryClient = useQueryClient();
+
+  const handleSimulateOrder = async (testIds: string[]) => {
+    mutateSimulateOrder(
+      { recomendationIds: testIds },
+      {
+        onSuccess: (res) => {
+          setSelectedRequisitionData(res.data);
+        },
+      }
+    );
+  };
 
   const handleCreateOrder = async (testIds: string[]) => {
     mutate(
       { recomendationIds: testIds },
       {
-        onSuccess: (res) => {
-          setSelectedRequisitionData(res.data);
+        onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: ["patientDetails"] });
           queryClient.invalidateQueries({ queryKey: ["fetchPatientsApi"] });
           queryClient.invalidateQueries({ queryKey: ["fetchFacilityStatApi"] });
@@ -125,7 +137,7 @@ const DetailBox = ({ patientId, insurancePlan }: DetailBoxProps) => {
               <DialogDescription />
             </DialogHeader>
 
-            <ScrollArea className="h-[calc(100vh-120px)]">
+            <ScrollArea className="h-[calc(100vh-180px)]">
               <OWLiverRequisition
                 values={{
                   name: `${selectedRequisitionData.patient.firstName} ${selectedRequisitionData.patient.lastName}`,
@@ -164,6 +176,23 @@ const DetailBox = ({ patientId, insurancePlan }: DetailBoxProps) => {
                 }}
               />
             </ScrollArea>
+
+            <DialogFooter className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setSelectedRequisitionData(null)}
+              >
+                Cancel
+              </Button>
+              <Button
+                disabled={!selectedRequisitionData?.recomendationIds?.length}
+                onClick={() =>
+                  handleCreateOrder(selectedRequisitionData!.recomendationIds)
+                }
+              >
+                Confirm
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       )}
@@ -374,7 +403,7 @@ const DetailBox = ({ patientId, insurancePlan }: DetailBoxProps) => {
                     {group.status === "PENDING" ? (
                       <Button
                         onClick={() =>
-                          handleCreateOrder(
+                          handleSimulateOrder(
                             group.recommendations.map((item) => item.id)
                           )
                         }

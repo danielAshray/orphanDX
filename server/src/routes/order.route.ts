@@ -5,6 +5,7 @@ import {
   createOrder,
   getDashboard,
   orderTracking,
+  simulateOrder,
   uploadResultPDF,
 } from "../controllers/order.controller";
 import {
@@ -19,6 +20,14 @@ import {
 import { uploadFile } from "../config/multer.config";
 
 const orderRoute: Router = Router();
+
+orderRoute.post(
+  "/simulate-order",
+  authenticate,
+  authorizeByRoleAndOrg(["USER", "ADMIN"], "FACILITY"),
+  validateBody(createOrderSchema),
+  simulateOrder
+);
 
 orderRoute.post(
   "",

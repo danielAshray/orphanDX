@@ -4,6 +4,18 @@ import { getErrorMessage } from "@/lib/utils";
 import type { ApiReponse, completeOrderProps, ManualOrderType } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
+const simulateOrderApi = async ({
+  recomendationIds,
+}: {
+  recomendationIds: string[];
+}): Promise<ApiReponse> => {
+  const { data } = await api.post<ApiReponse>(`/order/simulate-order`, {
+    recomendationIds,
+  });
+
+  return data;
+};
+
 const createOrderApi = async ({
   recomendationIds,
 }: {
@@ -42,6 +54,18 @@ const useCompleteOrder = () => {
       });
     },
 
+    onError: (error: any) =>
+      Notification({
+        toastMessage: getErrorMessage(error),
+        toastStatus: "error",
+      }),
+  });
+};
+
+const useSimulateOrder = () => {
+  return useMutation({
+    mutationFn: (props: { recomendationIds: string[] }) =>
+      simulateOrderApi(props),
     onError: (error: any) =>
       Notification({
         toastMessage: getErrorMessage(error),
@@ -198,6 +222,7 @@ export {
   fetchDashboardApi,
   fetchOrderListApi,
   fetchOrderTrackingListApi,
+  useSimulateOrder,
   useCreateOrder,
   completeOrderApi,
   useCompleteOrder,
