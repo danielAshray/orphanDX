@@ -1,7 +1,12 @@
 import { Notification } from "@/components";
 import api from "@/config/axios.config";
 import { getErrorMessage } from "@/lib/utils";
-import type { ApiReponse, completeOrderProps, ManualOrderType } from "@/types";
+import type {
+  ApiReponse,
+  completeOrderProps,
+  ManualOrderType,
+  NewManualOrderType,
+} from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 const simulateOrderApi = async ({
@@ -32,6 +37,14 @@ const createManualOrderApi = async (
   props: ManualOrderType
 ): Promise<ApiReponse> => {
   const { data } = await api.post<ApiReponse>(`/order/manual`, props);
+
+  return data;
+};
+
+const createNewManualOrderApi = async (
+  props: NewManualOrderType
+): Promise<ApiReponse> => {
+  const { data } = await api.post<ApiReponse>(`/order/new-manual-order`, props);
 
   return data;
 };
@@ -99,6 +112,24 @@ const useCreateOrderManually = () => {
     onSuccess: () => {
       Notification({
         toastMessage: "Order created successfully",
+        toastStatus: "success",
+      });
+    },
+
+    onError: (error: any) =>
+      Notification({
+        toastMessage: getErrorMessage(error),
+        toastStatus: "error",
+      }),
+  });
+};
+
+const useCreateNewOrderManually = () => {
+  return useMutation({
+    mutationFn: (props: NewManualOrderType) => createNewManualOrderApi(props),
+    onSuccess: () => {
+      Notification({
+        toastMessage: "New order created successfully",
         toastStatus: "success",
       });
     },
@@ -229,4 +260,5 @@ export {
   useUploadPDF,
   useTestComplete,
   useCreateOrderManually,
+  useCreateNewOrderManually,
 };

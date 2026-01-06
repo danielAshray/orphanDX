@@ -105,6 +105,49 @@ const createManualOrderSchema = Joi.object({
   .unknown(false)
   .required();
 
+const createNewManualOrderSchema = Joi.object({
+  firstName: Joi.string().trim().required(),
+  lastName: Joi.string().trim().required(),
+  mrn: Joi.string().trim().required(),
+  dateOfBirth: Joi.string().required(),
+  gender: Joi.string().valid("MALE", "FEMALE", "OTHER").required(),
+  phone: Joi.string().required(),
+  email: Joi.string().required(),
+  lastVisit: Joi.date().required(),
+
+  /* Insurance */
+  provider: Joi.string().required(),
+  plan: Joi.string().required(),
+  type: Joi.string().required(),
+  memberId: Joi.string().required(),
+
+  /* Diagnosis */
+  diagnosis: Joi.array()
+    .items(
+      Joi.object({
+        name: Joi.string().required(),
+        icd10: Joi.string().required(),
+        onsetDate: Joi.date().required(),
+      })
+    )
+    .min(1),
+
+  /* Lab */
+  labId: Joi.string().required(),
+
+  /* Tests */
+  tests: Joi.array()
+    .items(
+      Joi.object({
+        testName: Joi.string().required(),
+        cptCode: Joi.string().required(),
+      })
+    )
+    .min(1),
+})
+  .unknown(false)
+  .required();
+
 export {
   userLoginSchema,
   userRegisterSchema,
@@ -115,4 +158,5 @@ export {
   detailsSchema,
   createOrganizationSchema,
   createManualOrderSchema,
+  createNewManualOrderSchema,
 };

@@ -326,6 +326,139 @@ export const createManualOrder = async (
   }
 };
 
+export const createNewManualOrder = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const organizationId = req.user?.organization?.id || "";
+    const userId = req.user?.id || "";
+    const {
+      firstName,
+      lastName,
+      mrn,
+      dateOfBirth,
+      gender,
+      phone,
+      email,
+      lastVisit,
+      provider,
+      plan,
+      type,
+      memberId,
+      diagnosis,
+      labId,
+      tests,
+    } = req.body;
+
+    const user = await prisma.user.findUnique({
+      where: {
+        organizationId,
+        id: userId,
+      },
+    });
+
+    if (!user) return next({ code: 400, message: "user not found" });
+
+    const { newOrder } = await prisma.$transaction(async (tx) => {
+      const existingPatient = await tx.patient.findFirst({
+        where: {
+          facilityId: organizationId,
+          mrn,
+        },
+      });
+
+      if (existingPatient) {
+        throw { code: 400, message: "Patient with this MRN already exists" };
+      }
+
+      const patient = await tx.patient.create({
+        data: {
+          facilityId: organizationId,
+          firstName,
+          lastName,
+          mrn,
+          dateOfBirth,
+          gender,
+          phone,
+          email,
+          lastVisit,
+          insurance: {
+            create: {
+              provider,
+              plan,
+              type,
+              memberId,
+            },
+          },
+          diagnosis: {
+            createMany: {
+              data: diagnosis.map(
+                (d: { name: string; icd10: string; onsetDate: string }) => ({
+                  name: d.name,
+                  icd10: d.icd10,
+                  onsetDate: d.onsetDate,
+                })
+              ),
+            },
+          },
+        },
+        include: { diagnosis: true },
+      });
+
+      const newOrder = await tx.labOrder.create({
+        data: {
+          facilityId: organizationId,
+          labId,
+          patientId: patient.id,
+          diagnosis: {
+            createMany: {
+              data: patient.diagnosis.map((d) => ({
+                diagnosisId: d.id,
+              })),
+            },
+          },
+          tests: {
+            createMany: {
+              data: tests.map(
+                (test: { testName: string; cptCode: string }) => ({
+                  testName: test.testName,
+                  cptCode: test.cptCode,
+                })
+              ),
+            },
+          },
+          createdById: userId,
+          status: "ORDERED",
+        },
+        include: { tests: true },
+      });
+
+      await tx.patient.update({
+        where: {
+          id: patient.id,
+        },
+        data: {
+          scheduledCount: { increment: tests.length },
+        },
+      });
+
+      return { newOrder };
+    });
+
+    sendResponse(res, {
+      success: true,
+      code: 200,
+      message: "New order created successfully",
+      data: newOrder,
+    });
+  } catch (error: any) {
+    console.error(error);
+    next(ApiError.internal("Failed to create order", error));
+  }
+};
+
 export const completeOrder = async (
   req: Request,
   res: Response,
