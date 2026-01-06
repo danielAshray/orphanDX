@@ -53,10 +53,10 @@ const Login = () => {
               <ImageWithFallback
                 src="/logo.png"
                 alt="Logo"
-                className="w-auto h-10 object-cover drop-shadow-lg drop-shadow-blue-400"
+                className="w-auto h-10 object-cover"
               />
 
-              <p className="text-xs text-gray-500 text-shadow-lg text-shadow-purple-200">
+              <p className="text-xs text-gray-500">
                 Specialty Test Intelligence Platform
               </p>
             </div>
@@ -167,10 +167,10 @@ const Login = () => {
                 <ImageWithFallback
                   src="/logo.png"
                   alt="Logo"
-                  className="w-auto h-10 object-cover drop-shadow-lg drop-shadow-blue-400"
+                  className="w-auto h-10 object-cover"
                 />
 
-                <p className="text-gray-600 text-shadow-lg">
+                <p className="text-gray-600">
                   Sign in to access your dashboard
                 </p>
               </div>
