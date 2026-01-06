@@ -494,7 +494,7 @@ const collectOrder = async (
           id: newOrder.patientId,
         },
         data: {
-          scheduledCount: { decrement: -1 },
+          scheduledCount: { decrement: 1 },
           collectedCount: { increment: 1 },
         },
       });
@@ -608,7 +608,7 @@ const uploadResultPDF = async (
           id: orderTest.patientId,
         },
         data: {
-          collectedCount: { decrement: -1 },
+          collectedCount: { decrement: 1 },
           resultCount: { increment: 1 },
           completedCount: { increment: 1 },
         },

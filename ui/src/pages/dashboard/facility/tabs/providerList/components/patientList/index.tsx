@@ -30,12 +30,14 @@ const PatientList = ({
 
   const filteredPatients = patients.filter((patient) => {
     const matchesSearch =
-      `{${patient.firstName} ${patient.lastName}}`
+      `{${patient.lastName} ${patient.firstName}}`
         ?.toLowerCase()
         .includes(searchQuery.toLowerCase()) ||
       patient.mrn.toLowerCase().includes(searchQuery.toLowerCase());
 
     if (!matchesSearch) return false;
+
+    console.log({patient})
 
     switch (filter) {
       case "candidates":
