@@ -10,6 +10,7 @@ import { PatientDetails, PatientList } from "./components";
 type PatientFilter = "all" | "candidates" | "scheduled" | "completed";
 
 interface ProviderListProps {
+  patientCount: number;
   recommendedTestCount: number;
   scheduledTestCount: number;
   completedTestCount: number;
@@ -17,6 +18,7 @@ interface ProviderListProps {
 }
 
 const ProviderList: React.FC<ProviderListProps> = ({
+  patientCount,
   recommendedTestCount,
   scheduledTestCount,
   completedTestCount,
@@ -42,7 +44,7 @@ const ProviderList: React.FC<ProviderListProps> = ({
           size="sm"
           onClick={() => setPatientFilter("all")}
         >
-          All Patients
+          All Patients ({patientCount})
         </Button>
 
         <Button

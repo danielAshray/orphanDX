@@ -93,6 +93,7 @@ const Facility = () => {
 
         <TabsContent value="patients" className="space-y-4">
           <ProviderList
+            patientCount={patientCount}
             recommendedTestCount={recomendedTestCount}
             scheduledTestCount={scheduledTestCount}
             completedTestCount={completedTestCount}

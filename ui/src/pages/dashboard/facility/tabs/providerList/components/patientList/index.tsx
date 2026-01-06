@@ -3,7 +3,7 @@ import { Card } from "@/components/card";
 import { Input } from "@/components";
 import { Badge } from "@/components/badge";
 import { ScrollArea } from "@/components/scrollArea";
-import { Search, AlertCircle, CheckCircle, Calendar } from "lucide-react";
+import { Search } from "lucide-react";
 import { useState } from "react";
 
 type PatientFilter = "all" | "candidates" | "scheduled" | "completed";
@@ -52,19 +52,6 @@ const PatientList = ({
     }
   };
 
-  const candidatePatients = filteredPatients.filter(
-    (p) => p.recomendationCount > 0
-  );
-  const scheduledPatients = filteredPatients.filter(
-    (p) => p.scheduledCount > 0
-  );
-  const completedPatients = filteredPatients.filter(
-    (p) => p.completedCount > 0
-  );
-  const otherPatients = filteredPatients.filter(
-    (p) => !p.recomendationCount && !p.scheduledCount && !p.completedCount
-  );
-
   return (
     <Card className="flex flex-col">
       <div className="p-4 border-b border-gray-200">
@@ -82,82 +69,10 @@ const PatientList = ({
 
       <ScrollArea className="h-[calc(100vh-320px)]">
         <div className="p-4 space-y-4">
-          {(filter === "all" || filter === "candidates") &&
-            candidatePatients.length > 0 && (
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <AlertCircle className="w-4 h-4 text-orange-600" />
-                  <h3 className="text-sm text-gray-700">
-                    Test Candidates ({candidatePatients.length})
-                  </h3>
-                </div>
-                <div className="space-y-2">
-                  {candidatePatients.map((patient) => (
-                    <PatientCard
-                      key={patient.id}
-                      patient={patient}
-                      isSelected={selectedPatient?.id === patient.id}
-                      onClick={() => handlePatientClick(patient)}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-
-          {(filter === "all" || filter === "scheduled") &&
-            scheduledPatients.length > 0 && (
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <Calendar className="w-4 h-4 text-blue-600" />
-                  <h3 className="text-sm text-gray-700">
-                    Scheduled Tests ({scheduledPatients.length})
-                  </h3>
-                </div>
-                <div className="space-y-2">
-                  {scheduledPatients.map((patient) => (
-                    <PatientCard
-                      key={patient.id}
-                      patient={patient}
-                      isSelected={selectedPatient?.id === patient.id}
-                      onClick={() => handlePatientClick(patient)}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-
-          {(filter === "all" || filter === "completed") &&
-            completedPatients.length > 0 && (
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <CheckCircle className="w-4 h-4 text-green-600" />
-                  <h3 className="text-sm text-gray-700">
-                    Completed Tests ({completedPatients.length})
-                  </h3>
-                </div>
-                <div className="space-y-2">
-                  {completedPatients.map((patient) => (
-                    <PatientCard
-                      key={patient.id}
-                      patient={patient}
-                      isSelected={selectedPatient?.id === patient.id}
-                      onClick={() => handlePatientClick(patient)}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-
-          {filter === "all" && otherPatients.length > 0 && (
+          {filteredPatients.length > 0 ? (
             <div>
-              <div className="flex items-center gap-2 mb-2">
-                <CheckCircle className="w-4 h-4 text-gray-400" />
-                <h3 className="text-sm text-gray-700">
-                  Other Patients ({otherPatients.length})
-                </h3>
-              </div>
               <div className="space-y-2">
-                {otherPatients.map((patient) => (
+                {filteredPatients.map((patient) => (
                   <PatientCard
                     key={patient.id}
                     patient={patient}
@@ -167,9 +82,7 @@ const PatientList = ({
                 ))}
               </div>
             </div>
-          )}
-
-          {filteredPatients.length === 0 && (
+          ) : (
             <div className="text-center py-8 text-gray-500">
               <p>No patients found</p>
             </div>
@@ -206,7 +119,7 @@ function PatientCard({ patient, isSelected, onClick }: PatientCardProps) {
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
             <p className="text-gray-900">
-              {patient.firstName} {patient.lastName}
+              {patient.lastName} {patient.firstName}
             </p>
           </div>
           <p className="text-xs text-gray-500">MRN: {patient.mrn}</p>
