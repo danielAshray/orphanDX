@@ -37,8 +37,6 @@ const PatientList = ({
 
     if (!matchesSearch) return false;
 
-    console.log({patient})
-
     switch (filter) {
       case "candidates":
         return patient.recomendationCount > 0;
