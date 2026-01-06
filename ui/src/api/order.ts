@@ -1,7 +1,12 @@
 import { Notification } from "@/components";
 import api from "@/config/axios.config";
 import { getErrorMessage } from "@/lib/utils";
-import type { ApiReponse, completeOrderProps, ManualOrderType } from "@/types";
+import type {
+  ApiReponse,
+  completeOrderProps,
+  ManualOrderType,
+  NewManualOrderType,
+} from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 const simulateOrderApi = async ({
@@ -32,6 +37,14 @@ const createManualOrderApi = async (
   props: ManualOrderType
 ): Promise<ApiReponse> => {
   const { data } = await api.post<ApiReponse>(`/order/manual`, props);
+
+  return data;
+};
+
+const createNewManualOrderApi = async (
+  props: NewManualOrderType
+): Promise<ApiReponse> => {
+  const { data } = await api.post<ApiReponse>(`/order/new-manual-order`, props);
 
   return data;
 };
@@ -111,12 +124,30 @@ const useCreateOrderManually = () => {
   });
 };
 
+const useCreateNewOrderManually = () => {
+  return useMutation({
+    mutationFn: (props: NewManualOrderType) => createNewManualOrderApi(props),
+    onSuccess: () => {
+      Notification({
+        toastMessage: "New order created successfully",
+        toastStatus: "success",
+      });
+    },
+
+    onError: (error: any) =>
+      Notification({
+        toastMessage: getErrorMessage(error),
+        toastStatus: "error",
+      }),
+  });
+};
+
 const OrderRoutes = Object.freeze({
   dashboard: "/order",
   track: "/order/track",
   orderTracking: "/order/order-tracking",
+  collect: (id: number | string) => `/order/collect/${id}`,
   upload: (id: number | string) => `/order/upload/${id}`,
-  markComplete: (id: number | string) => `/order/complete/${id}`,
 });
 
 const fetchDashboardApi = async (): Promise<ApiReponse> => {
@@ -169,7 +200,7 @@ const useUploadPDF = () => {
         queryKey: ["fetchOrderListApi"],
       });
       Notification({
-        toastMessage: "PDF uploaded successfully",
+        toastMessage: "Test completed successfully",
         toastStatus: "success",
       });
     },
@@ -182,30 +213,37 @@ const useUploadPDF = () => {
   });
 };
 
-interface TestCompleteProps {
+interface TestCollectionProps {
   orderId: string;
+  collectedAt: string;
+  collectedBy: string;
 }
 
-const testCompleteApi = async ({
+const testCollectionApi = async ({
   orderId,
-}: TestCompleteProps): Promise<ApiReponse> => {
-  const { data } = await api.put<ApiReponse>(OrderRoutes.markComplete(orderId));
+  collectedAt,
+  collectedBy,
+}: TestCollectionProps): Promise<ApiReponse> => {
+  const { data } = await api.put<ApiReponse>(OrderRoutes.collect(orderId), {
+    collectedAt,
+    collectedBy,
+  });
 
   return data;
 };
 
-const useTestComplete = () => {
+const useTestCollection = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: testCompleteApi,
+    mutationFn: testCollectionApi,
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["fetchOrderListApi"],
       });
       queryClient.invalidateQueries({ queryKey: ["fetchDashboardApi"] });
       Notification({
-        toastMessage: "Marked completed successfully",
+        toastMessage: "Collection completed successfully",
         toastStatus: "success",
       });
     },
@@ -226,7 +264,8 @@ export {
   useCreateOrder,
   completeOrderApi,
   useCompleteOrder,
+  useTestCollection,
   useUploadPDF,
-  useTestComplete,
   useCreateOrderManually,
+  useCreateNewOrderManually,
 };

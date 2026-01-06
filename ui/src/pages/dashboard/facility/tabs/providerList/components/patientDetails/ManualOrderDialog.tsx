@@ -229,6 +229,7 @@ const ManualOrderDialog: React.FC<ManualOrderDialogProps> = ({
                 <p className="text-sm text-red-500">{errors.labId.message}</p>
               )}
             </div>
+            
             <div className="space-y-2">
               <Label>Diagnosis *</Label>
 

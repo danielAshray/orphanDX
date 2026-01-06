@@ -61,6 +61,7 @@ export interface PatientDetailsType {
   email: string;
   lastVisit: string;
   scheduledCount: number;
+  collectedCount: number;
   recomendationCount: number;
   completedCount: number;
   facilityId: string;
@@ -232,4 +233,38 @@ export type ManualOrderType = {
   labId: string;
   diagnosis: string[];
   tests: { testName: string; cptCode: string }[];
+};
+
+export type NewManualOrderType = {
+  // Patient Info
+  firstName: string;
+  lastName: string;
+  mrn: string;
+  dateOfBirth: string;
+  gender: string;
+  phone: string;
+  email: string;
+  lastVisit: string;
+
+  // Insurance
+  provider: string;
+  plan: string;
+  type: string;
+  memberId: string;
+
+  // Lab
+  labId: string;
+
+  // Diagnosis
+  diagnosis: {
+    name: string;
+    icd10: string;
+    onsetDate: string;
+  }[];
+
+  // Tests
+  tests: {
+    testName: string;
+    cptCode: string;
+  }[];
 };

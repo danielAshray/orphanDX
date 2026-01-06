@@ -1,4 +1,8 @@
-import { fetchOrderListApi, useTestComplete, useUploadPDF } from "@/api/order";
+import {
+  fetchOrderListApi,
+  useTestCollection,
+  useUploadPDF,
+} from "@/api/order";
 import { useQuery } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 import {
@@ -14,9 +18,9 @@ import { Input, Label, Notification } from "@/components";
 import { Card } from "@/components/card";
 import { Button } from "@/components/button";
 import {
+  Beaker,
   Building2,
   Calendar,
-  CheckCircle,
   Download,
   Eye,
   FileText,
@@ -26,18 +30,12 @@ import {
   User,
 } from "lucide-react";
 import { Badge } from "@/components/badge";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/alertDialog";
 import { OWLiverRequisition } from "@/elements";
 import { config } from "@/config/env";
+import {
+  SpecimenCollectionDialog,
+  type CollectionData,
+} from "./SpecimenCollectionDialog";
 
 interface Patient {
   id: string;
@@ -105,6 +103,10 @@ export interface Order {
   resultPdfUrl: string | null;
   createdAt: string;
   updatedAt: string;
+  tests?: {
+    testName: string;
+    cptCode: string;
+  }[];
   testResult: any | null;
   patient: Patient;
   diagnosis: DiagnosisItem[];
@@ -124,11 +126,14 @@ const Order = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [isCompleteDialogOpen, setIsCompleteDialogOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
   const [showLabResults, setShowLabResults] = useState(false);
   const [selectedLabResult, setSelectedLabResult] = useState<any>(null);
+
+  const [showCollectionDialog, setShowCollectionDialog] = useState(false);
+  const [selectedOrderForCollection, setSelectedOrderForCollection] =
+    useState<Order | null>(null);
 
   const { data: orderList } = useQuery({
     queryKey: ["fetchOrderListApi"],
@@ -138,12 +143,30 @@ const Order = () => {
   const orders = (orderList?.data || []) as Order[];
 
   const uploadMutation = useUploadPDF();
-  const testTestMutation = useTestComplete();
+  const testCollectionMutation = useTestCollection();
+
+  const handleCollectionDialog = (order: Order) => {
+    if (order) {
+      setSelectedOrderForCollection(order);
+      setShowCollectionDialog(true);
+    }
+  };
+
+  const handleCollectionComplete = (
+    orderId: string,
+    collectionData: CollectionData
+  ) => {
+    testCollectionMutation.mutate({
+      orderId,
+      collectedAt: collectionData.collectedAt,
+      collectedBy: collectionData.collectedBy,
+    });
+  };
 
   const handleUploadConfirmAlert = (order: Order) => {
     if (order) {
-      setIsUploadDialogOpen(true);
       setSelectedOrder(order);
+      setIsUploadDialogOpen(true);
     }
   };
 
@@ -190,21 +213,6 @@ const Order = () => {
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
-  };
-
-  const handleMarkAsCompletedAlert = (order: Order) => {
-    if (order) {
-      setIsCompleteDialogOpen(true);
-      setSelectedOrder(order);
-    }
-  };
-
-  const handleMarkAsCompleted = (order: Order) => {
-    testTestMutation.mutate({
-      orderId: order.id,
-    });
-    setIsCompleteDialogOpen(false);
-    setSelectedOrder(null);
   };
 
   const filteredOrders = orders.filter(
@@ -303,7 +311,7 @@ const Order = () => {
                       <div>
                         <p className="text-gray-500">Patient</p>
                         <p className="text-gray-900">
-                          {order.patient?.firstName} {order.patient?.lastName}
+                          {order.patient?.lastName} {order.patient?.firstName}
                         </p>
                       </div>
                     </div>
@@ -369,6 +377,18 @@ const Order = () => {
                     <div className="flex gap-2">
                       {order.status === "ORDERED" && (
                         <Button
+                          variant="default"
+                          size="sm"
+                          onClick={() => handleCollectionDialog(order)}
+                          className="gap-2 bg-yellow-600 hover:bg-yellow-700"
+                        >
+                          <Beaker className="w-4 h-4" />
+                          Record Collection
+                        </Button>
+                      )}
+
+                      {order.status === "COLLECTED" && (
+                        <Button
                           variant="outline"
                           size="sm"
                           onClick={() => handleUploadConfirmAlert(order)}
@@ -376,19 +396,6 @@ const Order = () => {
                         >
                           <Upload className="w-4 h-4" />
                           Upload Result
-                        </Button>
-                      )}
-
-                      {order.status !== "ORDERED" && (
-                        <Button
-                          variant="default"
-                          size="sm"
-                          disabled={order.status === "COMPLETED"}
-                          onClick={() => handleMarkAsCompletedAlert(order)}
-                          className="gap-2 bg-green-600 hover:bg-green-700"
-                        >
-                          <CheckCircle className="w-4 h-4" />
-                          Mark as Completed
                         </Button>
                       )}
                     </div>
@@ -418,6 +425,16 @@ const Order = () => {
           </div>
         </ScrollArea>
       </Card>
+
+      {/* Specimen Collection Dialog */}
+      {selectedOrderForCollection && (
+        <SpecimenCollectionDialog
+          open={showCollectionDialog}
+          onOpenChange={setShowCollectionDialog}
+          order={selectedOrderForCollection}
+          onCollectionComplete={handleCollectionComplete}
+        />
+      )}
 
       {/* Lab Requisition Dialog */}
       <Dialog open={showRequisition} onOpenChange={setShowRequisition}>
@@ -529,33 +546,6 @@ const Order = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Mark as Completed Confirmation Dialog */}
-      <AlertDialog
-        open={isCompleteDialogOpen}
-        onOpenChange={setIsCompleteDialogOpen}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Mark Order as Completed?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to mark this order as completed? This action
-              will update the order status.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>No</AlertDialogCancel>
-            {selectedOrder && (
-              <AlertDialogAction
-                onClick={() => handleMarkAsCompleted(selectedOrder)}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                Yes
-              </AlertDialogAction>
-            )}
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   );
 };

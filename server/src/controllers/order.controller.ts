@@ -215,8 +215,8 @@ export const createOrder = async (
           id: patientId,
         },
         data: {
-          scheduledCount: { increment: recommendations.length },
-          recomendationCount: { decrement: recommendations.length },
+          scheduledCount: { increment: 1 },
+          recomendationCount: { decrement: 1 },
         },
       });
 
@@ -307,7 +307,7 @@ export const createManualOrder = async (
           id: patientId,
         },
         data: {
-          scheduledCount: { increment: tests.length },
+          scheduledCount: { increment: 1 },
         },
       });
 
@@ -326,7 +326,140 @@ export const createManualOrder = async (
   }
 };
 
-export const completeOrder = async (
+export const createNewManualOrder = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const organizationId = req.user?.organization?.id || "";
+    const userId = req.user?.id || "";
+    const {
+      firstName,
+      lastName,
+      mrn,
+      dateOfBirth,
+      gender,
+      phone,
+      email,
+      lastVisit,
+      provider,
+      plan,
+      type,
+      memberId,
+      diagnosis,
+      labId,
+      tests,
+    } = req.body;
+
+    const user = await prisma.user.findUnique({
+      where: {
+        organizationId,
+        id: userId,
+      },
+    });
+
+    if (!user) return next({ code: 400, message: "user not found" });
+
+    const { newOrder } = await prisma.$transaction(async (tx) => {
+      const existingPatient = await tx.patient.findFirst({
+        where: {
+          facilityId: organizationId,
+          mrn,
+        },
+      });
+
+      if (existingPatient) {
+        throw { code: 400, message: "Patient with this MRN already exists" };
+      }
+
+      const patient = await tx.patient.create({
+        data: {
+          facilityId: organizationId,
+          firstName,
+          lastName,
+          mrn,
+          dateOfBirth,
+          gender,
+          phone,
+          email,
+          lastVisit,
+          insurance: {
+            create: {
+              provider,
+              plan,
+              type,
+              memberId,
+            },
+          },
+          diagnosis: {
+            createMany: {
+              data: diagnosis.map(
+                (d: { name: string; icd10: string; onsetDate: string }) => ({
+                  name: d.name,
+                  icd10: d.icd10,
+                  onsetDate: d.onsetDate,
+                })
+              ),
+            },
+          },
+        },
+        include: { diagnosis: true },
+      });
+
+      const newOrder = await tx.labOrder.create({
+        data: {
+          facilityId: organizationId,
+          labId,
+          patientId: patient.id,
+          diagnosis: {
+            createMany: {
+              data: patient.diagnosis.map((d) => ({
+                diagnosisId: d.id,
+              })),
+            },
+          },
+          tests: {
+            createMany: {
+              data: tests.map(
+                (test: { testName: string; cptCode: string }) => ({
+                  testName: test.testName,
+                  cptCode: test.cptCode,
+                })
+              ),
+            },
+          },
+          createdById: userId,
+          status: "ORDERED",
+        },
+        include: { tests: true },
+      });
+
+      await tx.patient.update({
+        where: {
+          id: patient.id,
+        },
+        data: {
+          scheduledCount: { increment: 1 },
+        },
+      });
+
+      return { newOrder };
+    });
+
+    sendResponse(res, {
+      success: true,
+      code: 200,
+      message: "New order created successfully",
+      data: newOrder,
+    });
+  } catch (error: any) {
+    console.error(error);
+    next(ApiError.internal("Failed to create order", error));
+  }
+};
+
+const collectOrder = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -335,6 +468,8 @@ export const completeOrder = async (
     const organizationId = req.user?.organization?.id || "";
 
     const orderId = req.params.id;
+
+    const { collectedAt, collectedBy } = req.body;
 
     const order = await prisma.labOrder.findUnique({
       where: { id: orderId, labId: organizationId },
@@ -348,7 +483,9 @@ export const completeOrder = async (
           id: order.id,
         },
         data: {
-          status: "COMPLETED",
+          status: "COLLECTED",
+          collectedAt,
+          collectedBy,
         },
       });
 
@@ -357,7 +494,8 @@ export const completeOrder = async (
           id: newOrder.patientId,
         },
         data: {
-          completedCount: { increment: 1 },
+          scheduledCount: { decrement: 1 },
+          collectedCount: { increment: 1 },
         },
       });
 
@@ -367,11 +505,11 @@ export const completeOrder = async (
     sendResponse(res, {
       success: true,
       code: 200,
-      message: "Order completed successfully",
+      message: "Order collected successfully",
       data: newOrder,
     });
   } catch (error: any) {
-    next(ApiError.internal("Failed to create order", error));
+    next(ApiError.internal("Failed to collect order", error));
   }
 };
 
@@ -462,7 +600,7 @@ const uploadResultPDF = async (
         where: {
           id: orderId,
         },
-        data: { resultPdfUrl: pdfPath, status: "COLLECTED" },
+        data: { resultPdfUrl: pdfPath, status: "COMPLETED" },
       });
 
       await tx.patient.update({
@@ -470,8 +608,9 @@ const uploadResultPDF = async (
           id: orderTest.patientId,
         },
         data: {
-          scheduledCount: { decrement: -1 },
+          collectedCount: { decrement: 1 },
           resultCount: { increment: 1 },
+          completedCount: { increment: 1 },
         },
       });
 
@@ -489,4 +628,4 @@ const uploadResultPDF = async (
   }
 };
 
-export { getDashboard, orderTracking, uploadResultPDF };
+export { getDashboard, orderTracking, uploadResultPDF, collectOrder };

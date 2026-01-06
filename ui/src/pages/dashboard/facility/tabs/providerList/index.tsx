@@ -3,25 +3,38 @@ import { Button } from "@/components/button";
 import { Card } from "@/components/card";
 import type { PatientDetailsType } from "@/types";
 import { useQuery } from "@tanstack/react-query";
-import { Calendar, CheckCircle2, Users } from "lucide-react";
+import { Calendar, CheckCircle2, Plus, Users } from "lucide-react";
 import { useState } from "react";
 import { PatientDetails, PatientList } from "./components";
+import ManualOrderDialog from "./components/ManualOrderDialog";
 
-type PatientFilter = "all" | "candidates" | "scheduled" | "completed";
+type PatientFilter =
+  | "all"
+  | "candidates"
+  | "scheduled"
+  | "collected"
+  | "completed";
 
 interface ProviderListProps {
+  patientCount: number;
   recommendedTestCount: number;
   scheduledTestCount: number;
+  collectedTestCount: number;
   completedTestCount: number;
   activeTab: string;
 }
 
 const ProviderList: React.FC<ProviderListProps> = ({
+  patientCount,
   recommendedTestCount,
   scheduledTestCount,
+  collectedTestCount,
   completedTestCount,
   activeTab,
 }) => {
+  const [showManualOrderModal, setShowManualOrderModal] =
+    useState<boolean>(false);
+
   const [selectedPatient, setSelectedPatient] =
     useState<PatientDetailsType | null>(null);
   const [patientFilter, setPatientFilter] = useState<PatientFilter>("all");
@@ -36,43 +49,71 @@ const ProviderList: React.FC<ProviderListProps> = ({
 
   return (
     <>
-      <div className="flex gap-2 flex-wrap">
-        <Button
-          variant={patientFilter === "all" ? "default" : "outline"}
-          size="sm"
-          onClick={() => setPatientFilter("all")}
-        >
-          All Patients
-        </Button>
+      {showManualOrderModal && (
+        <ManualOrderDialog
+          open={showManualOrderModal}
+          onOpenChange={setShowManualOrderModal}
+        />
+      )}
+
+      <div className="flex items-center justify-between">
+        <div className="flex gap-2 flex-wrap">
+          <Button
+            variant={patientFilter === "all" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setPatientFilter("all")}
+          >
+            All Patients ({patientCount})
+          </Button>
+
+          <Button
+            variant={patientFilter === "candidates" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setPatientFilter("candidates")}
+            className="gap-2"
+          >
+            <Calendar className="w-4 h-4" />
+            Test Candidates ({recommendedTestCount})
+          </Button>
+
+          <Button
+            variant={patientFilter === "scheduled" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setPatientFilter("scheduled")}
+            className="gap-2"
+          >
+            <Calendar className="w-4 h-4" />
+            Scheduled ({scheduledTestCount})
+          </Button>
+
+          <Button
+            variant={patientFilter === "collected" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setPatientFilter("collected")}
+            className="gap-2"
+          >
+            <Calendar className="w-4 h-4" />
+            Collected ({collectedTestCount})
+          </Button>
+
+          <Button
+            variant={patientFilter === "completed" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setPatientFilter("completed")}
+            className="gap-2"
+          >
+            <CheckCircle2 className="w-4 h-4" />
+            Completed ({completedTestCount})
+          </Button>
+        </div>
 
         <Button
-          variant={patientFilter === "candidates" ? "default" : "outline"}
+          onClick={() => setShowManualOrderModal(true)}
           size="sm"
-          onClick={() => setPatientFilter("candidates")}
-          className="gap-2"
+          variant="default"
         >
-          <Calendar className="w-4 h-4" />
-          Test Candidates ({recommendedTestCount})
-        </Button>
-
-        <Button
-          variant={patientFilter === "scheduled" ? "default" : "outline"}
-          size="sm"
-          onClick={() => setPatientFilter("scheduled")}
-          className="gap-2"
-        >
-          <Calendar className="w-4 h-4" />
-          Scheduled ({scheduledTestCount})
-        </Button>
-
-        <Button
-          variant={patientFilter === "completed" ? "default" : "outline"}
-          size="sm"
-          onClick={() => setPatientFilter("completed")}
-          className="gap-2"
-        >
-          <CheckCircle2 className="w-4 h-4" />
-          Completed ({completedTestCount})
+          <Plus className="w-4 h-4 mr-2" />
+          Create Manual Order
         </Button>
       </div>
 

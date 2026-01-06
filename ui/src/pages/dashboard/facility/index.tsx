@@ -26,6 +26,7 @@ const Facility = () => {
     patientCount = 0,
     recomendedTestCount = 0,
     scheduledTestCount = 0,
+    collectedTestCount = 0,
     completedTestCount = 0,
   } = statusRes?.data || {};
 
@@ -93,8 +94,10 @@ const Facility = () => {
 
         <TabsContent value="patients" className="space-y-4">
           <ProviderList
+            patientCount={patientCount}
             recommendedTestCount={recomendedTestCount}
             scheduledTestCount={scheduledTestCount}
+            collectedTestCount={collectedTestCount}
             completedTestCount={completedTestCount}
             activeTab={activeTab}
           />
