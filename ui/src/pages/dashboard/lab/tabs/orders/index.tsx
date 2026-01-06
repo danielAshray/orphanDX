@@ -311,7 +311,7 @@ const Order = () => {
                       <div>
                         <p className="text-gray-500">Patient</p>
                         <p className="text-gray-900">
-                          {order.patient?.firstName} {order.patient?.lastName}
+                          {order.patient?.lastName} {order.patient?.firstName}
                         </p>
                       </div>
                     </div>
