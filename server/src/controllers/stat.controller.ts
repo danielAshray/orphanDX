@@ -41,6 +41,7 @@ const getFacilityStatDetails = async (
     const [
       patientCount,
       scheduledTestCount,
+      collectedTestCount,
       completedTestCount,
       recomendedTestCount,
     ] = await Promise.all([
@@ -48,6 +49,11 @@ const getFacilityStatDetails = async (
       prisma.labOrder.count({
         where: {
           status: "ORDERED",
+        },
+      }),
+      prisma.labOrder.count({
+        where: {
+          status: "COLLECTED",
         },
       }),
       prisma.labOrder.count({
@@ -69,6 +75,7 @@ const getFacilityStatDetails = async (
       data: {
         patientCount,
         scheduledTestCount,
+        collectedTestCount,
         completedTestCount,
         recomendedTestCount,
       },

@@ -148,6 +148,13 @@ const createNewManualOrderSchema = Joi.object({
   .unknown(false)
   .required();
 
+const collectOrderSchema = Joi.object({
+  collectedAt: Joi.date().required(),
+  collectedBy: Joi.string().trim().required(),
+})
+  .unknown(false)
+  .required();
+
 export {
   userLoginSchema,
   userRegisterSchema,
@@ -159,4 +166,5 @@ export {
   createOrganizationSchema,
   createManualOrderSchema,
   createNewManualOrderSchema,
+  collectOrderSchema,
 };

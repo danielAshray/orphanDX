@@ -215,8 +215,8 @@ export const createOrder = async (
           id: patientId,
         },
         data: {
-          scheduledCount: { increment: recommendations.length },
-          recomendationCount: { decrement: recommendations.length },
+          scheduledCount: { increment: 1 },
+          recomendationCount: { decrement: 1 },
         },
       });
 
@@ -307,7 +307,7 @@ export const createManualOrder = async (
           id: patientId,
         },
         data: {
-          scheduledCount: { increment: tests.length },
+          scheduledCount: { increment: 1 },
         },
       });
 
@@ -440,7 +440,7 @@ export const createNewManualOrder = async (
           id: patient.id,
         },
         data: {
-          scheduledCount: { increment: tests.length },
+          scheduledCount: { increment: 1 },
         },
       });
 
@@ -459,7 +459,7 @@ export const createNewManualOrder = async (
   }
 };
 
-export const completeOrder = async (
+const collectOrder = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -468,6 +468,8 @@ export const completeOrder = async (
     const organizationId = req.user?.organization?.id || "";
 
     const orderId = req.params.id;
+
+    const { collectedAt, collectedBy } = req.body;
 
     const order = await prisma.labOrder.findUnique({
       where: { id: orderId, labId: organizationId },
@@ -481,7 +483,9 @@ export const completeOrder = async (
           id: order.id,
         },
         data: {
-          status: "COMPLETED",
+          status: "COLLECTED",
+          collectedAt,
+          collectedBy,
         },
       });
 
@@ -490,7 +494,8 @@ export const completeOrder = async (
           id: newOrder.patientId,
         },
         data: {
-          completedCount: { increment: 1 },
+          scheduledCount: { decrement: -1 },
+          collectedCount: { increment: 1 },
         },
       });
 
@@ -500,11 +505,11 @@ export const completeOrder = async (
     sendResponse(res, {
       success: true,
       code: 200,
-      message: "Order completed successfully",
+      message: "Order collected successfully",
       data: newOrder,
     });
   } catch (error: any) {
-    next(ApiError.internal("Failed to create order", error));
+    next(ApiError.internal("Failed to collect order", error));
   }
 };
 
@@ -595,7 +600,7 @@ const uploadResultPDF = async (
         where: {
           id: orderId,
         },
-        data: { resultPdfUrl: pdfPath, status: "COLLECTED" },
+        data: { resultPdfUrl: pdfPath, status: "COMPLETED" },
       });
 
       await tx.patient.update({
@@ -603,8 +608,9 @@ const uploadResultPDF = async (
           id: orderTest.patientId,
         },
         data: {
-          scheduledCount: { decrement: -1 },
+          collectedCount: { decrement: -1 },
           resultCount: { increment: 1 },
+          completedCount: { increment: 1 },
         },
       });
 
@@ -622,4 +628,4 @@ const uploadResultPDF = async (
   }
 };
 
-export { getDashboard, orderTracking, uploadResultPDF };
+export { getDashboard, orderTracking, uploadResultPDF, collectOrder };

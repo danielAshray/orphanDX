@@ -61,6 +61,7 @@ export interface PatientDetailsType {
   email: string;
   lastVisit: string;
   scheduledCount: number;
+  collectedCount: number;
   recomendationCount: number;
   completedCount: number;
   facilityId: string;

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import {
-  completeOrder,
+  collectOrder,
   createManualOrder,
   createNewManualOrder,
   createOrder,
@@ -15,6 +15,7 @@ import {
 } from "../middlewares/auth.middleware";
 import { validateBody } from "../middlewares/requestValidator.middleware";
 import {
+  collectOrderSchema,
   createManualOrderSchema,
   createNewManualOrderSchema,
   createOrderSchema,
@@ -77,10 +78,11 @@ orderRoute.get(
 );
 
 orderRoute.put(
-  "/complete/:id",
+  "/collect/:id",
   authenticate,
   authorizeByRoleAndOrg(["ADMIN"], "LAB"),
-  completeOrder
+  validateBody(collectOrderSchema),
+  collectOrder
 );
 
 orderRoute.put(

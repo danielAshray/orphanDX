@@ -24,7 +24,7 @@ import {
 import { ClipboardList, Send, Plus, X } from "lucide-react";
 import type { NewManualOrderType } from "@/types";
 import { ScrollArea } from "@/components/scrollArea";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchLabsApi } from "@/api/organization";
 import { useCreateNewOrderManually } from "@/api/order";
 
@@ -37,6 +37,8 @@ const ManualOrderDialog: React.FC<ManualOrderDialogProps> = ({
   open,
   onOpenChange,
 }) => {
+  const queryClient = useQueryClient();
+  
   const {
     control,
     register,
@@ -92,6 +94,7 @@ const ManualOrderDialog: React.FC<ManualOrderDialogProps> = ({
   const onSubmit: SubmitHandler<NewManualOrderType> = (values) => {
     mutate(values, {
       onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["fetchFacilityStatApi"] });
         reset();
         onOpenChange(false);
       },

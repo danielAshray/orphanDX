@@ -96,6 +96,7 @@ model Patient {
   lastVisit          DateTime
   scheduledCount     Int      @default(0)
   recomendationCount Int      @default(0)
+  collectedCount     Int      @default(0)
   resultCount        Int      @default(0)
   completedCount     Int      @default(0)
 
@@ -233,6 +234,7 @@ model LabOrder {
   orderedAt   DateTime  @default(now())
   completedAt DateTime?
   collectedAt DateTime?
+  collectedBy String?
 
   createdBy   User   @relation(fields: [createdById], references: [id])
   createdById String

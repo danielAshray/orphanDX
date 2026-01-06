@@ -6,7 +6,12 @@ import { ScrollArea } from "@/components/scrollArea";
 import { Search } from "lucide-react";
 import { useState } from "react";
 
-type PatientFilter = "all" | "candidates" | "scheduled" | "completed";
+type PatientFilter =
+  | "all"
+  | "candidates"
+  | "scheduled"
+  | "collected"
+  | "completed";
 
 interface PatientListProps {
   patients: PatientDetailsType[];
@@ -37,6 +42,8 @@ const PatientList = ({
         return patient.recomendationCount > 0;
       case "scheduled":
         return patient.scheduledCount > 0;
+      case "collected":
+        return patient.collectedCount > 0;
       case "completed":
         return patient.completedCount > 0;
       default:
@@ -101,6 +108,7 @@ interface PatientCardProps {
 
 function PatientCard({ patient, isSelected, onClick }: PatientCardProps) {
   const hasScheduled = patient.scheduledCount > 0;
+  const hasCollected = patient.collectedCount > 0;
   const hasCompleted = patient.completedCount > 0;
   const hasRecommendation = patient.recomendationCount > 0;
 
@@ -131,6 +139,14 @@ function PatientCard({ patient, isSelected, onClick }: PatientCardProps) {
               className="bg-blue-100 text-blue-700 border-blue-200"
             >
               Scheduled
+            </Badge>
+          )}
+          {hasCollected && (
+            <Badge
+              variant="secondary"
+              className="bg-yellow-100 text-yellow-700 border-yellow-200"
+            >
+              Collected
             </Badge>
           )}
           {hasCompleted && (

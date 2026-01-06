@@ -8,12 +8,18 @@ import { useState } from "react";
 import { PatientDetails, PatientList } from "./components";
 import ManualOrderDialog from "./components/ManualOrderDialog";
 
-type PatientFilter = "all" | "candidates" | "scheduled" | "completed";
+type PatientFilter =
+  | "all"
+  | "candidates"
+  | "scheduled"
+  | "collected"
+  | "completed";
 
 interface ProviderListProps {
   patientCount: number;
   recommendedTestCount: number;
   scheduledTestCount: number;
+  collectedTestCount: number;
   completedTestCount: number;
   activeTab: string;
 }
@@ -22,6 +28,7 @@ const ProviderList: React.FC<ProviderListProps> = ({
   patientCount,
   recommendedTestCount,
   scheduledTestCount,
+  collectedTestCount,
   completedTestCount,
   activeTab,
 }) => {
@@ -77,6 +84,16 @@ const ProviderList: React.FC<ProviderListProps> = ({
           >
             <Calendar className="w-4 h-4" />
             Scheduled ({scheduledTestCount})
+          </Button>
+
+          <Button
+            variant={patientFilter === "collected" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setPatientFilter("collected")}
+            className="gap-2"
+          >
+            <Calendar className="w-4 h-4" />
+            Collected ({collectedTestCount})
           </Button>
 
           <Button
