@@ -17,6 +17,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertCircle,
   AlertTriangle,
+  Beaker,
   Check,
   CheckCheck,
   ClipboardList,
@@ -304,7 +305,7 @@ const DetailBox = ({ patientId, insurancePlan }: DetailBoxProps) => {
                   className={`p-4 rounded-lg border ${
                     test.results?.isNormal === false
                       ? "bg-red-50 border-red-200"
-                      : "bg-green-50 border-green-200"
+                      : "bg-yellow-50 border-yellow-200"
                   }`}
                 >
                   <div className="flex items-start justify-between mb-2">
@@ -329,8 +330,8 @@ const DetailBox = ({ patientId, insurancePlan }: DetailBoxProps) => {
                     size="sm"
                     className="w-full mt-2"
                   >
-                    <Eye className="w-4 h-4 mr-2" />
-                    View Results
+                    <Beaker className="w-4 h-4 mr-2" />
+                    Record Collected
                   </Button>
                 </div>
               ))}
