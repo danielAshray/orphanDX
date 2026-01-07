@@ -83,7 +83,7 @@ const ProviderList: React.FC<ProviderListProps> = ({
             className="gap-2"
           >
             <Calendar className="w-4 h-4" />
-            Scheduled ({scheduledTestCount})
+            Approved ({scheduledTestCount})
           </Button>
 
           <Button
@@ -103,7 +103,7 @@ const ProviderList: React.FC<ProviderListProps> = ({
             className="gap-2"
           >
             <CheckCircle2 className="w-4 h-4" />
-            Completed ({completedTestCount})
+            Resulted ({completedTestCount})
           </Button>
         </div>
 
