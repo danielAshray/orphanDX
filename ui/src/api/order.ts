@@ -147,6 +147,7 @@ const OrderRoutes = Object.freeze({
   track: "/order/track",
   orderTracking: "/order/order-tracking",
   collect: (id: number | string) => `/order/collect/${id}`,
+  collectByFacility: (id: number | string) => `/order/collect-facility/${id}`,
   upload: (id: number | string) => `/order/upload/${id}`,
 });
 
@@ -256,6 +257,43 @@ const useTestCollection = () => {
   });
 };
 
+const testCollectionByFacilityApi = async ({
+  orderId,
+  collectedAt,
+  collectedBy,
+}: TestCollectionProps): Promise<ApiReponse> => {
+  const { data } = await api.put<ApiReponse>(OrderRoutes.collectByFacility(orderId), {
+    collectedAt,
+    collectedBy,
+  });
+
+  return data;
+};
+
+const useTestCollectionByFacility = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: testCollectionByFacilityApi,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["fetchOrderListApi"],
+      });
+      queryClient.invalidateQueries({ queryKey: ["fetchDashboardApi"] });
+      Notification({
+        toastMessage: "Collection completed successfully",
+        toastStatus: "success",
+      });
+    },
+    onError: (error: any) => {
+      Notification({
+        toastMessage: getErrorMessage(error),
+        toastStatus: "error",
+      });
+    },
+  });
+};
+
 export {
   fetchDashboardApi,
   fetchOrderListApi,
@@ -265,6 +303,7 @@ export {
   completeOrderApi,
   useCompleteOrder,
   useTestCollection,
+  useTestCollectionByFacility,
   useUploadPDF,
   useCreateOrderManually,
   useCreateNewOrderManually,

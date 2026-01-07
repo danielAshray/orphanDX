@@ -9,13 +9,63 @@ import DetailBox from "./DetailBox";
 import { Button } from "@/components/button";
 import ManualOrderDialog from "./ManualOrderDialog";
 import { useState } from "react";
+import {
+  SpecimenCollectionDialog,
+  type CollectionData,
+} from "./SpecimenCollectionDialog";
+import { useTestCollectionByFacility } from "@/api/order";
+import { useQueryClient } from "@tanstack/react-query";
 
 const PatientDetails = ({ patient }: { patient: PatientDetailsType }) => {
   const [showManualOrderModal, setShowManualOrderModal] =
     useState<boolean>(false);
 
+  const [showCollectionDialog, setShowCollectionDialog] = useState(false);
+  const [selectedOrderForCollection, setSelectedOrderForCollection] =
+    useState<PatientDetailsType | null>(null);
+
+  const handleCollectionDialog = (patient: PatientDetailsType) => {
+    if (patient) {
+      setSelectedOrderForCollection(patient);
+      setShowCollectionDialog(true);
+    }
+  };
+
+  const testCollectionMutation = useTestCollectionByFacility();
+
+  const queryClient = useQueryClient();
+
+  const handleCollectionComplete = (
+    orderId: string,
+    collectionData: CollectionData
+  ) => {
+    testCollectionMutation.mutate(
+      {
+        orderId,
+        collectedAt: collectionData.collectedAt,
+        collectedBy: collectionData.collectedBy,
+      },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ["fetchFacilityStatApi"] });
+          queryClient.invalidateQueries({ queryKey: ["fetchPatientsApi"] });
+        },
+      }
+    );
+  };
+
   return (
     <>
+      {/* Specimen Collection Dialog */}
+      {selectedOrderForCollection && (
+        <SpecimenCollectionDialog
+          open={showCollectionDialog}
+          onOpenChange={setShowCollectionDialog}
+          patientDetails={selectedOrderForCollection}
+          onCollectionComplete={handleCollectionComplete}
+        />
+      )}
+
       {showManualOrderModal && (
         <ManualOrderDialog
           open={showManualOrderModal}
@@ -26,7 +76,7 @@ const PatientDetails = ({ patient }: { patient: PatientDetailsType }) => {
 
       <Card className="flex flex-col">
         <div className="p-4 border-b border-gray-200">
-          <div className="flex items-start justify-between mb-3">
+          <div className="flex items-start justify-between">
             <div>
               <h2 className="text-gray-900">
                 {patient.firstName} {patient.lastName}
@@ -39,14 +89,6 @@ const PatientDetails = ({ patient }: { patient: PatientDetailsType }) => {
               </Badge>
             )}
           </div>
-
-          <Button
-            onClick={() => setShowManualOrderModal(true)}
-            className="w-full"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Create Manual Order
-          </Button>
         </div>
 
         <ScrollArea className="h-[calc(100vh-320px)]">
@@ -139,9 +181,17 @@ const PatientDetails = ({ patient }: { patient: PatientDetailsType }) => {
               </div>
             </div>
             <DetailBox
-              insurancePlan={patient.insurance?.plan}
               patientId={patient.id}
+              handleCollectionDialog={handleCollectionDialog}
             />
+
+            <Button
+              onClick={() => setShowManualOrderModal(true)}
+              className="w-full"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Create Manual Order
+            </Button>
           </div>
         </ScrollArea>
       </Card>

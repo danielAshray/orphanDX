@@ -513,6 +513,60 @@ const collectOrder = async (
   }
 };
 
+const collectOrderFacility = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const organizationId = req.user?.organization?.id || "";
+
+    const orderId = req.params.id;
+
+    const { collectedAt, collectedBy } = req.body;
+
+    const order = await prisma.labOrder.findUnique({
+      where: { id: orderId, facilityId: organizationId },
+    });
+
+    if (!order) return next({ code: 404, message: "order record not found" });
+
+    const { newOrder } = await prisma.$transaction(async (tx) => {
+      const newOrder = await tx.labOrder.update({
+        where: {
+          id: order.id,
+        },
+        data: {
+          status: "COLLECTED",
+          collectedAt,
+          collectedBy,
+        },
+      });
+
+      await tx.patient.update({
+        where: {
+          id: newOrder.patientId,
+        },
+        data: {
+          scheduledCount: { decrement: 1 },
+          collectedCount: { increment: 1 },
+        },
+      });
+
+      return { newOrder };
+    });
+
+    sendResponse(res, {
+      success: true,
+      code: 200,
+      message: "Order collected successfully",
+      data: newOrder,
+    });
+  } catch (error: any) {
+    next(ApiError.internal("Failed to collect order", error));
+  }
+};
+
 const getDashboard = async (
   _req: Request,
   res: Response,
@@ -628,4 +682,4 @@ const uploadResultPDF = async (
   }
 };
 
-export { getDashboard, orderTracking, uploadResultPDF, collectOrder };
+export { getDashboard, orderTracking, uploadResultPDF, collectOrder, collectOrderFacility };

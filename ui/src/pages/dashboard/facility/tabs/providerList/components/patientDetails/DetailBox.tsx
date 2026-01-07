@@ -18,10 +18,11 @@ import {
   AlertCircle,
   AlertTriangle,
   Beaker,
-  Check,
   CheckCheck,
   ClipboardList,
   Eye,
+  File,
+  FileText,
   Send,
 } from "lucide-react";
 import { useState } from "react";
@@ -30,10 +31,10 @@ import { config } from "@/config/env";
 
 type DetailBoxProps = {
   patientId: string;
-  insurancePlan: string;
+  handleCollectionDialog: (patient: PatientDetailsType) => void;
 };
 
-const DetailBox = ({ patientId, insurancePlan }: DetailBoxProps) => {
+const DetailBox = ({ patientId, handleCollectionDialog }: DetailBoxProps) => {
   const [selectedLabResult, setSelectedLabResult] = useState<any>(null);
   const [selectedRequisitionData, setSelectedRequisitionData] =
     useState<any>(null);
@@ -198,6 +199,7 @@ const DetailBox = ({ patientId, insurancePlan }: DetailBoxProps) => {
           </DialogContent>
         </Dialog>
       )}
+
       {!!completedTest.length && (
         <>
           <Separator />
@@ -274,13 +276,61 @@ const DetailBox = ({ patientId, insurancePlan }: DetailBoxProps) => {
                 >
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <p className="text-gray-900">{test.testName}</p>
-                      </div>
                       <p className="text-xs text-gray-600 mt-1">
                         Scheduled:{" "}
                         {new Date(test.createdAt).toLocaleDateString()}
                       </p>
+
+                      <div className="mt-4">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full mt-2"
+                          onClick={() => handleCollectionDialog(patientDetails)}
+                        >
+                          <Beaker className="w-4 h-4 mr-2" />
+                          Record Collection
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+
+      {!!labOrder.length && (
+        <>
+          <Separator />
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <File className="w-4 h-4 text-purple-600" />
+              <h3 className="text-sm text-gray-700">Requisition</h3>
+            </div>
+            <div className="space-y-3">
+              {labOrder.map((order) => (
+                <div
+                  key={order.id}
+                  className={`p-4 rounded-lg border bg-purple-50 border-purple-200`}
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="text-gray-900">{order.id}</p>
+                      </div>
+                      <p className="text-xs text-gray-600 mt-1">
+                        Test:{" "}
+                        {order.tests.map((test) => test.testName).join(",")}
+                      </p>
+
+                      <div className="mt-4">
+                        <Button variant="outline" className="w-full">
+                          <FileText className="w-4 h-4 mr-2" />
+                          View Requisition
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -324,12 +374,7 @@ const DetailBox = ({ patientId, insurancePlan }: DetailBoxProps) => {
                     <div className="flex flex-col gap-1 items-end"></div>
                   </div>
 
-                  <Button
-                    onClick={() => handleViewResults(test)}
-                    variant="outline"
-                    size="sm"
-                    className="w-full mt-2"
-                  >
+                  <Button variant="outline" size="sm" className="w-full mt-2">
                     <Beaker className="w-4 h-4 mr-2" />
                     Record Collected
                   </Button>
@@ -339,6 +384,7 @@ const DetailBox = ({ patientId, insurancePlan }: DetailBoxProps) => {
           </div>
         </>
       )}
+
       {groupedRecomendations.length > 0 && (
         <>
           <Separator />
@@ -370,26 +416,6 @@ const DetailBox = ({ patientId, insurancePlan }: DetailBoxProps) => {
                             <p className="text-xs text-gray-600 mt-1">
                               CPT: {test.cptCode}
                             </p>
-                          </div>
-                          <Badge
-                            className={`${
-                              test.priority === "HIGH"
-                                ? "bg-red-100 text-red-700 border-red-200"
-                                : "bg-yellow-100 text-yellow-700 border-yellow-200"
-                            } capitalize`}
-                          >
-                            {test.priority} priority
-                          </Badge>
-                        </div>
-
-                        <div className="mt-2 p-2 bg-green-50 rounded border border-green-200">
-                          <div className="flex items-start gap-2">
-                            <Check className="w-4 h-4 text-green-600 mt-0.5 shrink-0" />
-                            <div className="flex-1">
-                              <p className="text-sm text-green-900">
-                                {insurancePlan}
-                              </p>
-                            </div>
                           </div>
                         </div>
 

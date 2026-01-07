@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   collectOrder,
+  collectOrderFacility,
   createManualOrder,
   createNewManualOrder,
   createOrder,
@@ -83,6 +84,14 @@ orderRoute.put(
   authorizeByRoleAndOrg(["ADMIN"], "LAB"),
   validateBody(collectOrderSchema),
   collectOrder
+);
+
+orderRoute.put(
+  "/collect-facility/:id",
+  authenticate,
+  authorizeByRoleAndOrg(["ADMIN"], "FACILITY"),
+  validateBody(collectOrderSchema),
+  collectOrderFacility
 );
 
 orderRoute.put(
