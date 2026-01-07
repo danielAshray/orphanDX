@@ -9,13 +9,63 @@ import DetailBox from "./DetailBox";
 import { Button } from "@/components/button";
 import ManualOrderDialog from "./ManualOrderDialog";
 import { useState } from "react";
+import {
+  SpecimenCollectionDialog,
+  type CollectionData,
+} from "./SpecimenCollectionDialog";
+import { useTestCollectionByFacility } from "@/api/order";
+import { useQueryClient } from "@tanstack/react-query";
 
 const PatientDetails = ({ patient }: { patient: PatientDetailsType }) => {
   const [showManualOrderModal, setShowManualOrderModal] =
     useState<boolean>(false);
 
+  const [showCollectionDialog, setShowCollectionDialog] = useState(false);
+  const [selectedOrderForCollection, setSelectedOrderForCollection] =
+    useState<PatientDetailsType | null>(null);
+
+  const handleCollectionDialog = (patient: PatientDetailsType) => {
+    if (patient) {
+      setSelectedOrderForCollection(patient);
+      setShowCollectionDialog(true);
+    }
+  };
+
+  const testCollectionMutation = useTestCollectionByFacility();
+
+  const queryClient = useQueryClient();
+
+  const handleCollectionComplete = (
+    orderId: string,
+    collectionData: CollectionData
+  ) => {
+    testCollectionMutation.mutate(
+      {
+        orderId,
+        collectedAt: collectionData.collectedAt,
+        collectedBy: collectionData.collectedBy,
+      },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ["fetchFacilityStatApi"] });
+          queryClient.invalidateQueries({ queryKey: ["fetchPatientsApi"] });
+        },
+      }
+    );
+  };
+
   return (
     <>
+      {/* Specimen Collection Dialog */}
+      {selectedOrderForCollection && (
+        <SpecimenCollectionDialog
+          open={showCollectionDialog}
+          onOpenChange={setShowCollectionDialog}
+          patientDetails={selectedOrderForCollection}
+          onCollectionComplete={handleCollectionComplete}
+        />
+      )}
+
       {showManualOrderModal && (
         <ManualOrderDialog
           open={showManualOrderModal}
@@ -130,7 +180,10 @@ const PatientDetails = ({ patient }: { patient: PatientDetailsType }) => {
                 ))}
               </div>
             </div>
-            <DetailBox patientId={patient.id} />
+            <DetailBox
+              patientId={patient.id}
+              handleCollectionDialog={handleCollectionDialog}
+            />
 
             <Button
               onClick={() => setShowManualOrderModal(true)}

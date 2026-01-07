@@ -31,9 +31,10 @@ import { config } from "@/config/env";
 
 type DetailBoxProps = {
   patientId: string;
+  handleCollectionDialog: (patient: PatientDetailsType) => void;
 };
 
-const DetailBox = ({ patientId }: DetailBoxProps) => {
+const DetailBox = ({ patientId, handleCollectionDialog }: DetailBoxProps) => {
   const [selectedLabResult, setSelectedLabResult] = useState<any>(null);
   const [selectedRequisitionData, setSelectedRequisitionData] =
     useState<any>(null);
@@ -198,6 +199,7 @@ const DetailBox = ({ patientId }: DetailBoxProps) => {
           </DialogContent>
         </Dialog>
       )}
+
       {!!completedTest.length && (
         <>
           <Separator />
@@ -274,13 +276,22 @@ const DetailBox = ({ patientId }: DetailBoxProps) => {
                 >
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <p className="text-gray-900">{test.testName}</p>
-                      </div>
                       <p className="text-xs text-gray-600 mt-1">
                         Scheduled:{" "}
                         {new Date(test.createdAt).toLocaleDateString()}
                       </p>
+
+                      <div className="mt-4">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full mt-2"
+                          onClick={() => handleCollectionDialog(patientDetails)}
+                        >
+                          <Beaker className="w-4 h-4 mr-2" />
+                          Record Collection
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -299,34 +310,31 @@ const DetailBox = ({ patientId }: DetailBoxProps) => {
               <h3 className="text-sm text-gray-700">Requisition</h3>
             </div>
             <div className="space-y-3">
-              {labOrder.map((order) => {
-                console.log({ order });
-                return (
-                  <div
-                    key={order.id}
-                    className={`p-4 rounded-lg border bg-purple-50 border-purple-200`}
-                  >
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <p className="text-gray-900">{order.id}</p>
-                        </div>
-                        <p className="text-xs text-gray-600 mt-1">
-                          Test:{" "}
-                          {order.tests.map((test) => test.testName).join(",")}
-                        </p>
+              {labOrder.map((order) => (
+                <div
+                  key={order.id}
+                  className={`p-4 rounded-lg border bg-purple-50 border-purple-200`}
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="text-gray-900">{order.id}</p>
+                      </div>
+                      <p className="text-xs text-gray-600 mt-1">
+                        Test:{" "}
+                        {order.tests.map((test) => test.testName).join(",")}
+                      </p>
 
-                        <div className="mt-4">
-                          <Button variant="outline" className="w-full">
-                            <FileText className="w-4 h-4 mr-2" />
-                            View Requisition
-                          </Button>
-                        </div>
+                      <div className="mt-4">
+                        <Button variant="outline" className="w-full">
+                          <FileText className="w-4 h-4 mr-2" />
+                          View Requisition
+                        </Button>
                       </div>
                     </div>
                   </div>
-                );
-              })}
+                </div>
+              ))}
             </div>
           </div>
         </>
@@ -366,12 +374,7 @@ const DetailBox = ({ patientId }: DetailBoxProps) => {
                     <div className="flex flex-col gap-1 items-end"></div>
                   </div>
 
-                  <Button
-                    onClick={() => handleViewResults(test)}
-                    variant="outline"
-                    size="sm"
-                    className="w-full mt-2"
-                  >
+                  <Button variant="outline" size="sm" className="w-full mt-2">
                     <Beaker className="w-4 h-4 mr-2" />
                     Record Collected
                   </Button>
@@ -381,6 +384,7 @@ const DetailBox = ({ patientId }: DetailBoxProps) => {
           </div>
         </>
       )}
+
       {groupedRecomendations.length > 0 && (
         <>
           <Separator />
