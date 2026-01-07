@@ -26,7 +26,7 @@ const PatientDetails = ({ patient }: { patient: PatientDetailsType }) => {
 
       <Card className="flex flex-col">
         <div className="p-4 border-b border-gray-200">
-          <div className="flex items-start justify-between mb-3">
+          <div className="flex items-start justify-between">
             <div>
               <h2 className="text-gray-900">
                 {patient.firstName} {patient.lastName}
@@ -39,14 +39,6 @@ const PatientDetails = ({ patient }: { patient: PatientDetailsType }) => {
               </Badge>
             )}
           </div>
-
-          <Button
-            onClick={() => setShowManualOrderModal(true)}
-            className="w-full"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Create Manual Order
-          </Button>
         </div>
 
         <ScrollArea className="h-[calc(100vh-320px)]">
@@ -138,10 +130,15 @@ const PatientDetails = ({ patient }: { patient: PatientDetailsType }) => {
                 ))}
               </div>
             </div>
-            <DetailBox
-              insurancePlan={patient.insurance?.plan}
-              patientId={patient.id}
-            />
+            <DetailBox patientId={patient.id} />
+
+            <Button
+              onClick={() => setShowManualOrderModal(true)}
+              className="w-full"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Create Manual Order
+            </Button>
           </div>
         </ScrollArea>
       </Card>

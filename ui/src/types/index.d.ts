@@ -81,6 +81,9 @@ export interface LabOrder {
   labId: string;
   patientId: string;
   status: "ORDERED" | "COLLECTED" | "COMPLETED" | "CANCELLED";
+  tests: {
+    testName: string;
+  }[];
   results: any | null;
   orderedAt: string;
   completedAt: string | null;
