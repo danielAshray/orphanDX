@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "../lib/prisma";
 import { faker } from "@faker-js/faker";
 import dayjs from "dayjs";
+import { Organization } from "@prisma/client";
 
 async function main() {
   const adminEmail = "daniel@ashrayconsulting.com";
@@ -478,29 +479,46 @@ async function createRecomendation() {
 }
 
 async function createOrganizations() {
-  let labOrg = await prisma.organization.findFirst({ where: { role: "LAB" } });
-  if (!labOrg) {
-    labOrg = await prisma.organization.create({
-      data: {
-        name: "Default Lab",
-        role: "LAB",
-        phone: "000-000-0000",
-        city: "N/A",
-        state: "N/A",
-        zipCode: "00000",
-        suite: "N/A",
-        street: "N/A",
-      },
+  // --- Create LAB organizations ---
+  const labNames = ["OWLiver Lab", "HartTrf Lab"];
+  const labOrgs: Organization[] = [];
+
+  for (const name of labNames) {
+    let labOrg = await prisma.organization.findFirst({
+      where: { name, role: "LAB" },
     });
+
+    if (!labOrg) {
+      labOrg = await prisma.organization.create({
+        data: {
+          name,
+          role: "LAB",
+          phone: "000-000-0000",
+          city: "N/A",
+          state: "N/A",
+          zipCode: "00000",
+          suite: "N/A",
+          street: "N/A",
+        },
+      });
+      console.log("LAB organization created:", labOrg.name);
+    } else {
+      console.log("LAB organization already exists:", labOrg.name);
+    }
+
+    labOrgs.push(labOrg);
   }
 
+  // --- Create FACILITY organization ---
+  const facilityName = "Ashray Tech";
   let facilityOrg = await prisma.organization.findFirst({
-    where: { role: "FACILITY" },
+    where: { name: facilityName, role: "FACILITY" },
   });
+
   if (!facilityOrg) {
     facilityOrg = await prisma.organization.create({
       data: {
-        name: "Default Facility",
+        name: facilityName,
         role: "FACILITY",
         phone: "000-000-0000",
         city: "N/A",
@@ -510,64 +528,91 @@ async function createOrganizations() {
         street: "N/A",
       },
     });
+    console.log("FACILITY organization created:", facilityOrg.name);
+  } else {
+    console.log("FACILITY organization already exists:", facilityOrg.name);
   }
 
-  console.log("Organizations ready:", labOrg.name, facilityOrg.name);
-  return { labOrg, facilityOrg };
+  console.log(
+    "Organizations ready:",
+    labOrgs.map((l) => l.name).join(", "),
+    "| Facility:",
+    facilityOrg.name
+  );
+
+  return { labOrgs, facilityOrg };
 }
 
 async function createLabAndFacilityUsers() {
   try {
-    // Check if LAB user exists
-    const labUserExists = await prisma.user.findFirst({
-      where: { role: "USER", organization: { role: "LAB" } },
-    });
+    // --- LAB USERS ---
+    const labUsersData = [
+      { email: "pawan@owliver.com", name: "OWLiver Lab Admin" },
+      { email: "pawan@harttrf.com", name: "HartTrf Lab Admin" },
+    ];
 
-    if (!labUserExists) {
+    for (const labData of labUsersData) {
+      // Find corresponding lab organization
       const labOrg = await prisma.organization.findFirst({
-        where: { role: "LAB" },
-      });
-      if (!labOrg) throw new Error("LAB organization not found");
-
-      const labUser = await prisma.user.create({
-        data: {
-          email: "pawan@ashrayconsulting.com",
-          password: await bcrypt.hash("Rememberme@123", 10),
-          name: "Lab User",
-          role: "ADMIN",
-          organizationId: labOrg.id,
+        where: {
+          name: labData.name.includes("OWLiver")
+            ? "OWLiver Lab"
+            : "HartTrf Lab",
+          role: "LAB",
         },
       });
 
-      console.log("LAB user created:", labUser.email);
-    } else {
-      console.log("LAB user already exists");
+      if (!labOrg) {
+        console.warn("LAB organization not found for", labData.name);
+        continue;
+      }
+
+      // Check if user exists
+      const existingUser = await prisma.user.findFirst({
+        where: { email: labData.email },
+      });
+
+      if (!existingUser) {
+        const user = await prisma.user.create({
+          data: {
+            email: labData.email,
+            password: await bcrypt.hash("Rememberme@123", 10),
+            name: labData.name,
+            role: "ADMIN",
+            organizationId: labOrg.id,
+          },
+        });
+        console.log("LAB user created:", user.email);
+      } else {
+        console.log("LAB user already exists:", existingUser.email);
+      }
     }
 
-    // Check if FACILITY user exists
-    const facilityUserExists = await prisma.user.findFirst({
-      where: { role: "USER", organization: { role: "FACILITY" } },
+    // --- FACILITY USER ---
+    const facilityOrg = await prisma.organization.findFirst({
+      where: { name: "Ashray Tech", role: "FACILITY" },
     });
 
-    if (!facilityUserExists) {
-      const facilityOrg = await prisma.organization.findFirst({
-        where: { role: "FACILITY" },
-      });
-      if (!facilityOrg) throw new Error("FACILITY organization not found");
+    if (!facilityOrg) throw new Error("FACILITY organization not found");
 
+    const facilityEmail = "ashmit@ashray.tech";
+    const existingFacilityUser = await prisma.user.findFirst({
+      where: { email: facilityEmail },
+    });
+
+    if (!existingFacilityUser) {
       const facilityUser = await prisma.user.create({
         data: {
-          email: "ashmit@ashrayconsulting.com",
+          email: facilityEmail,
           password: await bcrypt.hash("Rememberme@123", 10),
-          name: "Facility User",
+          name: "Facility Admin",
           role: "ADMIN",
           organizationId: facilityOrg.id,
         },
       });
-
       console.log("FACILITY user created:", facilityUser.email);
     } else {
-      console.log("FACILITY user already exists");
+      console.log("FACILITY user already exists:", existingFacilityUser.email);
     }
   } catch (error) {
     console.error("Error creating lab/facility users:", error);
