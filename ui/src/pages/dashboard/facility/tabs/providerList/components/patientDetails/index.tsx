@@ -76,18 +76,11 @@ const PatientDetails = ({ patient }: { patient: PatientDetailsType }) => {
 
       <Card className="flex flex-col">
         <div className="p-4 border-b border-gray-200">
-          <div className="flex items-start justify-between">
-            <div>
-              <h2 className="text-gray-900">
-                {patient.firstName} {patient.lastName}
-              </h2>
-              <p className="text-sm text-gray-500">MRN: {patient.mrn}</p>
-            </div>
-            {patient && (
-              <Badge className="bg-orange-100 text-orange-700 border-orange-200">
-                Test Candidate
-              </Badge>
-            )}
+          <div>
+            <h2 className="text-gray-900">
+              {patient.lastName} {patient.firstName}
+            </h2>
+            <p className="text-sm text-gray-500">MRN: {patient.mrn}</p>
           </div>
         </div>
 
@@ -185,13 +178,15 @@ const PatientDetails = ({ patient }: { patient: PatientDetailsType }) => {
               handleCollectionDialog={handleCollectionDialog}
             />
 
-            <Button
-              onClick={() => setShowManualOrderModal(true)}
-              className="w-full"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Create Manual Order
-            </Button>
+            {patient.labOrder && patient.labOrder.length === 0 && (
+              <Button
+                onClick={() => setShowManualOrderModal(true)}
+                className="w-full"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Create Manual Order
+              </Button>
+            )}
           </div>
         </ScrollArea>
       </Card>

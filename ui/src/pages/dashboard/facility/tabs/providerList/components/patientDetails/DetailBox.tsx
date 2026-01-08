@@ -18,10 +18,8 @@ import {
   AlertCircle,
   AlertTriangle,
   Beaker,
-  CheckCheck,
   ClipboardList,
   Eye,
-  File,
   FileText,
   Send,
 } from "lucide-react";
@@ -276,6 +274,11 @@ const DetailBox = ({ patientId, handleCollectionDialog }: DetailBoxProps) => {
                 >
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="text-gray-900">
+                          {test.tests.map((test) => test.testName).join(",")}
+                        </p>
+                      </div>
                       <p className="text-xs text-gray-600 mt-1">
                         Scheduled:{" "}
                         {new Date(test.createdAt).toLocaleDateString()}
@@ -290,45 +293,6 @@ const DetailBox = ({ patientId, handleCollectionDialog }: DetailBoxProps) => {
                         >
                           <Beaker className="w-4 h-4 mr-2" />
                           Record Collection
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </>
-      )}
-
-      {!!labOrder.length && (
-        <>
-          <Separator />
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <File className="w-4 h-4 text-purple-600" />
-              <h3 className="text-sm text-gray-700">Requisition</h3>
-            </div>
-            <div className="space-y-3">
-              {labOrder.map((order) => (
-                <div
-                  key={order.id}
-                  className={`p-4 rounded-lg border bg-purple-50 border-purple-200`}
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <p className="text-gray-900">{order.id}</p>
-                      </div>
-                      <p className="text-xs text-gray-600 mt-1">
-                        Test:{" "}
-                        {order.tests.map((test) => test.testName).join(",")}
-                      </p>
-
-                      <div className="mt-4">
-                        <Button variant="outline" className="w-full">
-                          <FileText className="w-4 h-4 mr-2" />
-                          View Requisition
                         </Button>
                       </div>
                     </div>
@@ -441,9 +405,9 @@ const DetailBox = ({ patientId, handleCollectionDialog }: DetailBoxProps) => {
                         Create Order & Generate Requisition
                       </Button>
                     ) : (
-                      <Button className="w-full bg-green-200 text-green-500 hover:bg-green-200">
-                        <CheckCheck className="w-4 h-4 mr-2" />
-                        Ordered
+                      <Button variant="outline" className="w-full">
+                        <FileText className="w-4 h-4 mr-2" />
+                        View Requisition
                       </Button>
                     )}
                   </div>

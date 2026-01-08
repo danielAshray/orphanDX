@@ -17,6 +17,7 @@ export const fetchPatients = async (
       include: {
         insurance: true,
         diagnosis: true,
+        labOrder: true
       },
     });
 
