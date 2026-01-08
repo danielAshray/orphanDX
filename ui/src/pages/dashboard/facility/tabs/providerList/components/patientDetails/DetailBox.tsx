@@ -26,6 +26,8 @@ import {
 import { useState } from "react";
 import { OWLiverRequisition } from "@/elements";
 import { config } from "@/config/env";
+import { Checkbox } from "@/components/checkbox";
+import { useAuthContext } from "@/context/auth";
 
 type DetailBoxProps = {
   patientId: string;
@@ -33,6 +35,11 @@ type DetailBoxProps = {
 };
 
 const DetailBox = ({ patientId, handleCollectionDialog }: DetailBoxProps) => {
+  const { user } = useAuthContext();
+  const { name } = user;
+  const [electronicSignatures, setElectronicSignatures] = useState<
+    Record<string, string>
+  >({});
   const [selectedLabResult, setSelectedLabResult] = useState<any>(null);
   const [selectedRequisitionData, setSelectedRequisitionData] =
     useState<any>(null);
@@ -79,9 +86,31 @@ const DetailBox = ({ patientId, handleCollectionDialog }: DetailBoxProps) => {
 
   const queryClient = useQueryClient();
 
-  const handleSimulateOrder = async (testIds: string[]) => {
+  const handleSignatureCheck = (labId: string, checked: boolean) => {
+    if (checked) {
+      const timestamp = new Date().toISOString();
+      setElectronicSignatures((prev) => ({
+        ...prev,
+        [labId]: timestamp,
+      }));
+    } else {
+      setElectronicSignatures((prev) => {
+        const newSigs = { ...prev };
+        delete newSigs[labId];
+        return newSigs;
+      });
+    }
+  };
+
+  const handleSimulateOrder = async (labId: string, testIds: string[]) => {
+    const signatureTime = electronicSignatures[labId];
+    if (!signatureTime) return;
+
     mutateSimulateOrder(
-      { recomendationIds: testIds },
+      {
+        recomendationIds: testIds,
+        // electronicSignatures: { [labId]: signatureTime }
+      },
       {
         onSuccess: (res) => {
           setSelectedRequisitionData(res.data);
@@ -92,13 +121,22 @@ const DetailBox = ({ patientId, handleCollectionDialog }: DetailBoxProps) => {
 
   const handleCreateOrder = async (testIds: string[]) => {
     mutate(
-      { recomendationIds: testIds },
+      {
+        recomendationIds: testIds,
+      },
       {
         onSuccess: () => {
           setSelectedRequisitionData(null);
           queryClient.invalidateQueries({ queryKey: ["patientDetails"] });
           queryClient.invalidateQueries({ queryKey: ["fetchPatientsApi"] });
           queryClient.invalidateQueries({ queryKey: ["fetchFacilityStatApi"] });
+
+          // reset signature after order creation
+          // setElectronicSignatures((prev) => {
+          //   const newSigs = { ...prev };
+          //   delete newSigs[labId];
+          //   return newSigs;
+          // });
         },
       }
     );
@@ -393,17 +431,52 @@ const DetailBox = ({ patientId, handleCollectionDialog }: DetailBoxProps) => {
 
                   <div className="mt-4">
                     {group.status === "PENDING" ? (
-                      <Button
-                        onClick={() =>
-                          handleSimulateOrder(
-                            group.recommendations.map((item) => item.id)
-                          )
-                        }
-                        className="w-full"
-                      >
-                        <Send className="w-4 h-4 mr-2" />
-                        Create Order & Generate Requisition
-                      </Button>
+                      <>
+                        {/* Electronic Signature */}
+                        <div className="my-3 p-3 bg-blue-50 border border-blue-200 rounded">
+                          <div className="flex items-start gap-3">
+                            <Checkbox
+                              id={`signature-${group.labId}`}
+                              checked={!!electronicSignatures[group.labId]}
+                              onCheckedChange={(checked) =>
+                                handleSignatureCheck(group.labId, !!checked)
+                              }
+                            />
+                            <label
+                              htmlFor={`signature-${group.labId}`}
+                              className="text-sm text-gray-900 cursor-pointer select-none"
+                            >
+                              Electronically signed by{" "}
+                              <span className="font-semibold">
+                                {name || "Provider"}
+                              </span>
+                              , Physician on{" "}
+                              {new Date().toLocaleString("en-US", {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                                hour: "numeric",
+                                minute: "2-digit",
+                                hour12: true,
+                              })}
+                            </label>
+                          </div>
+                        </div>
+
+                        <Button
+                          onClick={() =>
+                            handleSimulateOrder(
+                              group.labId,
+                              group.recommendations.map((item) => item.id)
+                            )
+                          }
+                          disabled={!electronicSignatures[group.labId]}
+                          className="w-full"
+                        >
+                          <Send className="w-4 h-4 mr-2" />
+                          Create Order & Generate Requisition
+                        </Button>
+                      </>
                     ) : (
                       <Button variant="outline" className="w-full">
                         <FileText className="w-4 h-4 mr-2" />
