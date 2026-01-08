@@ -423,23 +423,137 @@ async function fillLabRule() {
       },
     ];
 
-    const lab = await prisma.organization.findFirst({ where: { role: "LAB" } });
-
-    if (!lab) return;
-    await prisma.labRule.createMany({
-      data: OWLIVER_ELIGIBLE_CODES.map((item) => ({
-        code: item.icd10,
-        message: item.message,
-        labId: lab.id,
-        testName: item.testName,
-        cptCode: item.cptCode,
-      })),
-      skipDuplicates: true,
+    // Find OWLiver Lab
+    const owLab = await prisma.organization.findFirst({
+      where: { role: "LAB", name: "OWLiver Lab" },
     });
+    if (owLab) {
+      await prisma.labRule.createMany({
+        data: OWLIVER_ELIGIBLE_CODES.map((item) => ({
+          code: item.icd10,
+          message: item.message,
+          labId: owLab.id,
+          testName: item.testName,
+          cptCode: item.cptCode,
+        })),
+        skipDuplicates: true,
+      });
+      console.log("OWLiver Lab rules created");
+    }
 
-    console.log("lab rules created");
+    // HartTrf Lab rules (example: could be slightly different tests or codes)
+    const HARTTRF_ELIGIBLE_CODES = [
+      {
+        icd10: "J45.909",
+        message: "Asthma, unspecified",
+        cptCode: "HT401",
+        testName: "Pulmonary Function Test",
+      },
+      {
+        icd10: "M54.5",
+        message: "Low back pain",
+        cptCode: "HT402",
+        testName: "Spinal X-Ray",
+      },
+      {
+        icd10: "N39.0",
+        message: "Urinary tract infection, site not specified",
+        cptCode: "HT403",
+        testName: "Urinalysis",
+      },
+      {
+        icd10: "K21.9",
+        message: "Gastro-esophageal reflux disease without esophagitis",
+        cptCode: "HT404",
+        testName: "Esophageal pH Test",
+      },
+      {
+        icd10: "E66.01",
+        message: "Morbid obesity",
+        cptCode: "HT405",
+        testName: "BMI Measurement",
+      },
+      {
+        icd10: "I50.9",
+        message: "Heart failure, unspecified",
+        cptCode: "HT406",
+        testName: "Echocardiogram",
+      },
+      {
+        icd10: "K76.9",
+        message: "Liver disease, unspecified",
+        cptCode: "HT407",
+        testName: "Liver Ultrasound",
+      },
+      {
+        icd10: "G47.33",
+        message: "Obstructive sleep apnea",
+        cptCode: "HT408",
+        testName: "Sleep Study HT",
+      },
+      {
+        icd10: "M79.1",
+        message: "Myalgia",
+        cptCode: "HT409",
+        testName: "Muscle Enzyme Panel",
+      },
+      {
+        icd10: "L29.9",
+        message: "Pruritus, unspecified",
+        cptCode: "HT410",
+        testName: "Allergy Panel",
+      },
+      {
+        icd10: "R42",
+        message: "Dizziness and giddiness",
+        cptCode: "HT411",
+        testName: "Vestibular Function Test",
+      },
+      {
+        icd10: "N18.9",
+        message: "Chronic kidney disease, unspecified",
+        cptCode: "HT412",
+        testName: "Kidney Function Panel",
+      },
+      {
+        icd10: "E87.6",
+        message: "Hypokalemia",
+        cptCode: "HT413",
+        testName: "Electrolyte Panel",
+      },
+      {
+        icd10: "M25.50",
+        message: "Pain in joint, unspecified",
+        cptCode: "HT414",
+        testName: "Joint Fluid Analysis",
+      },
+      {
+        icd10: "F41.1",
+        message: "Generalized anxiety disorder",
+        cptCode: "HT415",
+        testName: "Cortisol Test",
+      },
+    ];
+
+    // Find HartTrf Lab
+    const htLab = await prisma.organization.findFirst({
+      where: { role: "LAB", name: "HartTrf Lab" },
+    });
+    if (htLab) {
+      await prisma.labRule.createMany({
+        data: HARTTRF_ELIGIBLE_CODES.map((item) => ({
+          code: item.icd10,
+          message: item.message,
+          labId: htLab.id,
+          testName: item.testName,
+          cptCode: item.cptCode,
+        })),
+        skipDuplicates: true,
+      });
+      console.log("HartTrf Lab rules created");
+    }
   } catch (error) {
-    console.log(error);
+    console.error("Error creating lab rules:", error);
   }
 }
 
