@@ -17,6 +17,21 @@ export const fetchPatients = async (
       include: {
         insurance: true,
         diagnosis: true,
+        labOrder: true,
+        labRecommendations: {
+          include: {
+            labRule: {
+              include: {
+                lab: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     });
 
@@ -47,7 +62,7 @@ export const fetchPatientDetails = async (
       include: {
         labRecommendations: {
           include: {
-            labRule: { select: { lab: { select: { name: true, id: true } } } },
+            labRule: { select: { labId: true, lab: { select: { name: true, id: true } } } },
           },
         },
         labOrder: { include: { tests: true } },

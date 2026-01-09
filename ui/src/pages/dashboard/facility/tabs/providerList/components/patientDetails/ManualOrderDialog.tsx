@@ -24,12 +24,13 @@ import {
 import { ClipboardList, Send, Plus, X } from "lucide-react";
 import type { ManualOrderType, PatientDetailsType } from "@/types";
 import { ScrollArea } from "@/components/scrollArea";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { fetchLabsApi } from "@/api/organization";
 import { MultiSelect } from "@/components";
 import type { Option } from "@/components/multiSelect";
 import { useEffect } from "react";
 import { useCreateOrderManually } from "@/api/order";
+import { fetchTestsApi } from "@/api/test";
 
 interface ManualOrderDialogProps {
   open: boolean;
@@ -45,6 +46,7 @@ const ManualOrderDialog: React.FC<ManualOrderDialogProps> = ({
   const {
     control,
     register,
+    setValue,
     handleSubmit,
     reset,
     formState: { errors },
@@ -62,12 +64,30 @@ const ManualOrderDialog: React.FC<ManualOrderDialogProps> = ({
     name: "tests",
   });
 
-  const { data: labs } = useQuery({
-    queryKey: ["fetchLabsApi"],
-    queryFn: fetchLabsApi,
+  const [labsQuery, testsQuery] = useQueries({
+    queries: [
+      {
+        queryKey: ["fetchLabsApi"],
+        queryFn: fetchLabsApi,
+        refetchOnMount: true,
+      },
+      {
+        queryKey: ["fetchTestsApi"],
+        queryFn: fetchTestsApi,
+        refetchOnMount: true,
+      },
+    ],
   });
 
-  const labOptions = (labs?.data as { id: string; name: string }[]) ?? [];
+  const labOptions =
+    (labsQuery.data?.data as { id: string; name: string }[]) ?? [];
+
+  const testOptions =
+    (testsQuery.data?.data as {
+      id: string;
+      testName: string;
+      cptCode: string;
+    }[]) ?? [];
 
   const diagnosisOptions: Option[] =
     preselectedPatient?.diagnosis?.map((d) => ({
@@ -229,7 +249,7 @@ const ManualOrderDialog: React.FC<ManualOrderDialogProps> = ({
                 <p className="text-sm text-red-500">{errors.labId.message}</p>
               )}
             </div>
-            
+
             <div className="space-y-2">
               <Label>Diagnosis *</Label>
 
@@ -261,20 +281,78 @@ const ManualOrderDialog: React.FC<ManualOrderDialogProps> = ({
               <Label>Tests *</Label>
 
               {fields.map((field, index) => (
-                <div key={field.id} className="flex gap-2">
-                  <Input
-                    placeholder="Test name"
-                    {...register(`tests.${index}.testName`, {
-                      required: "Test name is required",
-                    })}
-                  />
+                <div key={field.id} className="flex gap-2 items-end">
+                  {/* Test Name Select */}
+                  <div className="flex-1">
+                    <Controller
+                      control={control}
+                      name={`tests.${index}.testName`}
+                      rules={{ required: "Test name is required" }}
+                      render={({ field: controllerField }) => {
+                        const value =
+                          typeof controllerField.value === "string"
+                            ? controllerField.value
+                            : "";
 
-                  <Input
-                    placeholder="CPT code"
-                    {...register(`tests.${index}.cptCode`, {
-                      required: "CPT code is required",
-                    })}
-                  />
+                        return (
+                          <>
+                            <Select
+                              value={value}
+                              onValueChange={(val) => {
+                                controllerField.onChange(val);
+                                const selected = testOptions.find(
+                                  (t) => t.testName === val
+                                );
+                                if (selected) {
+                                  setValue(
+                                    `tests.${index}.cptCode`,
+                                    selected.cptCode,
+                                    { shouldValidate: true }
+                                  );
+                                }
+                              }}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select Test" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {testOptions.map((t) => (
+                                  <SelectItem key={t.id} value={t.testName}>
+                                    {t.testName}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+
+                            {errors.tests?.[index]?.testName && (
+                              <p className="text-sm text-red-500 mt-1">
+                                {
+                                  errors.tests[index]?.testName
+                                    ?.message as string
+                                }
+                              </p>
+                            )}
+                          </>
+                        );
+                      }}
+                    />
+                  </div>
+
+                  {/* CPT Code Input */}
+                  <div className="flex-1">
+                    <Input
+                      placeholder="CPT Code"
+                      {...register(`tests.${index}.cptCode`, {
+                        required: "CPT code is required",
+                      })}
+                      readOnly
+                    />
+                    {errors.tests?.[index]?.cptCode && (
+                      <p className="text-sm text-red-500 mt-1">
+                        {errors.tests[index]?.cptCode?.message as string}
+                      </p>
+                    )}
+                  </div>
 
                   <Button
                     type="button"
@@ -295,12 +373,6 @@ const ManualOrderDialog: React.FC<ManualOrderDialogProps> = ({
                 <Plus className="w-4 h-4 mr-1" />
                 Add Test
               </Button>
-
-              {(errors.tests as any)?.message && (
-                <p className="text-sm text-red-500">
-                  {(errors.tests as any)?.message}
-                </p>
-              )}
             </div>
 
             <div className="flex justify-end gap-3 pt-4 border-t">

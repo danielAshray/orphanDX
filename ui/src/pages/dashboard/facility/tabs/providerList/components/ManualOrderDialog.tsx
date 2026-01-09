@@ -24,9 +24,10 @@ import {
 import { ClipboardList, Send, Plus, X } from "lucide-react";
 import type { NewManualOrderType } from "@/types";
 import { ScrollArea } from "@/components/scrollArea";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { fetchLabsApi } from "@/api/organization";
 import { useCreateNewOrderManually } from "@/api/order";
+import { fetchTestsApi } from "@/api/test";
 
 interface ManualOrderDialogProps {
   open: boolean;
@@ -38,10 +39,11 @@ const ManualOrderDialog: React.FC<ManualOrderDialogProps> = ({
   onOpenChange,
 }) => {
   const queryClient = useQueryClient();
-  
+
   const {
     control,
     register,
+    setValue,
     handleSubmit,
     reset,
     formState: { errors },
@@ -83,12 +85,31 @@ const ManualOrderDialog: React.FC<ManualOrderDialogProps> = ({
     name: "tests",
   });
 
-  const { data: labs } = useQuery({
-    queryKey: ["fetchLabsApi"],
-    queryFn: fetchLabsApi,
+  const [labsQuery, testsQuery] = useQueries({
+    queries: [
+      {
+        queryKey: ["fetchLabsApi"],
+        queryFn: fetchLabsApi,
+        refetchOnMount: true,
+      },
+      {
+        queryKey: ["fetchTestsApi"],
+        queryFn: fetchTestsApi,
+        refetchOnMount: true,
+      },
+    ],
   });
 
-  const labOptions = (labs?.data as { id: string; name: string }[]) ?? [];
+  const labOptions =
+    (labsQuery.data?.data as { id: string; name: string }[]) ?? [];
+
+  const testOptions =
+    (testsQuery.data?.data as {
+      id: string;
+      testName: string;
+      cptCode: string;
+    }[]) ?? [];
+
   const { mutate } = useCreateNewOrderManually();
 
   const onSubmit: SubmitHandler<NewManualOrderType> = (values) => {
@@ -106,12 +127,6 @@ const ManualOrderDialog: React.FC<ManualOrderDialogProps> = ({
     key: keyof NewManualOrderType["diagnosis"][number]
   ): Path<NewManualOrderType> =>
     `diagnosis.${index}.${key}` as Path<NewManualOrderType>;
-
-  const getTestPath = (
-    index: number,
-    key: keyof NewManualOrderType["tests"][number]
-  ): Path<NewManualOrderType> =>
-    `tests.${index}.${key}` as Path<NewManualOrderType>;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -337,36 +352,85 @@ const ManualOrderDialog: React.FC<ManualOrderDialogProps> = ({
             <div className="space-y-3">
               <Label>Tests *</Label>
 
-              {testFields.map((field, index) => (
-                <div key={field.id} className="flex gap-2">
-                  {[
-                    { placeholder: "Test Name", name: "testName" },
-                    { placeholder: "CPT Code", name: "cptCode" },
-                  ].map((f) => (
-                    <div key={f.name} className="flex-1 space-y-1">
-                      <Input
-                        placeholder={f.placeholder}
-                        {...register(
-                          getTestPath(
-                            index,
-                            f.name as keyof NewManualOrderType["tests"][number]
-                          ),
-                          {
-                            required: `${f.placeholder} is required`,
-                          }
-                        )}
-                      />
-                      {((errors.tests?.[index] as any)?.[f.name] as any)
-                        ?.message && (
-                        <p className="text-sm text-red-500">
-                          {
-                            ((errors.tests?.[index] as any)?.[f.name] as any)
-                              .message
-                          }
-                        </p>
+              {testFields.map((testField, index) => (
+                <div key={testField.id} className="flex gap-2 items-end">
+                  {/* Test Name */}
+                  <div className="flex-1">
+                    <Controller
+                      control={control}
+                      name={
+                        `tests.${index}.testName` as Path<NewManualOrderType>
+                      }
+                      rules={{ required: "Test name is required" }}
+                      render={({ field: controllerField }) => {
+                        const value =
+                          typeof controllerField.value === "string"
+                            ? controllerField.value
+                            : "";
+
+                        return (
+                          <>
+                            <Select
+                              value={value}
+                              onValueChange={(val) => {
+                                controllerField.onChange(val);
+                                // autofill CPT code
+                                const selected = testOptions.find(
+                                  (t) => t.testName === val
+                                );
+                                if (selected) {
+                                  setValue(
+                                    `tests.${index}.cptCode` as Path<NewManualOrderType>,
+                                    selected.cptCode,
+                                    { shouldValidate: true }
+                                  );
+                                }
+                              }}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select Test" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {testOptions.map((t) => (
+                                  <SelectItem key={t.id} value={t.testName}>
+                                    {t.testName}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            {errors.tests?.[index]?.testName && (
+                              <p className="text-sm text-red-500 mt-1">
+                                {
+                                  errors.tests[index]?.testName
+                                    ?.message as string
+                                }
+                              </p>
+                            )}
+                          </>
+                        );
+                      }}
+                    />
+                  </div>
+
+                  {/* CPT Code */}
+                  <div className="flex-1">
+                    <Input
+                      placeholder="CPT Code"
+                      {...register(
+                        `tests.${index}.cptCode` as Path<NewManualOrderType>,
+                        {
+                          required: "CPT code is required",
+                        }
                       )}
-                    </div>
-                  ))}
+                      readOnly
+                    />
+                    {errors.tests?.[index]?.cptCode && (
+                      <p className="text-sm text-red-500 mt-1">
+                        {errors.tests[index]?.cptCode?.message as string}
+                      </p>
+                    )}
+                  </div>
+
                   <Button
                     type="button"
                     variant="outline"

@@ -18,16 +18,16 @@ import {
   AlertCircle,
   AlertTriangle,
   Beaker,
-  CheckCheck,
   ClipboardList,
   Eye,
-  File,
   FileText,
   Send,
 } from "lucide-react";
 import { useState } from "react";
 import { OWLiverRequisition } from "@/elements";
 import { config } from "@/config/env";
+import { Checkbox } from "@/components/checkbox";
+import { useAuthContext } from "@/context/auth";
 
 type DetailBoxProps = {
   patientId: string;
@@ -35,6 +35,11 @@ type DetailBoxProps = {
 };
 
 const DetailBox = ({ patientId, handleCollectionDialog }: DetailBoxProps) => {
+  const { user } = useAuthContext();
+  const { name } = user;
+  const [electronicSignatures, setElectronicSignatures] = useState<
+    Record<string, string>
+  >({});
   const [selectedLabResult, setSelectedLabResult] = useState<any>(null);
   const [selectedRequisitionData, setSelectedRequisitionData] =
     useState<any>(null);
@@ -81,9 +86,31 @@ const DetailBox = ({ patientId, handleCollectionDialog }: DetailBoxProps) => {
 
   const queryClient = useQueryClient();
 
-  const handleSimulateOrder = async (testIds: string[]) => {
+  const handleSignatureCheck = (labId: string, checked: boolean) => {
+    if (checked) {
+      const timestamp = new Date().toISOString();
+      setElectronicSignatures((prev) => ({
+        ...prev,
+        [labId]: timestamp,
+      }));
+    } else {
+      setElectronicSignatures((prev) => {
+        const newSigs = { ...prev };
+        delete newSigs[labId];
+        return newSigs;
+      });
+    }
+  };
+
+  const handleSimulateOrder = async (labId: string, testIds: string[]) => {
+    const signatureTime = electronicSignatures[labId];
+    if (!signatureTime) return;
+
     mutateSimulateOrder(
-      { recomendationIds: testIds },
+      {
+        recomendationIds: testIds,
+        // electronicSignatures: { [labId]: signatureTime }
+      },
       {
         onSuccess: (res) => {
           setSelectedRequisitionData(res.data);
@@ -94,13 +121,22 @@ const DetailBox = ({ patientId, handleCollectionDialog }: DetailBoxProps) => {
 
   const handleCreateOrder = async (testIds: string[]) => {
     mutate(
-      { recomendationIds: testIds },
+      {
+        recomendationIds: testIds,
+      },
       {
         onSuccess: () => {
           setSelectedRequisitionData(null);
           queryClient.invalidateQueries({ queryKey: ["patientDetails"] });
           queryClient.invalidateQueries({ queryKey: ["fetchPatientsApi"] });
           queryClient.invalidateQueries({ queryKey: ["fetchFacilityStatApi"] });
+
+          // reset signature after order creation
+          // setElectronicSignatures((prev) => {
+          //   const newSigs = { ...prev };
+          //   delete newSigs[labId];
+          //   return newSigs;
+          // });
         },
       }
     );
@@ -276,6 +312,11 @@ const DetailBox = ({ patientId, handleCollectionDialog }: DetailBoxProps) => {
                 >
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="text-gray-900">
+                          {test.tests.map((test) => test.testName).join(",")}
+                        </p>
+                      </div>
                       <p className="text-xs text-gray-600 mt-1">
                         Scheduled:{" "}
                         {new Date(test.createdAt).toLocaleDateString()}
@@ -290,45 +331,6 @@ const DetailBox = ({ patientId, handleCollectionDialog }: DetailBoxProps) => {
                         >
                           <Beaker className="w-4 h-4 mr-2" />
                           Record Collection
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </>
-      )}
-
-      {!!labOrder.length && (
-        <>
-          <Separator />
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <File className="w-4 h-4 text-purple-600" />
-              <h3 className="text-sm text-gray-700">Requisition</h3>
-            </div>
-            <div className="space-y-3">
-              {labOrder.map((order) => (
-                <div
-                  key={order.id}
-                  className={`p-4 rounded-lg border bg-purple-50 border-purple-200`}
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <p className="text-gray-900">{order.id}</p>
-                      </div>
-                      <p className="text-xs text-gray-600 mt-1">
-                        Test:{" "}
-                        {order.tests.map((test) => test.testName).join(",")}
-                      </p>
-
-                      <div className="mt-4">
-                        <Button variant="outline" className="w-full">
-                          <FileText className="w-4 h-4 mr-2" />
-                          View Requisition
                         </Button>
                       </div>
                     </div>
@@ -429,21 +431,56 @@ const DetailBox = ({ patientId, handleCollectionDialog }: DetailBoxProps) => {
 
                   <div className="mt-4">
                     {group.status === "PENDING" ? (
-                      <Button
-                        onClick={() =>
-                          handleSimulateOrder(
-                            group.recommendations.map((item) => item.id)
-                          )
-                        }
-                        className="w-full"
-                      >
-                        <Send className="w-4 h-4 mr-2" />
-                        Create Order & Generate Requisition
-                      </Button>
+                      <>
+                        {/* Electronic Signature */}
+                        <div className="my-3 p-3 bg-blue-50 border border-blue-200 rounded">
+                          <div className="flex items-start gap-3">
+                            <Checkbox
+                              id={`signature-${group.labId}`}
+                              checked={!!electronicSignatures[group.labId]}
+                              onCheckedChange={(checked) =>
+                                handleSignatureCheck(group.labId, !!checked)
+                              }
+                            />
+                            <label
+                              htmlFor={`signature-${group.labId}`}
+                              className="text-sm text-gray-900 cursor-pointer select-none"
+                            >
+                              Electronically signed by{" "}
+                              <span className="font-semibold">
+                                {name || "Provider"}
+                              </span>
+                              , Physician on{" "}
+                              {new Date().toLocaleString("en-US", {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                                hour: "numeric",
+                                minute: "2-digit",
+                                hour12: true,
+                              })}
+                            </label>
+                          </div>
+                        </div>
+
+                        <Button
+                          onClick={() =>
+                            handleSimulateOrder(
+                              group.labId,
+                              group.recommendations.map((item) => item.id)
+                            )
+                          }
+                          disabled={!electronicSignatures[group.labId]}
+                          className="w-full"
+                        >
+                          <Send className="w-4 h-4 mr-2" />
+                          Create Order & Generate Requisition
+                        </Button>
+                      </>
                     ) : (
-                      <Button className="w-full bg-green-200 text-green-500 hover:bg-green-200">
-                        <CheckCheck className="w-4 h-4 mr-2" />
-                        Ordered
+                      <Button variant="outline" className="w-full">
+                        <FileText className="w-4 h-4 mr-2" />
+                        View Requisition
                       </Button>
                     )}
                   </div>

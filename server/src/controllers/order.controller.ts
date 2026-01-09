@@ -568,14 +568,18 @@ const collectOrderFacility = async (
 };
 
 const getDashboard = async (
-  _req: Request,
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
+    const organizationId = req.user?.organization?.id || "";
+
     const [totalOrders, activeOrders, facilityCount] = await Promise.all([
-      prisma.labOrder.count(),
-      prisma.labOrder.count({ where: { status: "ORDERED" } }),
+      prisma.labOrder.count({ where: { labId: organizationId } }),
+      prisma.labOrder.count({
+        where: { labId: organizationId, status: "ORDERED" },
+      }),
       prisma.organization.count({ where: { role: "FACILITY" } }),
     ]);
 
@@ -682,4 +686,10 @@ const uploadResultPDF = async (
   }
 };
 
-export { getDashboard, orderTracking, uploadResultPDF, collectOrder, collectOrderFacility };
+export {
+  getDashboard,
+  orderTracking,
+  uploadResultPDF,
+  collectOrder,
+  collectOrderFacility,
+};
