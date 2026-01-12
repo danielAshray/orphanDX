@@ -3,7 +3,7 @@ import {
   validateQuery,
   validateBody,
 } from "../middlewares/requestValidator.middleware";
-import { userLoginSchema } from "../validators/bodySchema";
+import { changePasswordSchema, userLoginSchema } from "../validators/bodySchema";
 import {
   getProfile,
   practiceFusionCallback,
@@ -12,7 +12,7 @@ import {
 import { authenticate } from "../middlewares/auth.middleware";
 import { pfCallbackQuery } from "../validators/querySchema";
 import { loginLimiter } from "../middlewares/limit.middleware";
-import { loginUser } from "../controllers/auth.controller";
+import { changePassword, loginUser } from "../controllers/auth.controller";
 
 const userRoute = Router();
 
@@ -23,6 +23,8 @@ const UserRoutes = Object.freeze({
 userRoute.get(UserRoutes.Profile, authenticate, getProfile);
 
 userRoute.post("/login", validateBody(userLoginSchema), loginUser);
+
+userRoute.post("/change-password", authenticate, validateBody(changePasswordSchema), changePassword);
 
 userRoute.post(
   "/auth",
