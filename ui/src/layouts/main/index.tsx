@@ -1,20 +1,27 @@
-import { Button } from "@/components/button";
+import { useState } from "react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/dropdownMenu";
 import {
   Building2,
+  ChevronDown,
   FlaskConical,
-  KeyRound,
   LogOut,
   ShieldCheck,
   Stethoscope,
+  UserCircle,
 } from "lucide-react";
 import { Outlet } from "react-router-dom";
 import { useAuthContext } from "@/context/auth";
 import { ImageWithFallback } from "@/components";
-import { useState } from "react";
-import ChangePasswordDialog from "./ChangePassword Dialog";
+import UserProfileDialog from "./UserProfileDialog";
 
 const Main = () => {
-  const [showChangePassword, setShowChangePassword] = useState(false);
+  const [showUserProfile, setShowUserProfile] = useState<boolean>(false);
 
   const { orgRole, role, user, logout } = useAuthContext();
 
@@ -58,37 +65,39 @@ const Main = () => {
             </div>
 
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-3 px-4 py-2 bg-gray-100 rounded-lg">
-                {getRoleIcon()}
-                <div>
-                  <p className="text-sm text-gray-900">{name}</p>
-                  <p className="text-xs text-gray-600">
-                    {role?.toLowerCase() === "service_account"
-                      ? "SUPER ADMIN"
-                      : `${role?.toUpperCase()} - ${organization?.role}`}
-                  </p>
-                </div>
-              </div>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowChangePassword(true)}
-                className="gap-2"
-              >
-                <KeyRound className="w-4 h-4" />
-                Change Password
-              </Button>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleLogout}
-                className="gap-2 cursor-pointer"
-              >
-                <LogOut className="w-4 h-4" />
-                Logout
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex items-center gap-3 px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors cursor-pointer">
+                    {getRoleIcon()}
+                    <div className="text-left">
+                      <p className="text-sm text-gray-900">{name}</p>
+                      <p className="text-xs text-gray-600">
+                        {role?.toLowerCase() === "service_account"
+                          ? "SUPER ADMIN"
+                          : `${role?.toUpperCase()} - ${organization?.role}`}
+                      </p>
+                    </div>
+                    <ChevronDown className="w-4 h-4 text-gray-500" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end">
+                  <DropdownMenuItem
+                    onClick={() => setShowUserProfile(true)}
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
+                    <UserCircle className="w-4 h-4" />
+                    Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 cursor-pointer text-red-600"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>
@@ -98,10 +107,10 @@ const Main = () => {
         <Outlet />
       </main>
 
-      {showChangePassword && (
-        <ChangePasswordDialog
-          open={showChangePassword}
-          onOpenChange={setShowChangePassword}
+      {showUserProfile && (
+        <UserProfileDialog
+          open={showUserProfile}
+          onOpenChange={setShowUserProfile}
           user={user}
           organization={organization}
         />

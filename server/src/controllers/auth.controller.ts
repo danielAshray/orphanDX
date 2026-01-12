@@ -144,4 +144,69 @@ const changePassword = async (
   }
 };
 
-export { loginUser, registerUser, changePassword };
+const updateProfile = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = req.user?.id;
+
+    const { name, email, phone } = req.body;
+
+    const userExists = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!userExists) {
+      const message = "User not found";
+      return next(ApiError.notFound(message));
+    }
+
+    if (email && email !== userExists.email) {
+      const emailExists = await prisma.user.findUnique({
+        where: { email },
+      });
+
+      if (emailExists) {
+        const messsage = "Email already in use";
+        return next(ApiError.conflict(messsage));
+      }
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        name,
+        email,
+        organization: {
+          update: {
+            phone: phone,
+          },
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        organization: {
+          select: {
+            phone: true,
+          },
+        },
+      },
+    });
+
+    sendResponse(res, {
+      success: true,
+      code: 200,
+      message: "Profile updated successfully",
+      data: updatedUser,
+    });
+  } catch (error: any) {
+    next(ApiError.internal(undefined, error.message));
+  }
+};
+
+export { loginUser, registerUser, changePassword, updateProfile };
