@@ -19,6 +19,11 @@ const getProfile = async (req: Request, res: Response, next: NextFunction) => {
         name: true,
         email: true,
         role: true,
+        organization: {
+          select: {
+            phone: true,
+          },
+        },
       },
     });
 
@@ -31,7 +36,7 @@ const getProfile = async (req: Request, res: Response, next: NextFunction) => {
       success: true,
       code: 200,
       message: "Profile fetched successfully",
-      data: userExists,
+      data: { ...userExists, phone: userExists.organization?.phone },
     });
   } catch (error: any) {
     next(ApiError.internal(undefined, error.message));

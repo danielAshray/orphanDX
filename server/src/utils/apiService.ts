@@ -20,6 +20,7 @@ const ApiError = {
   unauthorized: (message = "Unauthorized") => createApiError(401, message),
   forbidden: (message = "Forbidden") => createApiError(403, message),
   notFound: (message = "Resource not found") => createApiError(404, message),
+  conflict: (message = "Conflict") => createApiError(409, message),
   internal: (message = "Internal server error", detail?: any) =>
     createApiError(500, message, detail),
 };

@@ -9,6 +9,7 @@ const UserRoutes = Object.freeze({
   login: "/user/login",
   profile: "/user/profile",
   changePassword: "/user/change-password",
+  updateProfile: "/user/update-profile",
 });
 
 const loginUserApi = async ({
@@ -63,4 +64,37 @@ const useChangePasssword = () => {
   });
 };
 
-export { loginUserApi, fetchProfileApi, useChangePasssword };
+type UpdateProfileProps = {
+  name: string;
+  email: string;
+  phone: string;
+  title?: string;
+};
+
+const updateProfileApi = async (
+  payload: UpdateProfileProps
+): Promise<ApiReponse> => {
+  const { data } = await api.put<ApiReponse>(UserRoutes.updateProfile, payload);
+
+  return data;
+};
+
+const useUpdateProfile = () => {
+  return useMutation({
+    mutationFn: (props: UpdateProfileProps) => updateProfileApi(props),
+    onSuccess: () => {
+      Notification({
+        toastMessage: "Profile updated successfully",
+        toastStatus: "success",
+      });
+    },
+
+    onError: (error: any) =>
+      Notification({
+        toastMessage: getErrorMessage(error),
+        toastStatus: "error",
+      }),
+  });
+};
+
+export { loginUserApi, fetchProfileApi, useChangePasssword, useUpdateProfile };
