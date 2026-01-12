@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
+import { Link } from "react-router-dom";
 
 export interface LoginProps {
   email: string;
@@ -33,7 +34,9 @@ const Login = () => {
   });
 
   const [showPassword, setShowPassword] = useState<boolean>(false);
-
+  const [showForm, setShowForm] = useState<"login" | "forgot-password">(
+    "login"
+  );
   const { mutate, isPending } = useLoginUser();
 
   const handleTogglePassword = () => {
@@ -162,98 +165,321 @@ const Login = () => {
           </div>
 
           <div className="flex items-center justify-center">
-            <Card className="w-full max-w-md p-8 shadow-xl">
-              <div className="flex flex-col items-center justify-center mb-8">
-                <ImageWithFallback
-                  src="/logo.png"
-                  alt="Logo"
-                  className="w-auto h-10 object-cover"
-                />
-
-                <p className="text-gray-600">
-                  Sign in to access your dashboard
-                </p>
-              </div>
-
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                <div>
-                  <label className="block text-sm text-gray-700 mb-2">
-                    Email Address
-                  </label>
-                  <Input
-                    type="email"
-                    placeholder="user@company.com"
-                    autoComplete="on"
-                    {...register("email", { required: "Email is required." })}
+            {showForm === "login" ? (
+              <Card className="w-full max-w-md p-8 shadow-xl">
+                <div className="flex flex-col items-center justify-center mb-8">
+                  <ImageWithFallback
+                    src="/logo.png"
+                    alt="Logo"
+                    className="w-auto h-10 object-cover"
                   />
 
-                  {errors.email && (
-                    <p className="text-sm text-red-500 mt-1">
-                      {errors.email.message}
-                    </p>
-                  )}
+                  <p className="text-gray-600">
+                    Sign in to access your dashboard
+                  </p>
                 </div>
-
-                <div>
-                  <label className="block text-sm text-gray-700 mb-2">
-                    Password
-                  </label>
-                  <div className="relative">
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                  <div>
+                    <label className="block text-sm text-gray-700 mb-2">
+                      Email Address
+                    </label>
                     <Input
-                      type={showPassword ? "text" : "password"}
-                      placeholder="••••••••"
-                      autoComplete="off"
-                      {...register("password", {
-                        required: "Password is required.",
-                      })}
+                      type="email"
+                      placeholder="user@company.com"
+                      autoComplete="on"
+                      {...register("email", { required: "Email is required." })}
                     />
-                    <button
-                      type="button"
-                      onClick={handleTogglePassword}
-                      className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700 transition-colors duration-150 ease-in-out cursor-pointer"
-                    >
-                      {showPassword ? (
-                        <EyeOff className="w-5 h-5" />
-                      ) : (
-                        <Eye className="w-5 h-5" />
-                      )}
-                    </button>
+
+                    {errors.email && (
+                      <p className="text-sm text-red-500 mt-1">
+                        {errors.email.message}
+                      </p>
+                    )}
                   </div>
 
-                  {errors.password && (
-                    <p className="text-sm text-red-500 mt-1">
-                      {errors.password.message}
-                    </p>
-                  )}
+                  <div>
+                    <label className="block text-sm text-gray-700 mb-2">
+                      Password
+                    </label>
+                    <div className="relative">
+                      <Input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="••••••••"
+                        autoComplete="off"
+                        {...register("password", {
+                          required: "Password is required.",
+                        })}
+                      />
+                      <button
+                        type="button"
+                        onClick={handleTogglePassword}
+                        className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700 transition-colors duration-150 ease-in-out cursor-pointer"
+                      >
+                        {showPassword ? (
+                          <EyeOff className="w-5 h-5" />
+                        ) : (
+                          <Eye className="w-5 h-5" />
+                        )}
+                      </button>
+                    </div>
+
+                    {errors.password && (
+                      <p className="text-sm text-red-500 mt-1">
+                        {errors.password.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <Button
+                    type="submit"
+                    variant="outline"
+                    disabled={isPending}
+                    className="w-full cursor-pointer"
+                  >
+                    Sign In {isPending && <Loader className=" animate-spin" />}
+                  </Button>
+
+                  <div
+                    onClick={() => setShowForm("forgot-password")}
+                    className="text-sm text-gray-500 italic hover:text-gray-800 cursor-pointer"
+                  >
+                    Forgot password
+                  </div>
+                </form>
+
+                <div className="mt-6 pt-6 border-t border-gray-200 text-center">
+                  <p className="text-sm text-gray-600">
+                    Please use your registered OrphanDX account to log in.
+                  </p>
                 </div>
 
-                <Button
-                  type="submit"
-                  variant="outline"
-                  disabled={isPending}
-                  className="w-full cursor-pointer"
-                >
-                  Sign In {isPending && <Loader className=" animate-spin" />}
-                </Button>
-              </form>
-
-              <div className="mt-6 pt-6 border-t border-gray-200 text-center">
-                <p className="text-sm text-gray-600">
-                  Please use your registered OrphanDX account to log in.
-                </p>
-              </div>
-
-              <div className="mt-6 text-center">
-                <p className="text-xs text-gray-500">
-                  Access is restricted to authorized personnel. Do not share
-                  credentials or patient data.
-                </p>
-              </div>
-            </Card>
+                <div className="mt-6 text-center">
+                  <p className="text-xs text-gray-500">
+                    Access is restricted to authorized personnel. Do not share
+                    credentials or patient data.
+                  </p>
+                </div>
+              </Card>
+            ) : (
+              <ResetPassword setShowForm={setShowForm} />
+            )}
           </div>
         </div>
       </div>
     </div>
+  );
+};
+
+const ResetPassword = ({
+  setShowForm,
+}: {
+  setShowForm: React.Dispatch<
+    React.SetStateAction<"login" | "forgot-password">
+  >;
+}) => {
+  const [step, setStep] = useState<1 | 2 | 3>(1);
+
+  const verificationEmailForm = useForm<{ email: string }>({});
+  const verificationCodeForm = useForm<{ code: string }>();
+  const resetPasswordForm = useForm<{
+    password: string;
+    confirmPassword: string;
+  }>();
+
+  const handleEmailSubmit = ({ email }: { email: string }) => {
+    console.log("inside handleSumbitEmail");
+    setStep(2);
+  };
+  const handleVerificationCodeSubmit = ({ code }: { code: string }) => {
+    setStep(3);
+  };
+
+  const handleResetPassword = ({
+    password,
+    confirmPassword,
+  }: {
+    password: string;
+    confirmPassword: string;
+  }) => {
+    console.log("in here: password: ", password);
+    setShowForm("login");
+  };
+  return (
+    <Card className="w-full max-w-md p-8 shadow-xl">
+      <div className="flex flex-col items-center justify-center mb-8">
+        <ImageWithFallback
+          src="/logo.png"
+          alt="Logo"
+          className="w-auto h-10 object-cover"
+        />
+
+        <p className="text-gray-600">Reset Password</p>
+      </div>
+      {step === 1 && (
+        <form
+          onSubmit={verificationEmailForm.handleSubmit(handleEmailSubmit)}
+          className="space-y-4"
+        >
+          <div>
+            <label className="block text-sm text-gray-700 mb-2">
+              Email Address
+            </label>
+            <Input
+              type="email"
+              placeholder="user@company.com"
+              autoComplete="on"
+              {...verificationEmailForm.register("email", {
+                required: "Email is required.",
+              })}
+            />
+
+            {verificationEmailForm.formState.errors?.email && (
+              <p className="text-sm text-red-500 mt-1">
+                {verificationEmailForm.formState.errors.email.message}
+              </p>
+            )}
+          </div>
+
+          <Button
+            type="submit"
+            variant="outline"
+            // disabled={isPending}
+            className="w-full cursor-pointer"
+          >
+            Send Verification Code
+            {/* Sign In {isPending && <Loader className=" animate-spin" />} */}
+          </Button>
+
+          <div
+            onClick={() => setShowForm("login")}
+            className="text-sm text-gray-500 italic hover:text-gray-800 cursor-pointer"
+          >
+            Login Page
+          </div>
+        </form>
+      )}
+
+      {step === 2 && (
+        <form
+          className="space-y-4"
+          onSubmit={verificationCodeForm.handleSubmit(
+            handleVerificationCodeSubmit
+          )}
+        >
+          <div>
+            <label className="block text-sm text-gray-700 mb-3">
+              Enter Verification Code
+            </label>
+            <Input
+              type="number"
+              {...verificationCodeForm.register("code", {
+                required: "Code is reuiqred",
+                min: "Verification code must be exactly 6 digits.",
+              })}
+            />
+
+            {verificationCodeForm.formState.errors?.code && (
+              <p className="text-sm text-red-500 mt-1">
+                {verificationCodeForm.formState.errors.code.message}
+              </p>
+            )}
+          </div>
+
+          <Button
+            type="submit"
+            variant="outline"
+            // disabled={isPending}
+            className="w-full cursor-pointer"
+          >
+            Submit Code
+            {/* Sign In {isPending && <Loader className=" animate-spin" />} */}
+          </Button>
+
+          <div
+            onClick={() => setShowForm("login")}
+            className="text-sm text-gray-500 italic hover:text-gray-800 cursor-pointer"
+          >
+            Login Page
+          </div>
+        </form>
+      )}
+
+      {step === 3 && (
+        <form
+          className="space-y-4"
+          onSubmit={resetPasswordForm.handleSubmit(handleResetPassword)}
+        >
+          <div>
+            <label className="block text-sm text-gray-700 mb-3">Password</label>
+            <Input
+              type="password"
+              {...resetPasswordForm.register("password", {
+                required: "Password is required",
+                minLength: {
+                  value: 8,
+                  message: "Password must be at least 8 characters long",
+                },
+              })}
+            />
+            {resetPasswordForm.formState.errors?.password && (
+              <p className="text-sm text-red-500 mt-1">
+                {resetPasswordForm.formState.errors.password.message}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm text-gray-700 mb-3">
+              Confirm Password
+            </label>
+            <Input
+              type="password"
+              {...resetPasswordForm.register("confirmPassword", {
+                required: "Confirm Password is required",
+                validate: (value) =>
+                  value === resetPasswordForm.getValues("password") ||
+                  "Confirm Password should match the password",
+              })}
+            />
+            {resetPasswordForm.formState.errors?.confirmPassword && (
+              <p className="text-sm text-red-500 mt-1">
+                {resetPasswordForm.formState.errors.confirmPassword.message}
+              </p>
+            )}
+          </div>
+
+          <Button
+            type="submit"
+            variant="outline"
+            // disabled={isPending}
+            className="w-full cursor-pointer"
+          >
+            Reset Password
+            {/* Sign In {isPending && <Loader className=" animate-spin" />} */}
+          </Button>
+
+          <div
+            onClick={() => setShowForm("login")}
+            className="text-sm text-gray-500 italic hover:text-gray-800 cursor-pointer"
+          >
+            Login Page
+          </div>
+        </form>
+      )}
+
+      <div className="mt-6 pt-6 border-t border-gray-200 text-center">
+        <p className="text-sm text-gray-600">
+          Please use your registered OrphanDX account to log in.
+        </p>
+      </div>
+
+      <div className="mt-6 text-center">
+        <p className="text-xs text-gray-500">
+          Access is restricted to authorized personnel. Do not share credentials
+          or patient data.
+        </p>
+      </div>
+    </Card>
   );
 };
 
