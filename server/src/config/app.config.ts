@@ -14,6 +14,9 @@ const AppConfig = Object.freeze({
   CREDENTIAL_ENCRYPTION_KEY: String(process.env.CREDENTIAL_ENCRYPTION_KEY),
   DATABASE_URL: String(process.env.DATABASE_URL),
   PF_JWT_SECRET: String(process.env.PF_JWT_SECRET),
+  SMTP_HOST: String(process.env.SMTP_HOST),
+  SMTP_FROM: String(process.env.SMTP_FROM),
+  SMTP_PASSWORD: String(process.env.SMTP_PASSWORD),
 });
 
 export default AppConfig;

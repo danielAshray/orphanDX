@@ -56,6 +56,23 @@ const userRegisterSchema = Joi.object({
     .optional(),
 }).required();
 
+const generateEmailVerificationCodeSchema = Joi.object({
+  email: Joi.string().email().required(),
+});
+
+const verifyPasswordResetCodeSchema = Joi.object({
+  code: Joi.string().pattern(/^\d{6}$/).required,
+  email: Joi.string().email().required(),
+});
+
+const resetPasswordSchema = Joi.object({
+  code: Joi.string()
+    .pattern(/^\d{6}$/)
+    .required(),
+  email: Joi.string().email().required(),
+  password: Joi.string().min(8).required(),
+});
+
 const createOrganizationSchema = Joi.object({
   organization: Joi.object({
     name: Joi.string().required().lowercase(),
@@ -167,4 +184,7 @@ export {
   createManualOrderSchema,
   createNewManualOrderSchema,
   collectOrderSchema,
+  generateEmailVerificationCodeSchema,
+  verifyPasswordResetCodeSchema,
+  resetPasswordSchema
 };

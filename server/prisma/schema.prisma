@@ -43,6 +43,8 @@ model User {
   name           String
   role           UserRole
   organizationId String?
+  passwordResetCode String?
+  passwordResetCodeDate DateTime?
   organization   Organization? @relation(fields: [organizationId], references: [id])
   labOrders      LabOrder[]
 

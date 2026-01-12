@@ -168,4 +168,10 @@ const practiceFusionCallback = async (
   }
 };
 
-export { getProfile, practiceFusionLogin, practiceFusionCallback };
+
+
+export {
+  getProfile,
+  practiceFusionLogin,
+  practiceFusionCallback,
+};

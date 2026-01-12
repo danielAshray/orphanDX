@@ -3,7 +3,12 @@ import {
   validateQuery,
   validateBody,
 } from "../middlewares/requestValidator.middleware";
-import { userLoginSchema } from "../validators/bodySchema";
+import {
+  generateEmailVerificationCodeSchema,
+  userLoginSchema,
+  verifyPasswordResetCodeSchema,
+  resetPasswordSchema,
+} from "../validators/bodySchema";
 import {
   getProfile,
   practiceFusionCallback,
@@ -12,7 +17,12 @@ import {
 import { authenticate } from "../middlewares/auth.middleware";
 import { pfCallbackQuery } from "../validators/querySchema";
 import { loginLimiter } from "../middlewares/limit.middleware";
-import { loginUser } from "../controllers/auth.controller";
+import {
+  loginUser,
+  generateEmailVerificationCode,
+  verifyPasswordResetCode,
+  resetPassword,
+} from "../controllers/auth.controller";
 
 const userRoute = Router();
 
@@ -34,5 +44,23 @@ userRoute.get(
   "/auth/callback",
   validateQuery(pfCallbackQuery),
   practiceFusionCallback
+);
+
+userRoute.post(
+  "/generate-email-verification-code",
+  validateBody(generateEmailVerificationCodeSchema),
+  generateEmailVerificationCode
+);
+
+userRoute.post(
+  "/verify-passowrd-reset-code",
+  validateBody(verifyPasswordResetCodeSchema),
+  verifyPasswordResetCode
+);
+
+userRoute.post(
+  "/reset-password",
+  validateBody(resetPasswordSchema),
+  resetPassword
 );
 export default userRoute;
