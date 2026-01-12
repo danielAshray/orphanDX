@@ -220,7 +220,6 @@ const generateEmailVerificationCode = async (
     return res.status(500).json({
       success: false,
       message,
-      practiceId: req.query.practiceId || null,
     });
   }
 };

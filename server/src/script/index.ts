@@ -749,8 +749,8 @@ const callFunc: Record<tagType, Function> = {
   recommendation: createRecomendation,
 };
 
-callFunc["user"]();
-// callFunc["org"]();
+// callFunc["user"]();
+callFunc["org"]();
 // callFunc["labUser"]();
 // callFunc["patient"]();
 // callFunc["labRule"]();
