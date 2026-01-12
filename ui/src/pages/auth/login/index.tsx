@@ -1,7 +1,12 @@
 import { ImageWithFallback, Input } from "@/components";
 import { Button } from "@/components/button";
 import { Card } from "@/components/card";
-import { useLoginUser } from "@/hooks";
+import {
+  useLoginUser,
+  useResetPassword,
+  useSendEmailVerificationCode,
+  useVerifyPasswordResetCode,
+} from "@/hooks";
 import {
   CheckCircle,
   Database,
@@ -14,7 +19,6 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
-import { Link } from "react-router-dom";
 
 export interface LoginProps {
   email: string;
@@ -270,6 +274,22 @@ const Login = () => {
   );
 };
 
+export interface VerificationEmailForm {
+  email: string;
+}
+
+export interface VerificationCodeForm {
+  email: string;
+  code: string;
+}
+
+export interface ResetPasswordForm {
+  email?: string;
+  code?: string;
+  password: string;
+  confirmPassword?: string;
+}
+
 const ResetPassword = ({
   setShowForm,
 }: {
@@ -279,31 +299,47 @@ const ResetPassword = ({
 }) => {
   const [step, setStep] = useState<1 | 2 | 3>(1);
 
-  const verificationEmailForm = useForm<{ email: string }>({});
-  const verificationCodeForm = useForm<{ code: string }>();
-  const resetPasswordForm = useForm<{
-    password: string;
-    confirmPassword: string;
-  }>();
+  const verificationEmailForm = useForm<VerificationEmailForm>({});
+  const verificationCodeForm = useForm<VerificationCodeForm>();
+  const resetPasswordForm = useForm<ResetPasswordForm>();
+
+  const emailVerificationMutation = useSendEmailVerificationCode();
+  const verifyPasswordResetCodeMutation = useVerifyPasswordResetCode();
+  const resetPasswordMutation = useResetPassword();
 
   const handleEmailSubmit = ({ email }: { email: string }) => {
-    console.log("inside handleSumbitEmail");
-    setStep(2);
+    emailVerificationMutation.mutate(
+      { email },
+      {
+        onSuccess: () => {
+          setStep(2);
+        },
+      }
+    );
   };
   const handleVerificationCodeSubmit = ({ code }: { code: string }) => {
+    const email = verificationEmailForm.getValues("email");
+    verifyPasswordResetCodeMutation.mutate(
+      { code, email },
+      { onSuccess: () => setStep(3), onError: () => setStep(1) }
+    );
     setStep(3);
   };
 
-  const handleResetPassword = ({
-    password,
-    confirmPassword,
-  }: {
-    password: string;
-    confirmPassword: string;
-  }) => {
-    console.log("in here: password: ", password);
-    setShowForm("login");
+  const handleResetPassword = ({ password }: ResetPasswordForm) => {
+    const email = verificationEmailForm.getValues("email");
+    const code = verificationCodeForm.getValues("code");
+    resetPasswordMutation.mutate(
+      { email, code, password },
+      {
+        onSuccess: () => {
+          setStep(1);
+          setShowForm("login");
+        },
+      }
+    );
   };
+
   return (
     <Card className="w-full max-w-md p-8 shadow-xl">
       <div className="flex flex-col items-center justify-center mb-8">
