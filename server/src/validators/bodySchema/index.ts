@@ -46,6 +46,11 @@ const userLoginSchema = Joi.object({
   password: Joi.string().required(),
 }).required();
 
+const changePasswordSchema = Joi.object({
+  oldPassword: Joi.string().min(8).required(),
+  newPassword: Joi.string().min(8).required(),
+}).required();
+
 const userRegisterSchema = Joi.object({
   name: Joi.string().required(),
   email: Joi.string().email().required(),
@@ -156,6 +161,7 @@ const collectOrderSchema = Joi.object({
   .required();
 
 export {
+  changePasswordSchema,
   userLoginSchema,
   userRegisterSchema,
   createOrderSchema,

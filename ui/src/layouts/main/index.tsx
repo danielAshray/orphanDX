@@ -2,6 +2,7 @@ import { Button } from "@/components/button";
 import {
   Building2,
   FlaskConical,
+  KeyRound,
   LogOut,
   ShieldCheck,
   Stethoscope,
@@ -9,8 +10,12 @@ import {
 import { Outlet } from "react-router-dom";
 import { useAuthContext } from "@/context/auth";
 import { ImageWithFallback } from "@/components";
+import { useState } from "react";
+import ChangePasswordDialog from "./ChangePassword Dialog";
 
 const Main = () => {
+  const [showChangePassword, setShowChangePassword] = useState(false);
+
   const { orgRole, role, user, logout } = useAuthContext();
 
   const { name, organization } = user;
@@ -68,6 +73,16 @@ const Main = () => {
               <Button
                 variant="outline"
                 size="sm"
+                onClick={() => setShowChangePassword(true)}
+                className="gap-2"
+              >
+                <KeyRound className="w-4 h-4" />
+                Change Password
+              </Button>
+
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={handleLogout}
                 className="gap-2 cursor-pointer"
               >
@@ -82,6 +97,15 @@ const Main = () => {
       <main className="container mx-auto p-4">
         <Outlet />
       </main>
+
+      {showChangePassword && (
+        <ChangePasswordDialog
+          open={showChangePassword}
+          onOpenChange={setShowChangePassword}
+          user={user}
+          organization={organization}
+        />
+      )}
     </div>
   );
 };

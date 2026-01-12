@@ -101,4 +101,47 @@ const registerUser = async (
   }
 };
 
-export { loginUser, registerUser };
+const changePassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+
+    const userId = req.user?.id;
+
+    const userExists = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!userExists) {
+      const message = "User not found";
+      return next(ApiError.notFound(message));
+    }
+
+    const matchPassword = comparePassword(oldPassword, userExists.password);
+
+    if (!matchPassword) {
+      const message = "Old password is incorrect";
+      return next(ApiError.unauthorized(message));
+    }
+
+    const hashedPassword = hashPassword(newPassword);
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword },
+    });
+
+    sendResponse(res, {
+      success: true,
+      code: 200,
+      message: "Password changed successfully",
+    });
+  } catch (error: any) {
+    next(ApiError.internal(undefined, error.message));
+  }
+};
+
+export { loginUser, registerUser, changePassword };
