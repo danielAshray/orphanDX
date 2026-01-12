@@ -105,8 +105,9 @@ const registerUser = async (
 const generateEmailVerificationCode = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction
 ) => {
+  console.log("in here");
   try {
     const { email } = req.body;
     const user = await prisma.user.findFirst({ where: { email } });
@@ -247,7 +248,7 @@ const verifyEmailAndCode = async (email: string, code: string) => {
 const verifyPasswordResetCode = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction
 ) => {
   try {
     const { email, code } = req.body;
@@ -269,7 +270,7 @@ const verifyPasswordResetCode = async (
 const resetPassword = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction
 ) => {
   try {
     const { email, password, code } = req.body;

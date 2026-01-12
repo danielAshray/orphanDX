@@ -27,7 +27,7 @@ const generateEmailVerificationCode = async ({
 }: {
   email: string;
 }): Promise<ApiReponse> => {
-  const { data } = await api.post<ApiReponse>(UserRoutes.login, {
+  const { data } = await api.post<ApiReponse>(UserRoutes.generateEmailVerificationCode, {
     email,
   });
   return data;
