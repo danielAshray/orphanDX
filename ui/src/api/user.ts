@@ -67,7 +67,6 @@ const useChangePasssword = () => {
 type UpdateProfileProps = {
   name: string;
   email: string;
-  phone: string;
   title?: string;
 };
 
