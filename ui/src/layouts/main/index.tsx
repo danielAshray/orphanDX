@@ -19,13 +19,30 @@ import { Outlet } from "react-router-dom";
 import { useAuthContext } from "@/context/auth";
 import { ImageWithFallback } from "@/components";
 import UserProfileDialog from "./UserProfileDialog";
+import { fetchProfileApi } from "@/api/user";
+import { useQuery } from "@tanstack/react-query";
 
 const Main = () => {
   const [showUserProfile, setShowUserProfile] = useState<boolean>(false);
 
   const { orgRole, role, user, logout } = useAuthContext();
 
-  const { name, organization } = user;
+  const { organization } = user;
+
+  const { data: userProfileRes } = useQuery({
+    queryKey: ["fetchProfileApi"],
+    queryFn: fetchProfileApi,
+    refetchOnReconnect: false,
+    refetchOnWindowFocus: false,
+    // enabled: !!showUserProfile,
+  });
+
+  const userProfile = (userProfileRes?.data || {}) as {
+    name: string;
+    email: string;
+    createdAt: string;
+    updatedAt: string;
+  };
 
   const getRoleIcon = () => {
     switch (orgRole?.toLowerCase()) {
@@ -70,7 +87,9 @@ const Main = () => {
                   <button className="flex items-center gap-3 px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors cursor-pointer">
                     {getRoleIcon()}
                     <div className="text-left">
-                      <p className="text-sm text-gray-900">{name}</p>
+                      <p className="text-sm text-gray-900">
+                        {userProfile?.name}
+                      </p>
                       <p className="text-xs text-gray-600">
                         {role?.toLowerCase() === "service_account"
                           ? "SUPER ADMIN"
@@ -112,6 +131,7 @@ const Main = () => {
           open={showUserProfile}
           onOpenChange={setShowUserProfile}
           user={user}
+          userProfile={userProfile}
           organization={organization}
         />
       )}

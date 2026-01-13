@@ -159,7 +159,7 @@ const updateProfile = async (
   try {
     const userId = req.user?.id;
 
-    const { name, email, phone } = req.body;
+    const { name, email } = req.body;
 
     const userExists = await prisma.user.findUnique({
       where: { id: userId },
@@ -186,22 +186,12 @@ const updateProfile = async (
       data: {
         name,
         email,
-        organization: {
-          update: {
-            phone: phone,
-          },
-        },
       },
       select: {
         id: true,
         name: true,
         email: true,
         role: true,
-        organization: {
-          select: {
-            phone: true,
-          },
-        },
       },
     });
 

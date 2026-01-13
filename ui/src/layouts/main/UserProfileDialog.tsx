@@ -23,14 +23,23 @@ import { Badge } from "@/components/badge";
 import { Card } from "@/components/card";
 import ChangePasswordDialog from "./ChangePasswordDialog";
 import { ScrollArea } from "@/components/scrollArea";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { fetchProfileApi, useUpdateProfile } from "@/api/user";
+import { useQueryClient } from "@tanstack/react-query";
+import { useUpdateProfile } from "@/api/user";
 import { useForm } from "react-hook-form";
+import dayjs from "dayjs";
+
+type UserProfileProps = {
+  name: string;
+  email: string;
+  createdAt: string;
+  updatedAt: string;
+};
 
 interface UserProfileDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   user: User;
+  userProfile: UserProfileProps;
   organization: any;
 }
 
@@ -45,6 +54,7 @@ const UserProfileDialog = ({
   open,
   onOpenChange,
   user,
+  userProfile,
   organization,
 }: UserProfileDialogProps) => {
   const queryClient = useQueryClient();
@@ -53,20 +63,6 @@ const UserProfileDialog = ({
   const [showChangePassword, setShowChangePassword] = useState(false);
 
   const { mutate } = useUpdateProfile();
-
-  const { data: userProfileRes } = useQuery({
-    queryKey: ["fetchProfileApi"],
-    queryFn: fetchProfileApi,
-    refetchOnReconnect: false,
-    refetchOnWindowFocus: false,
-    enabled: open,
-  });
-
-  const userProfile = (userProfileRes?.data || {}) as {
-    name: string;
-    email: string;
-    phone: string;
-  };
 
   const {
     register,
@@ -78,26 +74,18 @@ const UserProfileDialog = ({
       name: userProfile.name || "",
       email: userProfile.email || "",
       title: "",
-      phone: userProfile.phone || "",
     },
   });
 
   useEffect(() => {
-    if (userProfileRes?.data) {
+    if (userProfile) {
       reset({
         name: userProfile.name || "",
         email: userProfile.email || "",
         title: "",
-        phone: userProfile.phone || "",
       });
     }
-  }, [
-    userProfileRes,
-    reset,
-    userProfile.name,
-    userProfile.email,
-    userProfile.phone,
-  ]);
+  }, [userProfile, reset, userProfile.name, userProfile.email]);
 
   const onSubmit = async (data: ProfileFormValues) => {
     mutate(
@@ -119,7 +107,6 @@ const UserProfileDialog = ({
       name: userProfile.name,
       email: userProfile.email,
       title: "",
-      phone: userProfile.phone,
     });
     setIsEditing(false);
   };
@@ -275,30 +262,6 @@ const UserProfileDialog = ({
                   )}
                 </div>
 
-                {/* Phone */}
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number</Label>
-                  {isEditing ? (
-                    <Input
-                      id="phone"
-                      type="tel"
-                      placeholder="Enter your phone"
-                      {...register("phone", { required: "Phone is required" })}
-                    />
-                  ) : (
-                    <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md">
-                      <p className="text-gray-600 italic">
-                        {userProfile.phone || "Not specified"}
-                      </p>
-                    </div>
-                  )}
-                  {errors.phone && (
-                    <p className="text-red-500 text-sm">
-                      {errors.phone.message}
-                    </p>
-                  )}
-                </div>
-
                 {isEditing && (
                   <div className="flex gap-3 justify-end pt-4 border-t mt-6">
                     <Button
@@ -340,7 +303,8 @@ const UserProfileDialog = ({
                         <p className="text-gray-900">Password</p>
                       </div>
                       <p className="text-sm text-gray-600">
-                        Last updated: Not available
+                        Last updated:{" "}
+                        {dayjs(userProfile.updatedAt).format("MMMM D, YYYY")}
                       </p>
                       <p className="text-sm text-gray-600 mt-1">
                         Keep your password secure and update it regularly.
@@ -368,7 +332,9 @@ const UserProfileDialog = ({
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <p className="text-gray-600">Account Created</p>
-                    <p className="text-gray-900">Not available</p>
+                    <p className="text-gray-900">
+                      {dayjs(userProfile.createdAt).format("MMMM D, YYYY")}
+                    </p>
                   </div>
                   <div>
                     <p className="text-gray-600">Last Login</p>
