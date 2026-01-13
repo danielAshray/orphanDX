@@ -31,6 +31,7 @@ import dayjs from "dayjs";
 type UserProfileProps = {
   name: string;
   email: string;
+  title: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -73,7 +74,7 @@ const UserProfileDialog = ({
     defaultValues: {
       name: userProfile.name || "",
       email: userProfile.email || "",
-      title: "",
+      title: userProfile.title || "",
     },
   });
 
@@ -82,10 +83,16 @@ const UserProfileDialog = ({
       reset({
         name: userProfile.name || "",
         email: userProfile.email || "",
-        title: "",
+        title: userProfile.title || "",
       });
     }
-  }, [userProfile, reset, userProfile.name, userProfile.email]);
+  }, [
+    userProfile,
+    reset,
+    userProfile.name,
+    userProfile.email,
+    userProfile.title,
+  ]);
 
   const onSubmit = async (data: ProfileFormValues) => {
     mutate(
@@ -106,7 +113,7 @@ const UserProfileDialog = ({
     reset({
       name: userProfile.name,
       email: userProfile.email,
-      title: "",
+      title: userProfile.title || "",
     });
     setIsEditing(false);
   };
@@ -253,10 +260,7 @@ const UserProfileDialog = ({
                   ) : (
                     <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md">
                       <p className="text-gray-600 italic">
-                        {
-                          // userProfile.title ||
-                          "Not specified"
-                        }
+                        {userProfile.title || "Not specified"}
                       </p>
                     </div>
                   )}

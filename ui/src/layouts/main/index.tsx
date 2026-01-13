@@ -39,6 +39,7 @@ const Main = () => {
   const userProfile = (userProfileRes?.data || {}) as {
     name: string;
     email: string;
+    title: string | null;
     createdAt: string;
     updatedAt: string;
   };

@@ -18,6 +18,7 @@ const getProfile = async (req: Request, res: Response, next: NextFunction) => {
         id: true,
         name: true,
         email: true,
+        title: true,
         role: true,
         createdAt: true,
         updatedAt: true,
