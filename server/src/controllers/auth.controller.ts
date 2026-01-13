@@ -4,7 +4,7 @@ import { ApiError } from "../utils/apiService";
 import { comparePassword, hashPassword } from "../utils/bcryptService";
 import { generateToken } from "../utils/jwtService";
 import { sendResponse } from "../utils/responseService";
-import emailQueue from "../workers/email.worker";
+import sendEmail from "../utils/emailService";
 
 const loginUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -205,11 +205,7 @@ const generateEmailVerificationCode = async (
                           </html>
                           `;
 
-    emailQueue.add("sendEmail", {
-      to: email,
-      subject: "Password Recovery",
-      html,
-    });
+    await sendEmail({html, subject:"Password Recovery", to:email});
     sendResponse(res, {
       message: "Password Rcovery email successfully sent.",
       code: 201,
