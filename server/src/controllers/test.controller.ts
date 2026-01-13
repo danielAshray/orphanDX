@@ -5,13 +5,15 @@ import { ApiError } from "../utils/apiService";
 
 const fetchTests = async (_req: Request, res: Response, next: NextFunction) => {
   try {
-    const tests = await prisma.labTest.findMany();
+    const uniqueTests = await prisma.labTest.findMany({
+      distinct: ["testName", "cptCode"],
+    });
 
     sendResponse(res, {
       success: true,
       code: 200,
       message: "Tests fetched successfully",
-      data: tests,
+      data: uniqueTests,
     });
   } catch (error: any) {
     next(ApiError.internal(undefined, error));

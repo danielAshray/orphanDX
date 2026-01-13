@@ -34,7 +34,6 @@ const Main = () => {
     queryFn: fetchProfileApi,
     refetchOnReconnect: false,
     refetchOnWindowFocus: false,
-    // enabled: !!showUserProfile,
   });
 
   const userProfile = (userProfileRes?.data || {}) as {
