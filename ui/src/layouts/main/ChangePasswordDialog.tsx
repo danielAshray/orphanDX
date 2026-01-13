@@ -52,7 +52,23 @@ const ChangePasswordDialog = ({
   const currentPasswordValue = watch("currentPassword");
   const confirmPasswordValue = watch("confirmPassword");
 
+  const isLengthValid = newPasswordValue?.length >= 8;
+  const isDifferentFromOld =
+    currentPasswordValue &&
+    newPasswordValue &&
+    currentPasswordValue !== newPasswordValue;
+
+  const isMatch =
+    newPasswordValue &&
+    confirmPasswordValue &&
+    newPasswordValue === confirmPasswordValue;
+
+  const isFormValid =
+    isLengthValid && isDifferentFromOld && isMatch && currentPasswordValue;
+
   const onSubmit = (data: FormValues) => {
+    if (!isFormValid) return;
+
     mutate(
       { oldPassword: data.currentPassword, newPassword: data.newPassword },
       {
@@ -262,7 +278,7 @@ const ChangePasswordDialog = ({
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isPending}>
+            <Button type="submit" disabled={isPending || !isFormValid}>
               {isPending ? "Updating..." : "Change Password"}
             </Button>
           </div>

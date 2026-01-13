@@ -127,6 +127,13 @@ const changePassword = async (
       return next(ApiError.unauthorized(message));
     }
 
+    const samePassword = comparePassword(newPassword, userExists.password);
+
+    if (samePassword) {
+      const message = "New password must be different";
+      return next(ApiError.badRequest(message));
+    }
+
     const hashedPassword = hashPassword(newPassword);
 
     await prisma.user.update({
