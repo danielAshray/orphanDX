@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,6 +21,16 @@ import { ImageWithFallback } from "@/components";
 import UserProfileDialog from "./UserProfileDialog";
 import { fetchProfileApi } from "@/api/user";
 import { useQuery } from "@tanstack/react-query";
+import { STORAGE_KEYS } from "@/lib/constants/storageKeys";
+import { localStorageUtil } from "@/lib/storage/localStorage";
+
+export type UserProfileProps = {
+  name: string;
+  email: string;
+  title: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
 
 const Main = () => {
   const [showUserProfile, setShowUserProfile] = useState<boolean>(false);
@@ -36,13 +46,13 @@ const Main = () => {
     refetchOnWindowFocus: false,
   });
 
-  const userProfile = (userProfileRes?.data || {}) as {
-    name: string;
-    email: string;
-    title: string | null;
-    createdAt: string;
-    updatedAt: string;
-  };
+  useEffect(() => {
+    if (!userProfileRes?.data) return;
+
+    localStorageUtil.set(STORAGE_KEYS.USER_PROFILE, userProfileRes?.data);
+  }, [userProfileRes?.data]);
+
+  const userProfile = (userProfileRes?.data || {}) as UserProfileProps;
 
   const getRoleIcon = () => {
     switch (orgRole?.toLowerCase()) {

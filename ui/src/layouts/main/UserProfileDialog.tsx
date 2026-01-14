@@ -27,14 +27,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useUpdateProfile } from "@/api/user";
 import { useForm } from "react-hook-form";
 import dayjs from "dayjs";
-
-type UserProfileProps = {
-  name: string;
-  email: string;
-  title: string | null;
-  createdAt: string;
-  updatedAt: string;
-};
+import type { UserProfileProps } from ".";
 
 interface UserProfileDialogProps {
   open: boolean;
@@ -250,7 +243,7 @@ const UserProfileDialog = ({
 
                 {/* Title */}
                 <div className="space-y-2">
-                  <Label htmlFor="title">Title / Position</Label>
+                  <Label htmlFor="title">Title</Label>
                   {isEditing ? (
                     <Input
                       id="title"
