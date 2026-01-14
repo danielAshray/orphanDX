@@ -9,6 +9,21 @@ import {
   type ReactNode,
 } from "react";
 import { Navigate, Outlet } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
+
+type JwtPayload = {
+  exp: number;
+};
+
+const isTokenExpired = (token: string) => {
+  try {
+    const decoded = jwtDecode<JwtPayload>(token);
+    const now = Date.now() / 1000;
+    return decoded.exp < now;
+  } catch {
+    return true;
+  }
+};
 
 type AuthContextType = {
   token: string | null;
@@ -30,18 +45,23 @@ interface AuthProviderProps {
 }
 
 const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [token, setToken] = useState<string | null>(
-    localStorageUtil.get(STORAGE_KEYS.TOKEN)
-  );
-  const [orgRole, setOrgRole] = useState<string | null>(
-    localStorageUtil.get(STORAGE_KEYS.ORG_ROLE)
-  );
-  const [role, setRole] = useState<string | null>(
-    localStorageUtil.get(STORAGE_KEYS.ROLE)
-  );
-  const [user, setUser] = useState<any | null>(
-    localStorageUtil.get(STORAGE_KEYS.USER)
-  );
+  const [token, setToken] = useState<string | null>(() => {
+    const t = localStorageUtil.get(STORAGE_KEYS.TOKEN);
+    const tokenString = typeof t === "string" ? t : null;
+    return tokenString && !isTokenExpired(tokenString) ? tokenString : null;
+  });
+  const [orgRole, setOrgRole] = useState<string | null>(() => {
+    if (!token) return null;
+    return localStorageUtil.get(STORAGE_KEYS.ORG_ROLE) || null;
+  });
+  const [role, setRole] = useState<string | null>(() => {
+    if (!token) return null;
+    return localStorageUtil.get(STORAGE_KEYS.ROLE) || null;
+  });
+  const [user, setUser] = useState<any | null>(() => {
+    if (!token) return null;
+    return localStorageUtil.get(STORAGE_KEYS.USER) || null;
+  });
 
   useEffect(() => {
     if (token) localStorageUtil.set(STORAGE_KEYS.TOKEN, token);
@@ -63,6 +83,19 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     else localStorageUtil.remove(STORAGE_KEYS.USER);
   }, [user]);
 
+  useEffect(() => {
+    if (!token) return;
+
+    const checkExpiry = () => {
+      if (isTokenExpired(token)) logout();
+    };
+
+    checkExpiry();
+
+    const interval = setInterval(checkExpiry, 60 * 1000);
+    return () => clearInterval(interval);
+  }, [token]);
+
   const login = (L: any) => {
     setToken(L.token);
 
@@ -76,11 +109,11 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const logout = () => {
-    localStorageUtil.clear();
     setToken(null);
     setOrgRole(null);
     setRole(null);
     setUser(null);
+    localStorageUtil.clear();
   };
 
   return (

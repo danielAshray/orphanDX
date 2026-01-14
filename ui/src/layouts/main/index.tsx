@@ -21,8 +21,8 @@ import { ImageWithFallback } from "@/components";
 import UserProfileDialog from "./UserProfileDialog";
 import { fetchProfileApi } from "@/api/user";
 import { useQuery } from "@tanstack/react-query";
-import { sessionStorageUtil } from "@/lib/storage/sessionStorage";
 import { STORAGE_KEYS } from "@/lib/constants/storageKeys";
+import { localStorageUtil } from "@/lib/storage/localStorage";
 
 export type UserProfileProps = {
   name: string;
@@ -49,7 +49,7 @@ const Main = () => {
   useEffect(() => {
     if (!userProfileRes?.data) return;
 
-    sessionStorageUtil.set(STORAGE_KEYS.USER_PROFILE, userProfileRes?.data);
+    localStorageUtil.set(STORAGE_KEYS.USER_PROFILE, userProfileRes?.data);
   }, [userProfileRes?.data]);
 
   const userProfile = (userProfileRes?.data || {}) as UserProfileProps;

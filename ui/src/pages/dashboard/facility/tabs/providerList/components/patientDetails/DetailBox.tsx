@@ -27,9 +27,9 @@ import { useState } from "react";
 import { OWLiverRequisition } from "@/elements";
 import { config } from "@/config/env";
 import { Checkbox } from "@/components/checkbox";
-import { sessionStorageUtil } from "@/lib/storage/sessionStorage";
 import { STORAGE_KEYS } from "@/lib/constants/storageKeys";
 import type { UserProfileProps } from "@/layouts/main";
+import { localStorageUtil } from "@/lib/storage/localStorage";
 
 type DetailBoxProps = {
   patientId: string;
@@ -37,7 +37,7 @@ type DetailBoxProps = {
 };
 
 const DetailBox = ({ patientId, handleCollectionDialog }: DetailBoxProps) => {
-  const userProfile = sessionStorageUtil.get<UserProfileProps>(
+  const userProfile = localStorageUtil.get<UserProfileProps>(
     STORAGE_KEYS.USER_PROFILE
   );
   const [electronicSignatures, setElectronicSignatures] = useState<
