@@ -114,6 +114,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     setRole(null);
     setUser(null);
     localStorageUtil.clear();
+    window.location.reload();
   };
 
   return (
