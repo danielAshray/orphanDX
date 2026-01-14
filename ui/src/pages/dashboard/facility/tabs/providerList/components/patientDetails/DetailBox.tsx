@@ -27,7 +27,9 @@ import { useState } from "react";
 import { OWLiverRequisition } from "@/elements";
 import { config } from "@/config/env";
 import { Checkbox } from "@/components/checkbox";
-import { useAuthContext } from "@/context/auth";
+import { sessionStorageUtil } from "@/lib/storage/sessionStorage";
+import { STORAGE_KEYS } from "@/lib/constants/storageKeys";
+import type { UserProfileProps } from "@/layouts/main";
 
 type DetailBoxProps = {
   patientId: string;
@@ -35,8 +37,9 @@ type DetailBoxProps = {
 };
 
 const DetailBox = ({ patientId, handleCollectionDialog }: DetailBoxProps) => {
-  const { user } = useAuthContext();
-  const { name } = user;
+  const userProfile = sessionStorageUtil.get<UserProfileProps>(
+    STORAGE_KEYS.USER_PROFILE
+  );
   const [electronicSignatures, setElectronicSignatures] = useState<
     Record<string, string>
   >({});
@@ -448,9 +451,9 @@ const DetailBox = ({ patientId, handleCollectionDialog }: DetailBoxProps) => {
                             >
                               Electronically signed by{" "}
                               <span className="font-semibold">
-                                {name || "Provider"}
+                                {userProfile?.name}
                               </span>
-                              , Physician on{" "}
+                              , {userProfile?.title} on{" "}
                               {new Date().toLocaleString("en-US", {
                                 month: "short",
                                 day: "numeric",
